@@ -1,0 +1,100 @@
+\cd ~/projects/reap_proj/final_datasets/
+global mergetempsuffix AZdata
+
+clear
+infile using ~/projects/reap_proj/final_datasets/AZ.dct , using(~/projects/reap_proj/raw_data/Arizona/corext.txt)
+rename incdate incdatestr
+gen incdate = date(incdatestr,"YMD")
+gen incyear = year(incdate)
+gen is_DE = jurisdiction == "DE"
+
+/** Drop non profits **/
+drop if corptype == "N"
+gen is_corp = inlist(corptype, "B","P")
+
+gen shortname = wordcount(entityname) < 4
+save AZ.dta, replace
+
+
+replace state = "AZ" if missing(state) & jurisdiction == "AZ"
+gen potentiallylocal = state == "AZ" 
+gen local_firm = potentiallylocal
+gen stateaddress = state
+compress
+keep if is_DE
+
+keep dataid entityname incdate incyear is_DE jurisdiction zipcode state city address is_corp shortname potentiallylocal
+
+save AZ.dta,replace
+
+/* Build Director File */
+clear
+
+import delimited ~/projects/reap_proj/raw_data/Arizona/offext.txt
+save AZ.directors.dta,replace
+
+gen dataid = substr(v1,1,9)
+gen role = substr(v1,10,2)
+gen fullname = trim(substr(v1,12,30))
+
+keep if inlist(role,"PR","P ")
+keep dataid fullname role 
+drop if missing(fullname)
+save AZ.directors.dta, replace
+*/
+
+**
+**
+** STEP 2: Add varCTbles. These varCTbles are within the first year
+**		and very similar to the ones used in "Where Is Silicon Valley?"
+**
+**	
+	u AZ.dta , replace
+	tomname entityname
+	save AZ.dta, replace
+
+
+       corp_add_industry_dummies , ind(~/ado/industry_words.dta) dta(AZ.dta)
+	corp_add_industry_dummies , ind(~/ado/VC_industry_words.dta) dta(AZ.dta)
+	
+	
+	# delimit ;
+	corp_add_trademarks AZ , 
+		dta(AZ.dta) 
+		trademarkfile(~/projects/reap_proj/data/trademarks.dta) 
+		ownerfile(~/projects/reap_proj/data/trademark_owner.dta)
+		var(trademark) 
+		frommonths(-12)
+		tomonths(12)
+		statefileexists;
+	
+	
+	# delimit ;
+	corp_add_patent_applications AZ ARIZONA , 
+		dta(AZ.dta) 
+		pat(~/projects/reap_proj/data_share/patent_applications.dta) 
+		var(patent_application) 
+		frommonths(-12)
+		tomonths(12)
+		statefileexists;
+	
+	# delimit ;
+
+	
+	
+	
+	corp_add_patent_assignments  AZ ARIZONA , 
+		dta(AZ.dta)
+		pat("~/projects/reap_proj/data_share/patent_assignments.dta" "~/projects/reap_proj/data_share/patent_assignments2.dta"  "~/projects/reap_proj/data_share/patent_assignments3.dta")
+		frommonths(-12)
+		tomonths(12)
+		var(patent_assignment)
+		;
+	# delimit cr	
+
+	
+
+	corp_add_ipos	 AZ  ,dta(AZ.dta) ipo(~/projects/reap_proj/data/ipoallUS.dta)  longstate(ARIZONA)
+	corp_add_mergers AZ  ,dta(AZ.dta) merger(~/projects/reap_proj/data/mergers.dta)  longstate(ARIZONA) 
+
+       corp_add_vc AZ ,dta(AZ.dta) vc(~/final_datasets/VX.dta) longstate(ARIZONA)
