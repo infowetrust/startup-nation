@@ -3,9 +3,9 @@
  
  
  local keepraw = 0
- local dtasuffix = "Jan2014File"
+ local dtasuffix
  di "Suffix : `dtasuffix'"
-global mergetempsuffix="CA_Official"
+global mergetempsuffix="migration.CA"
  
  set more off
  
@@ -18,7 +18,7 @@ global mergetempsuffix="CA_Official"
 
 
 	clear
-	infile using ~/projects/reap_proj/raw_data/California/CA_CORPMASTER,  using(/projects/reap.proj/raw_data/California/01Jun2015/CORPMASTER.TXT)
+	infile using /projects/reap.proj/raw_data/California/CA_CORPMASTER,  using(/projects/reap.proj/raw_data/California/01Jun2015/CORPMASTER.TXT)
 	gen ord = _n
 	recast long ord 
 	gen dataid = ord
@@ -33,43 +33,21 @@ global mergetempsuffix="CA_Official"
 
 	gen address = address1 + " " + address2
 	
-	gen deathjyear = substr(last_update, 1,2)
-	gen deathjday = substr(last_update,3,3)
-	replace deathjyear = "" if deathjyear == "ET"
-	replace deathjday = "" if deathjday == "XIL"
-	destring deathjyear, replace
-	destring deathjday, replace
-	replace deathjyear = 2000 + deathjyear if deathjyear < 50
-	
-	
-	jtoe deathjyear deathjday,gen(deathdate)
-	replace deathdate = . if corpstatus == "1"
-	replace deathdate = date("1/1/3000","MDY") if corpstatus !="1" & missing(deathdate)
-	gen deathyear = year(deathdate)
-
-
-	format deathdate %d
 	
 	rename (jurisdiction_state state_county)(jurisdiction state)
 	replace state  = "CA" if missing(state)
+        gen stateaddress = state
 
 	sort incdate entityname 
 	gen is_nonprofit= corptaxbase == "N" & !missing(corptaxbase)
 	
-	** Final Data Drops
-	if `keepraw' != 1 {
-		keep if inlist(jurisdiction,"DELAWARE","DE","","CA")
-		drop if length(state) > 2
-
-		keep if inrange(incyear,1988,2015)
-		keep if !is_nonprofit
-		keep if state == "CA"
-	}
+        gen local_firm = inlist(jurisdiction,"DELAWARE","DE","","CA")
+        replace local_firm =  0 if !(state == "CA")
 	
 	
 	preserve
-	keep dataid corpnumber entityname incdate incyear deathdate deathyear is_corp jurisdiction  address city state zipcode is_nonprofit
-	save CA.`dtasuffix'.dta,replace
+	keep dataid corpnumber entityname incdate incyear  is_corp jurisdiction  address city state zipcode is_nonprofit stateaddress local_firm
+	save CA`dtasuffix'.dta,replace
 
 
 
@@ -81,10 +59,9 @@ global mergetempsuffix="CA_Official"
 	rename fullname1 firstname
 	gen title = "PRESIDENT"
 	keep dataid title firstname fullname
-        gen lastname = word(fullname,-1)
 	save CA.directors.dta,replace
 	
-xo	
+	
 	clear
 	infile using /projects/reap.proj/raw_data/California/CA_CORPHISTORY,  using(/projects/reap.proj/raw_data/California/01Jun2015/CORPHISTORY.TXT)
 	keep if transactioncode == "AMDT"
@@ -108,7 +85,8 @@ xo
 
 	infile using /projects/reap.proj/raw_data/California/CA_LPMASTER, using(/projects/reap.proj/raw_data/California/01Jun2015/LPMASTER.TXT)
 	rename id corpnumber
-	gen ord = _n
+        gen llcid = corpnumber
+        gen ord = _n
 	recast long ord 
 	gen dataid = 15000000 + ord
 	
@@ -123,11 +101,9 @@ xo
 	replace jurisdiction = "CA" if jurisdiction == ""
 
 	** Final Data Drops
-	if `keepraw' != 1 {	
-		keep if inlist(jurisdiction,"CA","DE")
-		keep if state == "CA" | state == ""
-		keep if inrange(incyear,1988,2015)
-	}
+
+        gen local_firm = inlist(jurisdiction,"CA","DE")
+        replace local_firm = 0 if !(state == "CA" | state == "")
 	
 	preserve
 	keep dataid llcid entityname incdate incyear  is_corp jurisdiction  address city state zipcode
@@ -135,9 +111,9 @@ xo
 	*Line Added
 	replace entityname = regexr(entityname,"WHICH WILL DO .*$","")
 	
-	append using CA.`dtasuffix'.dta
+	append using CA`dtasuffix'.dta
 	compress
-	save CA.`dtasuffix'.dta,replace
+	save CA`dtasuffix'.dta,replace
 	
 
 	restore
@@ -150,7 +126,6 @@ xo
 	split fullname, parse(" ") limit(2)
 	rename fullname1 firstname
 	keep dataid title firstname fullname
-        gen lastname = word(fullname,-1)
 	append using CA.directors.dta
 	save CA.directors.dta,replace
 	
@@ -172,19 +147,19 @@ xo
 
 	
 	
-	corp_add_names,dta(CA.`dtasuffix'.dta) names(CA.names.dta)
-	*corp_add_recapitalizations,dta(~/final_datasets/CA.dta) merger(CA.recapitalizations.dta) matchvariable(corpnumber)
+	corp_add_names,dta(CA`dtasuffix'.dta) names(CA.names.dta)
+	*corp_add_recapitalizations,dta(~/migration/datafiles/CA.dta) merger(CA.recapitalizations.dta) matchvariable(corpnumber)
 	
 	
 	clear
-	u CA.`dtasuffix'.dta
+	u CA`dtasuffix'.dta
 	tomname entityname
 	drop if missing(dataid)
-	save CA.`dtasuffix'.dta,replace
+	save CA`dtasuffix'.dta,replace
 
-	corp_add_gender, dta(~/final_datasets/CA.`dtasuffix'.dta) directors(~/final_datasets/CA.directors.dta) names(~/ado/names/NATIONAL.TXT)
 
-	corp_add_eponymy, dtapath(CA.`dtasuffix'.dta) directorpath(CA.directors.dta)
+
+	corp_add_eponymy, dtapath(CA`dtasuffix'.dta) directorpath(CA.directors.dta)
 	
 	# delimit ;
 	corp_add_trademarks CA , 
@@ -193,7 +168,6 @@ xo
 		ownerfile(/projects/reap.proj/data/trademark_owner.dta)
 		var(trademark) 
 		frommonths(-12)
-		classificationfile(/projects/reap.proj/data/trademarks/classification.dta)
 		tomonths(12)
 		statefileexists;
 	
@@ -216,32 +190,23 @@ xo
 		statefileexists;
 	# delimit cr	
 	
-	corp_add_vc2 	 CA  ,dta(~/final_datasets/CA.dta) vc(~/final_datasets/VC.investors.withequity.dta) longstate(CALIFORNIA) 
+	corp_add_vc2 	 CA  ,dta(~/migration/datafiles/CA.dta) vc(~/migration/datafiles/VC.investors.withequity.dta) longstate(CALIFORNIA) 
 
-	corp_add_ipos	 CA  ,dta(~/final_datasets/CA.`dtasuffix'.dta) ipo(/projects/reap.proj/data/ipoallUS.dta)  longstate(CALIFORNIA) 
-	corp_add_mergers CA  ,dta(~/final_datasets/CA.`dtasuffix'.dta) merger(/projects/reap.proj/data/mergers.dta)  longstate(CALIFORNIA) 
+	corp_add_ipos	 CA  ,dta(~/migration/datafiles/CA`dtasuffix'.dta) ipo(/projects/reap.proj/data/ipoallUS.dta)  longstate(CALIFORNIA) 
+	corp_add_mergers CA  ,dta(~/migration/datafiles/CA`dtasuffix'.dta) merger(/projects/reap.proj/data/mergers.dta)  longstate(CALIFORNIA) 
 
 
-*		set trace on
-*		set tracedepth 1
-	corp_add_industry_dummies , ind(~/nbercriw/industry_words.dta) dta(~/final_datasets/CA.`dtasuffix'.dta)
-	corp_add_industry_dummies , ind(~/ado/VC_industry_words.dta) dta(~/final_datasets/CA.`dtasuffix'.dta)
+
+	corp_add_industry_dummies , ind(~/nbercriw/industry_words.dta) dta(~/migration/datafiles/CA`dtasuffix'.dta)
+	corp_add_industry_dummies , ind(~/ado/VC_industry_words.dta) dta(~/migration/datafiles/CA`dtasuffix'.dta)
 
 	
 	
 
 clear
-u ~/final_datasets/CA.`dtasuffix'.dta
+u ~/migration/datafiles/CA`dtasuffix'.dta
 gen is_DE = jurisdiction == "DE"
 gen  shortname = wordcount(entityname) <= 3
-
-gen zip2 = substr(zipcode,1,2)
-replace zip2 = "" if regexm(zip2,"[^0-9]")
-destring zip2, replace
-gen region= "SoCal" if  inlist(zip2,91,92)
-replace region = "NoCal" if  inlist(zip2,93,94,95)
-replace region = "Los Angeles" if  inlist(zip2,90)
-
- save ~/final_datasets/CA.`dtasuffix'.dta, replace
+ save CA.`dtasuffix'.dta, replace
 
 

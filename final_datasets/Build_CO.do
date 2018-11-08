@@ -10,13 +10,8 @@ rename entitynm entityname
 
 rename entitytyp type
 
-foreach v of varlist epaddress1 epaddress2 emaddress1 emddress2 { 
-	replace `v' = trim(upper(`v'))
-	replace `v' = regexr(`v'1 , "(^| )SUITE ([0-9A-Z]|\-)+","")
-}
 
-
-gen address = epaddress1 + " " + epaddress2
+gen address = epaddress1 + epaddress2
 gen city = epcity
 gen addrstate = epstatecd
 gen zip5 = epzip
@@ -24,7 +19,7 @@ gen zip5 = epzip
 gen is_corp = inlist(type,"DPC","FPC")
 gen shortname = wordcount(entityname) < 4
 
-replace address = emaddress1 + " " + emaddress2 if missing(address)
+replace address = emaddress1 + emaddress2 if missing(address)
 replace city = emcity if missing(city)
 replace addrstate = emstatecd if missing(addrstate)
 replace zip5 = emzip if missing(zip5)
@@ -34,7 +29,7 @@ gen jurisdiction = jrsdctnform
 replace jurisdiction = "CO" if missing(jurisdiction) & country == "US"
 gen is_DE = jurisdiction == "DE"
 
-keep if inlist(jurisdiction,"CO","DE")
+gen local_firm= inlist(jurisdiction,"CO","DE")
 
 /* Generating Variables */
 
@@ -45,14 +40,13 @@ drop if missing(incdate)
 drop if missing(entityname)
 
 replace country = "US" if missing(country)
-keep dataid entityname incdate incyear type is_DE jurisdiction country zip5 addrstate city address is_corp shortname
+keep dataid entityname incdate incyear type is_DE jurisdiction country zip5 addrstate city address is_corp shortname local_firm
 
 compress
 rename zip5 zipcode
 rename addrstate state
-drop if is_DE & state != "CO"
 save CO.dta,replace
-/*
+
 /* Build Director File No role*/
 clear
 
@@ -67,7 +61,7 @@ gen role = "agent"
 keep dataid fullname role 
 drop if missing(fullname)
 save CO.directors.dta, replace
-*/
+
 
 **
 **
