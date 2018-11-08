@@ -1,4 +1,5 @@
 cd /projects/reap.proj/reapindex/Iowa
+global mergetempsuffix IA
 
 clear
 #delim ;
@@ -28,10 +29,11 @@ COUNTRY
 */
 clear
 
-#delim ;
-import delimited dataid chapterNo delinFlag farmFlag farmDelinFlag deadCode deadDate stateOfIncorp statusCode dateIncorp dateExpired noAcres
- using /projects/reap.proj/raw_data/Iowa/CrpWFil.txt, delim(tab);
-#delim cr
+
+import delimited dataid chapterNo delinFlag farmFlag farmDelinFlag deadCode deadDate stateOfIncorp statusCode dateIncorp dateExpired noAcres using /projects/reap.proj/raw_data/Iowa/CrpWFil.txt, delim(tab)
+
+gen is_corp = inlist(chapterNo,"490 DP","490 FP")
+
 
 merge 1:m dataid using IA.dta
 /*
@@ -90,7 +92,7 @@ save IA.dta, replace
 gen entityname = name 
 replace entityname = corpName if missing(entityname)
 drop if missing(incdate)
-keep dataid entityname incdate incyear  jurisdiction address city state zipcode country  statusCode is_DE stateaddress local_firm
+keep dataid entityname incdate incyear  jurisdiction address city state zipcode country  statusCode is_DE stateaddress local_firm is_corp
 
 drop if missing(entityname)
 save IA.dta,replace
@@ -176,3 +178,4 @@ save IA.directors.dta, replace
 	corp_add_mergers IA ,dta(IA.dta) merger(/projects/reap.proj/data/mergers.dta) longstate(IOWA)
 	
 	
+      corp_add_vc        IA ,dta(IA.dta) vc(~/final_datasets/VX.dta) longstate(IOWA)
