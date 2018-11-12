@@ -7,15 +7,15 @@ local files `" "Domestic Corp" "Domestic LLC" "Domestic Partnership" "Foreign Co
  
 clear
 gen datafile = ""
-save VT.dta, replace
+save VT.start.dta, replace
 
 foreach file of local files {
     di "Loading: `file'.txt"
     clear
     import delimited using "/projects/reap.proj/raw_data/Vermont/`file'.txt", delim(tab) varnames(1)
    gen datafile = "`file'"
-    append using VT.dta, force
-    save VT.dta, replace
+    append using VT.start.dta, force
+    save VT.start.dta, replace
 }
 
 
@@ -29,7 +29,8 @@ gen jurisdiction = "VT" if placeof == "Vermont"
 replace jurisdiction = "DE" if placeof == "Delaware"
 gen is_DE = jurisdiction == "DE"
 
-keep if inlist(jurisdiction, "VT","DE")
+gen stateaddress = state
+gen local_firm= inlist(jurisdiction, "VT","DE") & stateaddress == "VT"
     
 gen incdate = date(businessorigindate, "YMD")
 gen incyear = year(incdate)
@@ -39,7 +40,9 @@ rename businessname entityname
 gen address = trim(itrim(address1  + " " + address2)) 
 gen is_nonprofit= 0
 gen shortname = wordcount(entityname) <= 3
-keep shortname dataid entityname address zipcode city state jurisdiction is_DE incdate incyear is_corp is_nonprofit
+ 
+
+keep shortname dataid entityname address zipcode city state jurisdiction is_DE incdate incyear is_corp is_nonprofit stateaddress local_firm
 save VT.dta ,replace
 
 
