@@ -1,8 +1,10 @@
 clear
 cd ~/projects/reap_proj/final_datasets/
 
+global mergetempsuffix="OR_Official"
+    
 clear
-import delimited using "~/projects/reap_proj/raw_data/Oregon/2017/Record_Layout_Info/ENTITY_DB_EXTRACT_2017-07-05 09-32-59.TXT", delim(tab) varnames(1)
+import delimited using ~/projects/reap_proj/raw_data/Oregon/ENTITY_DB_EXTRACT_20150721-181707.TXT, delim(tab) varnames(1)
 
 rename entityrsn dataid
 gen corp_number = dataid
@@ -27,7 +29,7 @@ save OR.dta, replace
 
 
 clear
-import delimited using "~/projects/reap_proj/raw_data/Oregon/2017/Record_Layout_Info/REL_ASSOC_NAME_DB_EXTRACT_2017-07-05 09-37-44.TXT", delim(tab) varnames(1)
+import delimited using ~/projects/reap_proj/raw_data/Oregon/REL_ASSOC_NAME_DB_EXTRACT_20150721-215734.TXT, delim(tab) varnames(1)
 keep if inlist(associatednametype,"PRINCIPAL PLACE OF BUSINESS","MAILING ADDRESS")
 gen mainoffice = associatednametype == "PRINCIPAL PLACE OF BUSINESS"
 
@@ -43,6 +45,8 @@ rename (v11 v13) (mailaddress2 zipcode2)
 gen address = trim(itrim(mailaddress + " " + mailaddress2))
 
 keep dataid address zipcode city state country
+gen stateaddress = state
+replace stateaddress = "OR" if missing(stateaddress)
 tostring dataid, replace
 merge 1:1 dataid using OR.dta
 
@@ -51,12 +55,12 @@ drop if _merge == 1
 drop _merge
 
 drop if country != "UNITED STATES OF AMERICA"
-drop if state != "OR"
+gen local_firm=  inlist(jurisdiction,"","DE","OR") &  state != "OR"
 save OR.dta, replace
 
 
 clear
-import delimited using "~/projects/reap_proj/raw_data/Oregon/2017/Record_Layout_Info/REL_ASSOC_NAME_DB_EXTRACT_2017-07-05 09-37-44.TXT", delim(tab) varnames(1)
+import delimited using ~/projects/reap_proj/raw_data/Oregon/REL_ASSOC_NAME_DB_EXTRACT_20150721-215734.TXT, delim(tab) varnames(1)
 
 keep if inlist(associatednametype,"PARTNER","PRESIDENT","GENERAL PARTNER","MANAGER")
 
@@ -69,7 +73,7 @@ save OR.directors.dta, replace
  * This section adds the historic names of firms. It does so directly rather than using  corp_add_names due to the structure of the data. 
  */
 clear
-import delimited using "~/projects/reap_proj/raw_data/Oregon/2017/Record_Layout_Info/NAME_DB_EXTRACT_2017-07-05 09-23-24.txt", delim(tab) varnames(1)
+import delimited using ~/projects/reap_proj/raw_data/Oregon/NAME_DB_EXTRACT_20150721-213325.TXT, delim(tab) varnames(1)
 
 
 keep if nametype == "ENTITY NAME"
@@ -106,26 +110,26 @@ save OR.dta, replace
       save OR.dta, replace
 
 
-        corp_add_eponymy, dtapath(~/final_datasets/OR.dta) directorpath(~/final_datasets/OR.directors.dta)
-corp_add_industry_dummies , ind(~/ado/industry_words.dta) dta(~/final_datasets/OR.dta)
-      corp_add_industry_dummies , ind(~/ado/VC_industry_words.dta) dta(~/final_datasets/OR.dta)
+        corp_add_eponymy, dtapath(~/migration/datafiles/OR.dta) directorpath(~/migration/datafiles/OR.directors.dta)
+
+       corp_add_industry_dummies , ind(~/ado/industry_words.dta) dta(~/migration/datafiles/OR.dta)
+      corp_add_industry_dummies , ind(~/ado/VC_industry_words.dta) dta(~/migration/datafiles/OR.dta)
 
       
       # delimit ;
       corp_add_trademarks OR , 
-            dta(~/final_datasets/OR.dta) 
+            dta(~/migration/datafiles/OR.dta) 
             trademarkfile(~/projects/reap_proj/data/trademarks.dta) 
             ownerfile(~/projects/reap_proj/data/trademark_owner.dta)
             var(trademark) 
             frommonths(-12)
             tomonths(12)
-            class(~/projects/reap_proj/data/trademarks/classification.dta)
             statefileexists;
       
       
       # delimit ;
       corp_add_patent_applications OR OREGON , 
-            dta(~/final_datasets/OR.dta) 
+            dta(~/migration/datafiles/OR.dta) 
             pat(~/projects/reap_proj/data_share/patent_applications.dta) 
             var(patent_application) 
             frommonths(-12)
@@ -133,7 +137,7 @@ corp_add_industry_dummies , ind(~/ado/industry_words.dta) dta(~/final_datasets/O
             statefileexists;
       
       corp_add_patent_assignments  OR OREGON , 
-            dta(~/final_datasets/OR.dta)
+            dta(~/migration/datafiles/OR.dta)
             pat("~/projects/reap_proj/data_share/patent_assignments.dta" "~/projects/reap_proj/data_share/patent_assignments2.dta")
             frommonths(-12)
             tomonths(12)
@@ -141,32 +145,19 @@ corp_add_industry_dummies , ind(~/ado/industry_words.dta) dta(~/final_datasets/O
             statefileexists;
       
       # delimit cr      
-      corp_add_ipos  OR ,dta(~/final_datasets/OR.dta) ipo(~/projects/reap_proj/data/ipoallUS.dta) longstate(OREGON)
-      corp_add_mergers OR ,dta(~/final_datasets/OR.dta) merger(~/projects/reap_proj/data/mergers.dta) longstate(OREGON) 
+      corp_add_ipos  OR ,dta(~/migration/datafiles/OR.dta) ipo(~/projects/reap_proj/data/ipoallUS.dta) longstate(OREGON)
+      corp_add_mergers OR ,dta(~/migration/datafiles/OR.dta) merger(~/projects/reap_proj/data/mergers.dta) longstate(OREGON) 
       
 
-      corp_add_vc2 OR  ,dta(~/final_datasets/OR.dta) vc(~/final_datasets/VC.investors.withequity.dta)  longstate(OREGON) dropexisting 
-
-
-corp_has_last_name, dtafile(~/final_datasets/OR.dta) lastnamedta(~/ado/names/lastnames.dta) num(5000)
-        corp_has_first_name, dtafile(~/final_datasets/OR.dta) num(1000)
-        corp_name_uniqueness, dtafile(~/final_datasets/OR.dta)
-
-
-clear
-u ~/final_datasets/OR.dta
-gen is_DE = jurisdiction == "DE"
-gen  shortname = wordcount(entityname) <= 3
-gen has_unique_name = uniquename <= 5
- save ~/final_datasets/OR.dta, replace
-
+      corp_add_vc OR  ,dta(~/migration/datafiles/OR.dta) vc(~/final_datasets/VX.dta)  longstate(OREGON)  
 
 
 
 clear
-u ~/final_datasets/OR.dta
+u ~/migration/datafiles/OR.dta
 gen is_DE = jurisdiction == "DE"
 gen  shortname = wordcount(entityname) <= 3
- save ~/final_datasets/OR.dta, replace
 
-corp_collapse_any_state OR
+ save OR.dta, replace
+
+
