@@ -1,26 +1,53 @@
 cd ~/final_datasets/
+global mergetempsuffix Build_WI
+global WI_dta_file WI.dta
+
 
 clear 
-infile using WI.dct 
+infile using ~/projects/reap_proj/final_datasets/WI.dct 
 drop if dataid == ""
 drop if strpos(entityname,"CORPORATION NAME") == 1
 gen for_llc = strpos(corptype,"Foreign LLC") > 0 | strpos(corptype,"Foreign Limited") > 0
 gen foreign = strpos(corptype,"Foreign" ) > 0
 gen is_corp = strpos(corptype, "Business") > 0 | strpos(corptype,"Corpora") > 0 | foreign & !for_llc
 
+keep if inlist(jurisdiction, "DE", "WI")
 
+rename incdate incdatestr
+gen incdate = date(incdatestr,"MDY")
+
+gen incyear = year(incdate)
+gen shortname = wordcount(entityname) <= 3
+replace address = upper(address)
+
+savesome if !foreign using $WI_dta_file , replace
+
+
+keep if foreign
 tomname entityname
-savesome if !foreign using WI.local.dta ,replace
-savesome if foreign using WI.foreign.dta , replace
+save WI.foreign.dta,  replace
+corp_get_DE_by_name, dta(WI.foreign.dta)
+
+append using $WI_dta_file
 
 
-corp_get_DE_by_name , dta(WI.foreign.dta)
-keep if is_DE
+if "$WI_dta_file" == "WI.DE.dta" {
+    keep if is_DE
+}
 
-gen local_firm= state == "WI"
-append using WI.local.dta
-save WI.dta , replace
- 
+** Get rid of all the DE firms that are not truly local.. Stop marking them as local
+replace state = "" if state == "WI" & is_DE & (strpos(address,"8040 EXCELSIOR") | strpos(address,"8020 EXCELSIOR"))
+replace state = "" if regagent == "C T CORPORATION SYSTEM" | regagent == "THE PRENTICE-HALL CORPORATION SYSTEM" | regagent == "CSC-LAWYERS INCORPORATING SERVICE CO"
+gen stateaddress = state
+
+
+save $WI_dta_file, replace
+
+
+
+
+
+
 
 
 **
@@ -29,22 +56,20 @@ save WI.dta , replace
 **		and very similar to the ones used in "Where Is Silicon Valley?"
 **
 **	
-	u WI.dta , replace
-	tomname entityname
-	save WI.dta, replace
-
-	corp_add_eponymy, dtapath(WI.dta) directorpath(WI.directors.dta)
 
 
-       corp_add_industry_dummies , ind(~/ado/industry_words.dta) dta(WI.dta)
-	corp_add_industry_dummies , ind(~/ado/VC_industry_words.dta) dta(WI.dta)
+
+
+
+       corp_add_industry_dummies , ind(~/ado/industry_words.dta) dta($WI_dta_file)
+	corp_add_industry_dummies , ind(~/ado/VC_industry_words.dta) dta($WI_dta_file)
 	
 	
 	# delimit ;
 	corp_add_trademarks WI , 
-		dta(WI.dta) 
-		trademarkfile(/projects/reap.proj/data/trademarks.dta) 
-		ownerfile(/projects/reap.proj/data/trademark_owner.dta)
+		dta($WI_dta_file) 
+		trademarkfile(~/projects/reap_proj/data/trademarks.dta) 
+		ownerfile(~/projects/reap_proj/data/trademark_owner.dta)
 		var(trademark) 
 		frommonths(-12)
 		tomonths(12)
@@ -53,8 +78,8 @@ save WI.dta , replace
 	
 	# delimit ;
 	corp_add_patent_applications WI WISCONSIN , 
-		dta(WI.dta) 
-		pat(/projects/reap.proj/data_share/patent_applications.dta) 
+		dta($WI_dta_file) 
+		pat(~/projects/reap_proj/data_share/patent_applications.dta) 
 		var(patent_application) 
 		frommonths(-12)
 		tomonths(12)
@@ -66,8 +91,8 @@ save WI.dta , replace
 	
 	
 	corp_add_patent_assignments  WI WISCONSIN , 
-		dta(WI.dta)
-		pat("/projects/reap.proj/data_share/patent_assignments.dta" "/projects/reap.proj/data_share/patent_assignments2.dta"  "/projects/reap.proj/data_share/patent_assignments3.dta")
+		dta($WI_dta_file)
+		pat("~/projects/reap_proj/data_share/patent_assignments.dta" "~/projects/reap_proj/data_share/patent_assignments2.dta"  "~/projects/reap_proj/data_share/patent_assignments3.dta")
 		frommonths(-12)
 		tomonths(12)
 		var(patent_assignment)
@@ -76,5 +101,14 @@ save WI.dta , replace
 
 	
 
-	corp_add_ipos	 WI  ,dta(WI.dta) ipo(/projects/reap.proj/data/ipoallUS.dta)  longstate(WISCONSIN)
-	corp_add_mergers WI  ,dta(WI.dta) merger(/projects/reap.proj/data/mergers.dta)  longstate(WISCONSIN) 
+	corp_add_ipos	 WI  ,dta($WI_dta_file) ipo(~/projects/reap_proj/data/ipoallUS.dta)  longstate(WISCONSIN)
+	corp_add_mergers WI  ,dta($WI_dta_file) merger(~/projects/reap_proj/data/mergers.dta)  longstate(WISCONSIN) 
+
+corp_add_vc WI ,dta($WI_dta_file) vc(~/final_datasets/VX.dta) longstate(WISCONSIN)
+
+clear
+u $WI_dta_file
+
+gen  shortname = wordcount(entityname) <= 3
+save $WI_dta_file, replace
+
