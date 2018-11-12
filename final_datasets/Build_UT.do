@@ -1,5 +1,7 @@
 cd /projects/reap.proj/reapindex/Utah
 
+global mergetempsuffix UT
+
 clear
 
 import delimited /projects/reap.proj/raw_data/Utah/busentity.csv,delim(",")
@@ -28,7 +30,7 @@ gen jurisdiction = homestate
 replace jurisdiction = "UT" if missing(jurisdiction) 
 gen is_DE = jurisdiction == "DE"
 
-keep if inlist(jurisdiction,"UT","DE")
+gen local_firm = inlist(jurisdiction,"UT","DE")
 
 /* Generating Variables */
 
@@ -38,11 +40,10 @@ gen incyear = year(incdate)
 drop if missing(incdate)
 drop if missing(entityname)
 
-keep dataid entityname incdate incyear type is_DE jurisdiction zipcode state city address is_corp shortname
+keep dataid entityname incdate incyear type is_DE jurisdiction zipcode state city address is_corp shortname local_firm 
 
 compress
 tostring dataid , replace
-drop if is_DE & state != "UT"
 save UT.dta,replace
 
 /* Build Director File */
