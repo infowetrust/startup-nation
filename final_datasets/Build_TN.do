@@ -1,5 +1,7 @@
 cd /projects/reap.proj/reapindex/Tennessee
 
+global mergetempsuffix TN    
+
 clear
 
 import delimited /projects/reap.proj/raw_data/Tennessee/FILING.txt,delim("|")
@@ -14,31 +16,22 @@ drop if inlist(filing_type,"Nonprofit Corporation","Reserved Name","Foreign Regi
 rename filing_type type
 
 gen is_corp = inlist(type,"For-profit Corporation")
-
-
-replace principle_addr1 = regexr(principle_addr1 , "(^| )SUITE ([0-9A-Z]|\-)+","")
-replace principle_addr2 = regexr(principle_addr2 , "(^| )SUITE ([0-9A-Z]|\-)+","")
-replace principle_addr3 = regexr(principle_addr3 , "(^| )SUITE ([0-9A-Z]|\-)+","")
-gen address = trim(itrim(principle_addr1 + " " + principle_addr2 + " " + principle_addr3))
+gen address = principle_addr1 + principle_addr2 + principle_addr3
 gen city = principle_city
 gen addrstate = principle_state
 gen zip5 = principle_postal_code
 
-replace address = mail_addr1 + " " + mail_addr2 + " " + mail_addr3 if missing(address)
+replace address = mail_addr1 + mail_addr2 +mail_addr3 if missing(address)
 replace city = mail_city if missing(city)
 replace addrstate = mail_state if missing(addrstate)
 replace zip5 = mail_postal_code if missing(zip5)
-replace address = regexr(address, "RT ([0-9]+) BOX", "")  if regexm(address, "RT ([0-9]+) BOX ([0-9]+) ") != 0
-
-//fixes route boxes
-
 
 gen country = principle_country
 gen jurisdiction = formation_locale
 replace jurisdiction = "TENNESSEE" if missing(jurisdiction) & country == "USA"
 gen is_DE = jurisdiction == "DELAWARE"
 
-keep if inlist(jurisdiction,"TENNESSEE","DELAWARE")
+gen local_firm= inlist(jurisdiction,"TENNESSEE","DELAWARE")
 
 
 /* Generating Variables */
@@ -53,15 +46,14 @@ drop if missing(entityname)
 
 
 replace country = "USA" if missing(country)
-keep dataid entityname incdate incyear type is_DE jurisdiction country zip5 addrstate city address is_corp shortname
+keep dataid entityname incdate incyear type is_DE jurisdiction country zip5 addrstate city address is_corp shortname local_firm
 
 compress
 rename zip5 zipcode
 rename addrstate state
-drop if is_DE & state != "TN"
-save TN.dta ,replace
+save TN.dta , replace
 
-/* Build Director File 
+/* Build Director File  */
 clear
 
 import delimited data using /projects/reap.proj/raw_data/Tennessee/PARTY.txt, delim("|")
@@ -75,7 +67,7 @@ rename individual_title role
 keep dataid fullname role 
 drop if missing(fullname)
 save TN.directors.dta, replace
-*/
+
 
 **
 **
