@@ -1,8 +1,10 @@
 cd ~/migration/datafiles/
 global mergetempsuffix ARMERGE
+global only_DE 0
+
 
 clear 
-import delimited using /projects/reap.proj/raw_data/Arkansas/corp_data.txt, delim(tab)
+import delimited using ~/projects/reap_proj/raw_data/Arkansas/corp_data.txt, delim(tab)
 
 rename v1 dataid
 tostring dataid , replace
@@ -15,7 +17,7 @@ drop if type > 25
 /* 1 observation*/
 duplicates drop dataid , force
 gen is_corp = inlist(type,1,2,5,6,13)
-keep if inlist(jurisdiction,"DE","AR")
+gen potentiallylocal= inlist(jurisdiction,"DE","AR")
 
 save AR.dta, replace
 
@@ -25,17 +27,34 @@ rename v25 city
 rename v26 state
 rename v27 zipcode
 
+replace state = "AR" if missing(state) & jurisdiction == "AR"
+
+gen zip5 = substr(zipcode,1,5)
+destring zip5, replace force
+
+replace state = "AR" if inrange(zip5,85001 ,86556)
+
+gen stateaddress = state
 gen shortname = wordcount(entityname) < 4
 gen is_DE  = 1 if jurisdiction == "DE"
+replace is_DE = 0 if missing(is_DE)
 gen incdate = date(v4,"MDY")
 gen incyear = year(incdate)
 
 drop if missing(incdate)
 drop if missing(entityname)
-keep dataid entityname incdate incyear is_DE jurisdiction zipcode state city address is_corp shortname
-replace state = "AR" if missing(state)
+
+
+
+
+keep dataid entityname incdate incyear is_DE jurisdiction zipcode state city address is_corp shortname potentiallylocal stateaddress
+
 compress
-drop if is_DE & state != "AR"
+
+if $only_DE == 1 {
+    keep if is_DE == 1
+}
+
 save AR.dta,replace
 
 /* Build Director File */
@@ -109,3 +128,5 @@ save AR.directors.dta, replace
 
 	corp_add_ipos	 AR  ,dta(AR.dta) ipo(/projects/reap.proj/data/ipoallUS.dta)  longstate(ARKANSAS)
 	corp_add_mergers AR  ,dta(AR.dta) merger(/projects/reap.proj/data/mergers.dta)  longstate(ARKANSAS) 
+
+      corp_add_vc        AR ,dta(AR.dta) vc(~/final_datasets/VX.dta) longstate(ARKANSAS)
