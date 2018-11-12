@@ -15,6 +15,7 @@ gen is_corp = 1 if regexm(type,"CO")
 replace is_corp = 0 if missing(is_corp)
 drop if regexm(type,"NP")
 gen address = v18 + " " + v19 + " " + v20 + " " + v21
+gen address = v18 + v19 +v20 +v21
 gen city = v22
 gen state = v23
 gen zipcode = v24
