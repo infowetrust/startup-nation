@@ -6,7 +6,7 @@ global mergetempsuffix SC
 
 clear
 
-import delimited /projects/reap.proj/raw_data/South_Carolina/CORPORATION.TXT,delim(",") varname(1)
+import delimited ~/projects/reap_proj/raw_data/South_Carolina/CORPORATION.TXT,delim(",") varname(1)
 
 rename corpid dataid
 rename corpname entityname
@@ -31,10 +31,9 @@ gen jurisdiction = incstate
 replace jurisdiction = "SC" if missing(jurisdiction) 
 gen is_DE = 1 if regexm(jurisdiction,"DE")
 
-gen local_firm=.
-keep if regexm(jurisdiction,"CAROLINA") | regexm(jurisdiction,"SC")| regexm(jurisdiction,"DE")
-drop if regexm(jurisdiction,"WIS") | regexm(jurisdiction,"RHODE") | regexm(jurisdiction,"SCOT") 
-drop if regexm(jurisdiction,"NOR")
+gen local_firm= regexm(jurisdiction,"CAROLINA") | regexm(jurisdiction,"SC")| regexm(jurisdiction,"DE")
+replace local_firm = 0 if regexm(jurisdiction,"WIS") | regexm(jurisdiction,"RHODE") | regexm(jurisdiction,"SCOT") 
+replace local_firm = 0 if regexm(jurisdiction,"NOR")
 
 /* Generating Variables */
 
@@ -50,26 +49,7 @@ keep dataid entityname incdate incyear type is_DE jurisdiction zipcode state cit
 
 compress
 save SC.dta,replace
-/*
-No Presidents
-/* Build Director File */
-clear
 
-import delimited /projects/reap.proj/raw_data/Utah/principal.csv,delim(",") varname(1)
-save UT.directors.dta,replace
-
-
-rename entityid dataid
-
-rename memberposition role
-keep if regexm(role,"President")
-drop if regexm(role,"Vice")
-
-keep dataid fullname role 
-drop if missing(fullname)
-compress
-save UT.directors.dta, replace
-*/
 
 **
 **
