@@ -1,20 +1,19 @@
 cd ~/projects/reap_proj/final_datasets
-
+global mergetempsuffix VABuild
 clear
-import delimited using ~/projects/reap_proj/raw_data/Virginia/06_20_2017/2_corporate.csv , delim(",")
+import delimited using /projects/reap.proj/raw_data/Virginia/2_corporate.csv , delim(",")
 gen is_corp = 1
 save VA.dta ,replace
 
 clear
-import delimited using ~/projects/reap_proj/raw_data/Virginia/06_20_2017/3_lp.csv , delim(",")
+import delimited using /projects/reap.proj/raw_data/Virginia/3_lp.csv , delim(",")
 merge 1:1 corpid using VA.dta
 drop _merge
-
 tostring(corpzip),replace
 save VA.dta, replace
 
 clear
-import delimited using ~/projects/reap_proj/raw_data/Virginia/06_20_2017/9_llc.csv , delim(",")
+import delimited using /projects/reap.proj/raw_data/Virginia/9_llc.csv , delim(",")
 merge 1:1 corpid using VA.dta
 drop _merge
 
@@ -37,7 +36,7 @@ gen shortname = wordcount(entityname) < 4
 gen jurisdiction = corpstateinc
 gen is_DE = jurisdiction == "DE"
 
-keep if inlist(jurisdiction,"VA","DE")
+gen potentiallylocal=  inlist(jurisdiction,"VA","DE")
 
 /* Generating Variables */
 tostring(corpincdate), replace
@@ -47,17 +46,17 @@ gen incyear = year(incdate)
 drop if missing(incdate)
 drop if missing(entityname)
 gen country = "USA" if missing(corpforeign) | corpforeign == "0"
-keep dataid entityname incdate incyear is_DE jurisdiction country zipcode state city address is_corp shortname country
-
+keep dataid entityname incdate incyear is_DE jurisdiction country zipcode state city address is_corp shortname country potentiallylocal
+gen stateaddress = state
 compress
-drop if is_DE & state != "VA"
+
 save VA.dta,replace
 
 
 /* Build Director File */
 clear
 
-import delimited ~/projects/reap_proj/raw_data/Virginia/06_20_2017/5_officers.csv, delim(",") varname(1)
+import delimited /projects/reap.proj/raw_data/Virginia/5_officers.csv, delim(",") varname(1)
 save VA.directors.dta,replace
 
 rename dirccorpid dataid
@@ -92,8 +91,8 @@ save VA.directors.dta, replace
 	# delimit ;
 	corp_add_trademarks VA , 
 		dta(VA.dta) 
-		trademarkfile(~/projects/reap_proj/data/trademarks.dta) 
-		ownerfile(~/projects/reap_proj/data/trademark_owner.dta)
+		trademarkfile(/projects/reap.proj/data/trademarks.dta) 
+		ownerfile(/projects/reap.proj/data/trademark_owner.dta)
 		var(trademark) 
 		frommonths(-12)
 		tomonths(12)
@@ -103,7 +102,7 @@ save VA.directors.dta, replace
 	# delimit ;
 	corp_add_patent_applications VA VIRGINIA , 
 		dta(VA.dta) 
-		pat(~/projects/reap_proj/data_share/patent_applications.dta) 
+		pat(/projects/reap.proj/data_share/patent_applications.dta) 
 		var(patent_application) 
 		frommonths(-12)
 		tomonths(12)
@@ -116,7 +115,7 @@ save VA.directors.dta, replace
 	
 	corp_add_patent_assignments  VA VIRGINIA , 
 		dta(VA.dta)
-		pat("~/projects/reap_proj/data_share/patent_assignments.dta" "~/projects/reap_proj/data_share/patent_assignments2.dta"  "~/projects/reap_proj/data_share/patent_assignments3.dta")
+		pat("/projects/reap.proj/data_share/patent_assignments.dta" "/projects/reap.proj/data_share/patent_assignments2.dta"  "/projects/reap.proj/data_share/patent_assignments3.dta")
 		frommonths(-12)
 		tomonths(12)
 		var(patent_assignment)
@@ -125,5 +124,5 @@ save VA.directors.dta, replace
 
 	
 
-	corp_add_ipos	 VA  ,dta(VA.dta) ipo(~/projects/reap_proj/data/ipoallUS.dta)  longstate(VIRGINIA) 
-	corp_add_mergers VA  ,dta(VA.dta) merger(~/projects/reap_proj/data/mergers.dta)  longstate(VIRGINIA) 
+	corp_add_ipos	 VA  ,dta(VA.dta) ipo(/projects/reap.proj/data/ipoallUS.dta)  longstate(VIRGINIA) 
+	corp_add_mergers VA  ,dta(VA.dta) merger(/projects/reap.proj/data/mergers.dta)  longstate(VIRGINIA) 
