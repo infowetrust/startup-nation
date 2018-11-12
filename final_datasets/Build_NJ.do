@@ -1,3 +1,7 @@
+
+
+global mergetempsuffix NJDTA
+
 cd /projects/reap.proj/reapindex/NewJersey
 
 clear
@@ -14,11 +18,14 @@ gen entityname = substr(data,11,100)
 gen idate = substr(data,111,8)
 
 gen type = substr(data,119,3)
+replace type = trim(type)
+
 drop if regexm(type,"NP")
-gen is_corp = regexm(type,"DP")
+gen is_corp = inlist(type,"DP","FR")
+
 
 gen jurisdiction = substr(data,125,2)
-keep if inlist(jurisdiction,"DE","NJ")
+gen potentiallylocal = inlist(jurisdiction,"DE","NJ")
 
 gen address = trim(substr(data,288,70))
 gen city = trim(substr(data,358,30))
@@ -61,7 +68,7 @@ last ar filing  8  (YYYYMMDD)
 gen shortname = wordcount(entityname) < 4
 
 gen is_DE = 1 if regexm(jurisdiction,"DE")
-
+replace is_DE = 0 if is_DE == .
 
 /* Generating Variables */
 
@@ -72,35 +79,15 @@ drop if missing(incdate)
 drop if missing(entityname)
 
 
-keep dataid entityname incdate incyear type is_DE jurisdiction zipcode state city address is_corp shortname
+keep dataid entityname incdate incyear type is_DE jurisdiction zipcode state city address is_corp shortname potentiallylocal
 
-compress
-drop if is_DE & state != "NJ"
+gen stateaddress = state
+gen local_firm = potentiallylocal
+
+
 save NJ.dta,replace
 
-/*
-/* Build Director File */
-clear
 
-import delimited /projects/reap.proj/raw_data/Kentucky/AllOfficers20160430.txt , delim(tab)
-save KY.directors.dta,replace
-
-rename v4 role
-keep if regexm(role,"P")
-
-
-tostring v1,replace
-tostring v2,replace
-tostring v3,replace
-gen dataid = v1 + v2 + substr(v3,4,2)
-
-gen fullname = v5+ v6 + v7
-
-keep dataid fullname role 
-drop if missing(fullname)
-compress
-save KY.directors.dta, replace
-*/
 
 **
 **
@@ -158,3 +145,4 @@ save KY.directors.dta, replace
 	corp_add_industry_dummies , ind(~/ado/industry_words.dta) dta(NJ.dta)
 	corp_add_industry_dummies , ind(~/ado/VC_industry_words.dta) dta(NJ.dta)
 	
+      corp_add_vc        NJ ,dta(NJ.dta) vc(~/final_datasets/VX.dta) longstate(NEW JERSEY)
