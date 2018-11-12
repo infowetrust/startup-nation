@@ -1,47 +1,64 @@
 cd /projects/reap.proj/reapindex/NewMexico
+global mergetempsuffix BuildNM
+
+global NM_dta_file NM.dta
 
 clear 
-import delimited using /projects/reap.proj/raw_data/NewMexico/DataSales_06012016/BusinessSP.txt, delim(tab) varname(1)
+import delimited using ~/projects/reap_proj/raw_data/NewMexico/DataSales_06012016/BusinessSP.txt, delim(tab) varname(1)
 
 rename businessname entityname
 rename placeofformation jurisdiction
 rename businesstype type
+
 drop if regexm(type,"NP")
 gen is_corp = inlist(type,"DPRX","DXIC","FPXX")
-keep if inlist(jurisdiction,"Delaware","New Mexico")
+gen potentiallylocal= inlist(jurisdiction,"Delaware","New Mexico")
 duplicates drop businessno, force
-save NM.dta, replace
+save $NM_dta_file, replace
 
 clear
-import delimited using /projects/reap.proj/raw_data/NewMexico/DataSales_06012016/BusinessAddressSP.txt, delim(tab) varname(1)
+import delimited using ~/projects/reap_proj/raw_data/NewMexico/DataSales_06012016/BusinessAddressSP.txt, delim(tab) varname(1)
 
-gen address = addressline1 + " " + addressline2
+gen princ_address = .
+replace princ_address = 1 if addresstypedesc == "PrincipalPlaceMailingAddress"
+replace princ_address = 2 if addresstypedesc == "PrincipalPlacePhysicalAddress"
+replace princ_address = 3 if addresstypedesc == "CorpForeignPhysicalAddress"
+replace princ_address = 4 if addresstypedesc == "DomesticStateRegisteredAddress"
+
+bysort businessno (princ_address): gen top = _n == 1
+keep if top == 1
+
+gen address = addressline1 + addressline2
 replace address = trim(address)
 rename statecode state
 tostring businessno , replace
-merge m:1 businessno using NM.dta
-drop if _merge == 1 
+merge m:1 businessno using $NM_dta_file
+keep if _merge == 3
 drop _merge
 
 rename businessno dataid
 gen shortname = wordcount(entityname) < 4
-gen is_DE  = 1 if jurisdiction == "Delaware"
+gen is_DE  = jurisdiction == "Delaware"
 gen incdate = date(dateofi,"MDY")
 gen incyear = year(incdate)
 
 drop if missing(incdate)
 drop if missing(entityname)
 rename zip zipcode
-keep dataid entityname incdate incyear is_DE jurisdiction zipcode state city address is_corp shortname
+keep dataid entityname incdate incyear is_DE jurisdiction zipcode state city address is_corp shortname potentiallylocal
 replace state = "NM" if missing(state)
-compress
-drop if is_DE & state != "NM"
-save NM.dta,replace
+gen stateaddress = state
+
+if "$NM_dta_file" == "NM.DE.dta" {
+    keep if is_DE == 1
+}
+
+save $NM_dta_file,replace
 
 /* Build Director File */
 clear
 
-import delimited /projects/reap.proj/raw_data/NewMexico/DataSales_06012016/OfficersSP.txt, delim(tab) varname(1)
+import delimited ~/projects/reap_proj/raw_data/NewMexico/DataSales_06012016/OfficersSP.txt, delim(tab) varname(1)
 save NM.directors.dta,replace
 
 tostring businessno , generate(dataid)
@@ -52,7 +69,7 @@ keep if inlist(role,"President")
 keep dataid fullname role 
 drop if missing(fullname)
 save NM.directors.dta, replace
-*/
+
 
 **
 **
@@ -60,22 +77,22 @@ save NM.directors.dta, replace
 **		and very similar to the ones used in "Where Is Silicon Valley?"
 **
 **	
-	u NM.dta , replace
+	u $NM_dta_file , replace
 	tomname entityname
-	save NM.dta, replace
+	save $NM_dta_file, replace
 
-	corp_add_eponymy, dtapath(NM.dta) directorpath(NM.directors.dta)
+	corp_add_eponymy, dtapath($NM_dta_file) directorpath(NM.directors.dta)
 
 
-       corp_add_industry_dummies , ind(~/ado/industry_words.dta) dta(NM.dta)
-	corp_add_industry_dummies , ind(~/ado/VC_industry_words.dta) dta(NM.dta)
+       corp_add_industry_dummies , ind(~/ado/industry_words.dta) dta($NM_dta_file)
+	corp_add_industry_dummies , ind(~/ado/VC_industry_words.dta) dta($NM_dta_file)
 	
 	
 	# delimit ;
 	corp_add_trademarks NM , 
-		dta(NM.dta) 
-		trademarkfile(/projects/reap.proj/data/trademarks.dta) 
-		ownerfile(/projects/reap.proj/data/trademark_owner.dta)
+		dta($NM_dta_file) 
+		trademarkfile(~/projects/reap_proj/data/trademarks.dta) 
+		ownerfile(~/projects/reap_proj/data/trademark_owner.dta)
 		var(trademark) 
 		frommonths(-12)
 		tomonths(12)
@@ -84,8 +101,8 @@ save NM.directors.dta, replace
 	
 	# delimit ;
 	corp_add_patent_applications NM NEW MEXICO , 
-		dta(NM.dta) 
-		pat(/projects/reap.proj/data_share/patent_applications.dta) 
+		dta($NM_dta_file) 
+		pat(~/projects/reap_proj/data_share/patent_applications.dta) 
 		var(patent_application) 
 		frommonths(-12)
 		tomonths(12)
@@ -97,8 +114,8 @@ save NM.directors.dta, replace
 	
 	
 	corp_add_patent_assignments  NM NEW MEXICO , 
-		dta(NM.dta)
-		pat("/projects/reap.proj/data_share/patent_assignments.dta" "/projects/reap.proj/data_share/patent_assignments2.dta"  "/projects/reap.proj/data_share/patent_assignments3.dta")
+		dta($NM_dta_file)
+		pat("~/projects/reap_proj/data_share/patent_assignments.dta" "~/projects/reap_proj/data_share/patent_assignments2.dta"  "~/projects/reap_proj/data_share/patent_assignments3.dta")
 		frommonths(-12)
 		tomonths(12)
 		var(patent_assignment)
@@ -107,5 +124,7 @@ save NM.directors.dta, replace
 
 	
 
-	corp_add_ipos	 NM  ,dta(NM.dta) ipo(/projects/reap.proj/data/ipoallUS.dta)  longstate(NEW MEXICO)
-	corp_add_mergers NM  ,dta(NM.dta) merger(/projects/reap.proj/data/mergers.dta)  longstate(NEW MEXICO) 
+	corp_add_ipos	 NM  ,dta($NM_dta_file) ipo(~/projects/reap_proj/data/ipoallUS.dta)  longstate(NEW MEXICO)
+	corp_add_mergers NM  ,dta($NM_dta_file) merger(~/projects/reap_proj/data/mergers.dta)  longstate(NEW MEXICO) 
+
+      corp_add_vc        NM ,dta($NM_dta_file) vc(~/final_datasets/VX.dta) longstate(NEW MEXICO)
