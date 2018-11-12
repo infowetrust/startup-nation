@@ -1,4 +1,6 @@
+
 cd /projects/reap.proj/reapindex/Nevada
+global mergetempsuffix NV
 
 clear
 
@@ -19,13 +21,13 @@ rename v8 jurisdiction
 replace jurisdiction = "NV" if missing(jurisdiction) 
 gen is_DE = 1 if regexm(jurisdiction,"DE")
 
-keep if inlist(jurisdiction,"NV","DE")
-/*
-gen address = v18 + v19 +v20 +v21
-gen city = v22
-gen state = v23
-gen zipcode = v24
-*/
+gen potentiallylocal =  inlist(jurisdiction,"NV","DE")
+
+gen address = v16
+gen city = v18
+gen state = v19
+gen zipcode = v20
+
 gen shortname = wordcount(entityname) < 5
 
 /* Generating Variables */
@@ -36,7 +38,8 @@ gen incyear = year(incdate)
 drop if missing(incdate)
 drop if missing(entityname)
 
-keep dataid v2 entityname incdate incyear type is_DE jurisdiction is_corp shortname
+keep dataid v2 entityname incdate incyear type is_DE jurisdiction is_corp shortname potentiallylocal address city zipcode state
+gen stateaddress = state
 
 save NV.dta,replace
 /*
