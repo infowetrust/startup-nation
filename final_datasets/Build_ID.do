@@ -1,4 +1,5 @@
-
+cd /projects/reap.proj/final_datasets/
+global mergetempsuffix ID
 /*
 # delimit ;
 
@@ -11,7 +12,7 @@ using /projects/reap.proj/raw_data/Idaho/CorpDat.txt, delim(tab);
 
 
 /*Importing */
-cd /projects/reap.proj/final_datasets/
+
 
 clear
 
@@ -69,8 +70,9 @@ replace country = trim(country)
 keep if inlist(country,"","UNITED STATES","U.S.","U S A","U.S.A","U.S.A.","US","USA")
 replace addressState = "ID" if trim(addressState) == ""
 
-keep if inlist(addressState,"ID")
-drop if jurisdiction != "ID" & jurisdiction != "DE"
+*keep if inlist(addressState,"ID")
+
+gen local_firm= jurisdiction == "ID" | jurisdiction == "DE"
 rename addressState state
 rename dataid corpid
 gen dataid = firmType + string(corpid)
