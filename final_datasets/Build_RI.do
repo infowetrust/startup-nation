@@ -1,5 +1,6 @@
 cd /projects/reap.proj/reapindex/RhodeIsland
 
+global mergetempsuffix RIFiles
 
 clear
 import delimited data using /projects/reap.proj/raw_data/Rhode/entities_active.txt,delim(tab)
@@ -39,13 +40,14 @@ drop if missing(incdate)
 drop if missing(entityname)
 
 gen shortname = wordcount(entityname) < 4
-keep dataid entityname incdate incyear charter is_DE jurisdiction country zip5 addrstate city address is_corp shorname
+keep dataid entityname incdate incyear charter is_DE jurisdiction country zip5 addrstate city address is_corp shortname
 
-keep if inlist(jurisdiction,"DE","RI")
+gen potentiallylocal= inlist(jurisdiction,"DE","RI")
+gen local_firm = potentiallylocal
 compress
 rename zip5 zipcode
 rename addrstate state
-drop if is_DE & state != "RI"
+
 save RI.dta,replace
 
 /* Build Director File */
