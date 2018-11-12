@@ -1,78 +1,15 @@
 cd ~/projects/reap_proj/final_datasets/
-global mergetempsuffix NYmerge_finaldatasets
-
-clear
-import delimited using ~/projects/reap_proj/raw_data/New_York/Active_Corporations_Online/Active_Corporations__Beginning_1800_06_26_2018.csv
-
-gen incdate = date(initialdosfilingdate,"MDY")
-gen incyear = year(incdate)
-
-
-keep if incyear >= 1988
-
-/** Do not use the address for the corporation agents **/
-bysort registeredagentname: egen num_of_times = sum(1) if registeredagentname != ""
-gen dos_info_lawyers_address = num_of_times > 100 & num_of_times != .
-
-foreach v of varlist dosprocess* {
-    replace `v' = "" if dos_info_lawyers_address == 1
-}
-
-gen address1 = ""
-gen address2 = ""
-gen zipcode  = ""
-gen state    = ""
-gen city     = ""
-
-/** Get address in the following priority: location, ceo address, **/ 
-foreach prefix in location ceo dosprocess {
-    foreach v in address1 address2 zip state city {
-        replace `v' = `prefix'`v'  if `v' == ""
-    }
-}
-
-keep if inlist(jurisdiction, "DELAWARE","NEW YORK","")
-gen is_DE = jurisdiction == "DELAWARE"
-gen address =  address1 + address2
-
-
-/** States come in long format, make them short two-letter versions **/
-rename state longstate
-replace longstate =  itrim(trim(longstate))
-shortstate longstate , gen(state)
-replace state = longstate if state  == "" & longstate != ""
-
-
-/**only 5 digit zipcodes **/
-replace zipcode = substr(itrim(trim(zipcode)), 1,5)
-
-
-rename (ïdosid currententityname) (dataid entityname)
-gen is_corp = strpos(entitytype, "CORPORATION")
-keep entityname incdate incyear is_DE address zipcode state city dataid is_corp
-
-
-save NY.dta , replace
-
-
+global mergetempsuffix NYmerge
 
 
 clear
-import delimited using "~/projects/reap_proj/raw_data/New_York/Aug2015/us_ny_export_for_mit_2015-08-24.csv", delim(",") varnames(1) bindquote(loose)
+import delimited using "/projects/reap.proj/raw_data/New York/Aug2015/us_ny_export_for_mit_2015-08-24.csv", delim(",") varnames(1) bindquote(loose)
 
 rename (company_number name headquarters_address_*) (dataid entityname *)
 
 foreach v of varlist *postal_code { 
     tostring `v' , replace
     replace `v' = "" if `v' == "."
-}
-
-
-bysort agent_name: egen num_of_times = sum(1) if agent_name != ""
-gen dos_info_lawyers_address = num_of_times > 100 & num_of_times != .
-
-foreach v of varlist registered_* {
-    replace `v' = "" if dos_info_lawyers_address 
 }
 
 foreach prefix in registered_address_ mailing_address_ {
@@ -97,41 +34,21 @@ rename home_jurisdiction jurisdiction
 
 replace jurisdiction = trim(upper(subinstr(jurisdiction,"us_","",.)))
 gen is_DE = jurisdiction == "DE"
-
-keep if inlist(jurisdiction,"","DE","NY")
 replace state = "NY" if state == "" & jurisdiction == "NY"
-
-/** these are only the inactive  ones **/
-//drop if current_status == "Active"
-
-
-/**only 5 digit zipcodes **/
-replace zipcode = substr(itrim(trim(zipcode)), 1,5)
+gen local_firm= inrange(jurisdiction,"DE","NY") & state == "NY"
+gen stateaddress = state
 
 
-keep dataid entityname incdate incyear is_corp address city state zipcode is_DE current_status
-
-gen second_file = 1
-append using NY.dta 
-
-replace second_file = 0 if second_file ==.
-bysort dataid (second_file): gen keepme = _n == 1
-keep if keepme == 1
-drop keepme second_file
-save NY.dta,replace
-
-
-
+** it is possible to register some through the ZIP Code if the y have no state
+gen zip5 = substr(zipcode, 1,5)
+destring zip5, replace force
+replace state = "NY" if inrange(zip5, 10001, 14925) & state == ""
 
 gen shortname = wordcount(entityname) <= 3
 gen corpnumber = dataid
 
-gen local_firm= state == "NY"
-gen stateaddress = state
-
-save NY.dta , replace
-
-
+keep dataid corpnumber entityname incdate incyear is_corp  is_nonprofit address city state zipcode is_DE shortname jurisdiction local_firm stateaddress
+save NY.dta,replace
 
 **
 **
@@ -152,8 +69,8 @@ save NY.dta , replace
 	# delimit ;
 	corp_add_trademarks NY , 
 		dta(NY.dta) 
-		trademarkfile(~/projects/reap_proj/data/trademarks.dta) 
-		ownerfile(~/projects/reap_proj/data/trademark_owner.dta)
+		trademarkfile(/projects/reap.proj/data/trademarks.dta) 
+		ownerfile(/projects/reap.proj/data/trademark_owner.dta)
 		var(trademark) 
 		frommonths(-12)
 		tomonths(12)
@@ -163,7 +80,7 @@ save NY.dta , replace
 	# delimit ;
 	corp_add_patent_applications NY NEW YORK , 
 		dta(NY.dta) 
-		pat(~/projects/reap_proj/data_share/patent_applications.dta) 
+		pat(/projects/reap.proj/data_share/patent_applications.dta) 
 		var(patent_application) 
 		frommonths(-12)
 		tomonths(12)
@@ -171,14 +88,30 @@ save NY.dta , replace
 
 	corp_add_patent_assignments  NY NEW YORK , 
 		dta(NY.dta)
-		pat("~/projects/reap_proj/data_share/patent_assignments.dta" "~/projects/reap_proj/data_share/patent_assignments2.dta" "~/projects/reap_proj/data_share/patent_assignments3.dta")
+		pat("/projects/reap.proj/data_share/patent_assignments.dta" "/projects/reap.proj/data_share/patent_assignments2.dta" "/projects/reap.proj/data_share/patent_assignments3.dta")
 		frommonths(-12)
 		tomonths(12)
 		var(patent_assignment)
 		statefileexists;
 	
 	# delimit cr	
-	corp_add_ipos	 NY ,dta(NY.dta) ipo(~/projects/reap_proj/data/ipoallUS.dta) longstate(NEW YORK)
-	corp_add_mergers NY ,dta(NY.dta) merger(~/projects/reap_proj/data/mergers.dta)  longstate(NEW YORK)
-	corp_add_vc2 	 NY ,dta(NY.dta) vc(~/final_datasets/VC.investors.dta) longstate(NEW YORK)
+	corp_add_ipos	 NY ,dta(NY.dta) ipo(/projects/reap.proj/data/ipoallUS.dta) longstate(NEW YORK)
+	corp_add_mergers NY ,dta(NY.dta) merger(/projects/reap.proj/data/mergers.dta)  longstate(NEW YORK)
+	corp_add_vc 	 NY ,dta(NY.dta) vc(~/final_datasets/VX.dta) longstate(NEW YORK)
 
+corp_has_last_name, dtafile(NY.dta) lastnamedta(~/ado/names/lastnames.dta) num(5000)
+corp_has_first_name, dtafile(NY.dta) num(1000)
+corp_name_uniqueness, dtafile(NY.dta)
+
+clear
+u NY.dta
+gen has_unique_name = uniquename <= 5
+save NY.dta, replace
+
+
+clear
+u NY.dta
+gen  shortname = wordcount(entityname) <= 3
+ 
+
+ save NY.dta, replace
