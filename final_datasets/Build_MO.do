@@ -1,49 +1,35 @@
 
-/*
-CREATE TABLE [dbo].[Corporation] (
-    [CorporationID] [int] NOT NULL ,
-    [EntityID] [int] NOT NULL ,
-    [CorporationTypeID] [int] NOT NULL ,
-    [CorporationStatusID] [int] NOT NULL ,
-    [CorporationNumber] [varchar] (15) NOT NULL ,
-    [Citizenship] [varchar] (1) NOT NULL ,
-    [DateFormed] [datetime] NULL ,
-    [DissolveDate] [datetime] NULL ,
-    [Duration] [varchar] (50) NULL ,
-    [CountyOfIncorporation] [varchar] (30) NULL ,
-    [StateOfIncorporation] [varchar] (2) NULL ,
-    [CountryOfIncorporation] [varchar] (30) NULL ,
-    [Purpose] [varchar] (255) NULL ,
-    [Profession] [varchar] (50) NULL ,
-    [RegisteredAgentName] [varchar] (500) NULL
-    ) ON [PRIMARY]
-GO
 
+cd ~/migration/datafiles/
 
-import delimited corpid entityid corporationtypeid corporationnumber citizenship dateformed dissolvedate duration countyofinc stateofin purpose provession registeredagentname 
-using ~/projects/reap_proj/raw_data/Missouri/2017/CorpDAta_new
-*/
+global mergetempsuffix Montana
+global only_DE 0
 
-
-cd ~/projects/reap_proj/final_datasets/
-    
 /**
  ** Jorge's code starts here
  **/
 
  clear
-import delimited corpid entityid corporationtypeid corporationstatusid corporationnumber citizenship dateformed dissolvedate duration countyofinc stateofinc countryofinc purpose profession registeredagentname using "~/projects/reap_proj/raw_data/Missouri/2017/Corporation.txt", delimiters(",") stringcols(_all) bindquote(loose)
+import delimited corpid entityid corporationtypeid corporationstatusid corporationnumber citizenship dateformed dissolvedate duration countyofinc stateofinc countryofinc purpose profession registeredagentname using "~/projects/reap_proj/raw_data/Missouri/Corporation.txt", delimiters(",") stringcols(_all) bindquote(loose)
 
 
 drop if v16 != ""
 drop v*
     
 /*Keep only local or delaware*/
- keep if citizenship == "D" | stateofinc == "DE"
-  
+
+gen jurisdiction = stateofinc
+replace jurisdiction = "MO" if citizenship == "D"
+
+if $only_DE == 1 {
+    keep if jurisdiction == "DE"
+}
+
 drop if missing(dateformed)
 gen incdate =dofc(clock(dateformed,"YMD hms"))
 gen incyear = year(incdate)
+
+
 save MO.dta, replace
 
 
@@ -52,7 +38,7 @@ save MO.dta, replace
 
 
 clear
-import delimited corporationtypeid corporationtype using "~/projects/reap_proj/raw_data/Missouri/2017/CorporationType.txt", delimiters(",") stringcols(_all)
+import delimited corporationtypeid corporationtype using "~/projects/reap_proj/raw_data/Missouri/CorporationType.txt", delimiters(",") stringcols(_all)
 
 merge 1:m corporationtypeid using MO.dta
 drop if _merge == 1
@@ -68,12 +54,12 @@ save MO.dta, replace
 
 
 clear
-import delimited nametypeid nametype  using "~/projects/reap_proj/raw_data/Missouri/2017/NameType.txt", delimiters(",") stringcols(_all)
+import delimited nametypeid nametype  using "~/projects/reap_proj/raw_data/Missouri/NameType.txt", delimiters(",") stringcols(_all)
 
 save ~/temp/nametypes.dta, replace
 
 clear
-import delimited corporationnameid corpid name nametypeid title salutation prefix lastname middlename firstname suffix  using "~/projects/reap_proj/raw_data/Missouri/2017/CorporationName.txt", delimiters(",") stringcols(_all)
+import delimited corporationnameid corpid name nametypeid title salutation prefix lastname middlename firstname suffix  using "~/projects/reap_proj/raw_data/Missouri/CorporationName.txt", delimiters(",") stringcols(_all)
 
 merge m:1 nametypeid using ~/temp/nametypes.dta
 drop _merge
@@ -103,14 +89,20 @@ save MO.dta, replace
 
 
 clear
-import delimited addresstypeid description  using ~/projects/reap_proj/raw_data/Missouri/2017/AddressType.txt, delimiters(",") stringcols(_all)
+import delimited addresstypeid description  using ~/projects/reap_proj/raw_data/Missouri/AddressType.txt, delimiters(",") stringcols(_all)
 save addresstypes.dta, replace
 
-clear
-import delimited addressid corporationid addresstypeid addr1 addr2 addr3 city state zipcode county country  using ~/projects/reap_proj/raw_data/Missouri/2017/Address.txt, delimiters(",") stringcols(_all)
 
-sort corporationid addresstypeid
-by corporationid: gen first = _n == 1
+clear
+import delimited addressid corporationid addresstypeid addr1 addr2 addr3 city state zipcode county country  using ~/projects/reap_proj/raw_data/Missouri/Address.txt, delimiters(",") stringcols(_all)
+
+destring addresstype, replace
+
+gen address_order     = 1 if addresstype == 3 | addresstype == 1003
+replace address_order = 2 if addresstype == 6
+replace address_order = 3 if addresstype == 9
+
+bysort corporationid (address_order): gen first = _n == 1
 keep if first
 drop first
 gen address = trim(itrim(addr1 + " " + addr2 + " " +addr3))
@@ -120,28 +112,38 @@ merge 1:m dataid using MO.dta
 
 keep if _merge == 3
 drop _merge
-keep if state == "MO"
+
+gen stateaddress = state
+gen potentiallylocal = is_DE | jurisdiction == "MO"
+
+
+if $only_DE == 1 {
+    keep if is_DE == 1
+}
+
+duplicates drop
+
 save MO.dta, replace
 
 
 
 clear
-import delimited partytypeid partytype  using ~/projects/reap_proj/raw_data/Missouri/2017/PartyType.txt, delimiters(",") stringcols(_all)
+import delimited partytypeid partytype  using ~/projects/reap_proj/raw_data/Missouri/PartyType.txt, delimiters(",") stringcols(_all)
 
 save partytypes.dta , replace
 
 
 clear
-import delimited xid  officerid partytypeid   using ~/projects/reap_proj/raw_data/Missouri/2017/OfficerPartyType.txt, delimiters(",") stringcols(_all)
+import delimited xid  officerid partytypeid   using ~/projects/reap_proj/raw_data/Missouri/OfficerPartyType.txt, delimiters(",") stringcols(_all)
 
 merge m:1 partytypeid using partytypes.dta
 keep if _merge == 3
 drop _merge
 save partytypes.dta, replace
 
- 
+
 clear
-import delimited officerid corpid mr salutation fullname  address v7 v8 city state zipcode country using ~/projects/reap_proj/raw_data/Missouri/2017/Officer.txt, delimiters(",") stringcols(_all)
+import delimited officerid corpid mr salutation fullname  using ~/projects/reap_proj/raw_data/Missouri/Officer.txt, delimiters(",") stringcols(_all)
 merge m:m officerid using partytypes.dta
 keep if _merge == 3
 drop _merge
@@ -214,18 +216,8 @@ corp_add_industry_dummies , ind(~/ado/industry_words.dta) dta(MO.dta)
 
 
 
-corp_add_vc2 MO ,dta(MO.dta) vc(~/final_datasets/VC.investors.dta) longstate(MISSOURI)
+corp_add_vc MO ,dta(MO.dta) vc(~/final_datasets/VX.dta) longstate(MISSOURI)
 
-
-
-corp_has_last_name, dtafile(MO.dta) lastnamedta(~/ado/names/lastnames.dta) num(5000)
-corp_has_first_name, dtafile(MO.dta) num(1000)
-corp_name_uniqueness, dtafile(MO.dta)
-
-clear
-u MO.dta
-gen has_unique_name = uniquename <= 5
-save MO.dta, replace
 
 
 
@@ -237,5 +229,5 @@ gen  shortname = wordcount(entityname) <= 3
 save MO.dta, replace
 
 
-!~/projects/reap_proj/chown_reap_proj.sh ~/projects/reap_proj/final_datasets/MO.dta
-!cp  ~/projects/reap_proj/final_datasets/MO.dta ~/final_datasets/
+
+    
