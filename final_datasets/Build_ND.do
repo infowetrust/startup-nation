@@ -1,5 +1,5 @@
 cd /projects/reap.proj/reapindex/NorthDakota
-
+global mergetempsuffix NDmigrate
 
 clear
 
@@ -50,8 +50,8 @@ gen is_corp = 1 if inlist(type,"C","F","BC")
 
 gen shortname = wordcount(entityname) < 4
 gen is_DE = 1 if regexm(jurisdiction,"DE")
-keep if inlist(jurisdiction,"DE","ND")
-drop if jurisdiction == "DE" & state != "ND"
+gen potentiallylocal =  inlist(jurisdiction,"DE","ND")
+
 /* Generating Variables */
 
 gen incdate = date(date,"YMD")
@@ -62,8 +62,9 @@ drop if missing(entityname)
 
 
 
-keep dataid entityname incdate incyear type is_DE jurisdiction zipcode state city address is_corp shortname
-
+keep dataid entityname incdate incyear type is_DE jurisdiction zipcode state city address is_corp shortname potentiallylocal
+gen stateaddress = state
+gen local_firm = potnetiallylocal
 compress
 save ND.dta,replace
 /*
@@ -141,3 +142,5 @@ save UT.directors.dta, replace
 
 	corp_add_ipos	 ND  ,dta(ND.dta) ipo(/projects/reap.proj/data/ipoallUS.dta)  longstate(NORTH DAKOTA) 
 	corp_add_mergers ND  ,dta(ND.dta) merger(/projects/reap.proj/data/mergers.dta)  longstate(NORTH DAKOTA) 
+
+      corp_add_vc        ND ,dta(ND.dta) vc(~/final_datasets/VX.dta) longstate(NORTH DAKOTA)
