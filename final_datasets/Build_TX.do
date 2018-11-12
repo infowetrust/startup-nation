@@ -12,27 +12,29 @@ global dtasuffix
 **
 
 clear
-infile using TX02.dct, using(/projects/reap.proj/raw_data/Texas/July2015/02_TexasClean.txt)
+infile using ~/final_datasets/TX02.dct, using(/projects/reap.proj/raw_data/Texas/July2015/02_TexasClean.txt)
 drop if filing_number == ""
-save TX$dtasuffix.dta, replace
+save TX.pre.dta, replace
 
 clear
-infile using TX03.dct, using(/projects/reap.proj/raw_data/Texas/July2015/03_TexasClean.txt)
+infile using ~/final_datasets/TX03.dct, using(/projects/reap.proj/raw_data/Texas/July2015/03_TexasClean.txt)
 drop if filing_number == ""
-merge 1:1 filing_number using TX$dtasuffix.dta
+merge 1:1 filing_number using TX.pre.dta
 drop if _merge == 1
-save TX$dtasuffix.dta, replace
+save TX.pre.dta, replace 
 
 
 
 
 clear
-       use TX$dtasuffix.dta
+       use TX.pre.dta
 
-OB	keep if state == "TX"
-	keep if inlist(foreign_state,"","DE")
 	replace foreign_state = "TX" if missing(foreign_state)
-	gen address = address1 + " " + address2
+
+        gen address = address1 + " " + address2
+
+        replace state = "TX" if state == "" & foreign_state == "TX"
+        gen stateaddress = state
 
 	gen is_nonprofit= inlist(corp_type_id,"08","09")
 
@@ -40,22 +42,20 @@ OB	keep if state == "TX"
 	gen incdateDE = date(foreign_formation_date,"YMD")
 	gen incyear = year(incdate)
 
-
-	gen deathdate = date(inactive_date,"YMD") 
-	gen deathyear = year(deathdate) 
-
-
 	gen is_corp =inlist(corp_type_id,"01","02","03","04")
 	rename (name filing_number) (entityname dataid)
 	rename (foreign_state zip_code   ) (jurisdiction zipcode   )
 	gen corpnumber = dataid
-	keep dataid corpnumber entityname incdate incyear is_corp jurisdiction is_nonprofit address city state zipcode
+        gen local_firm = state == "TX" & inlist(jurisdiction,"TX","DE")
+
+
+keep dataid corpnumber entityname incdate incyear  is_corp jurisdiction is_nonprofit address city state zipcode incdateDE stateaddress local_firm
 	save TX$dtasuffix.dta,replace
 
 
 
 	clear
-	infile using TX08.dct, using(/projects/reap.proj/raw_data/Texas/July2015/08_TexasClean.txt)
+	infile using ~/final_datasets/TX08.dct, using(/projects/reap.proj/raw_data/Texas/July2015/08_TexasClean.txt)
 	rename filingnumber dataid
 	gen fullname = trim(itrim(firstname + " " + middlename + " " +lastname))
 	replace officertitle = upper(trim(itrim(officertitle)))
@@ -69,7 +69,7 @@ OB	keep if state == "TX"
 
 	** Names
 	clear
-	infile using TX09.dct, using(/projects/reap.proj/raw_data/Texas/July2015/09_TexasClean.txt)
+	infile using ~/final_datasets/TX09.dct, using(/projects/reap.proj/raw_data/Texas/July2015/09_TexasClean.txt)
 
 	rename filingnumber dataid
 	destring nametypeid ,replace
@@ -92,19 +92,19 @@ OB	keep if state == "TX"
 **		and very similar to the ones used in "Where Is Silicon Valley?"
 **
 **	
-	corp_add_names, dta(~/final_datasets/TX$dtasuffix.dta) names(~/final_datasets/TX.names.dta) nosave
+	corp_add_names, dta(TX$dtasuffix.dta) names(TX.names.dta) nosave
 	u TX$dtasuffix.dta , replace
 	tomname entityname
 	save TX$dtasuffix.dta, replace
-	corp_add_industry_dummies , ind(~/ado/industry_words.dta) dta(~/final_datasets/TX$dtasuffix.dta)
-	corp_add_industry_dummies , ind(~/ado/VC_industry_words.dta) dta(~/final_datasets/TX$dtasuffix.dta)
-	corp_add_gender, dta(~/final_datasets/TX$dtasuffix.dta) directors(~/final_datasets/TX.directors.dta) names(~/ado/names/NATIONAL.TXT)
+	corp_add_industry_dummies , ind(~/ado/industry_words.dta) dta(TX$dtasuffix.dta)
+	corp_add_industry_dummies , ind(~/ado/VC_industry_words.dta) dta(TX$dtasuffix.dta)
+	corp_add_gender, dta(TX$dtasuffix.dta) directors(TX.directors.dta) names(~/ado/names/NATIONAL.TXT)
 
-	corp_add_eponymy, dtapath(~/final_datasets/TX$dtasuffix.dta) directorpath(~/final_datasets/TX.directors.dta)
+	corp_add_eponymy, dtapath(TX$dtasuffix.dta) directorpath(TX.directors.dta)
 	
 	# delimit ;
 	corp_add_trademarks TX , 
-		dta(~/final_datasets/TX$dtasuffix.dta) 
+		dta(TX$dtasuffix.dta) 
 		trademarkfile(/projects/reap.proj/data/trademarks.dta) 
 		ownerfile(/projects/reap.proj/data/trademark_owner.dta)
 		var(trademark) 
@@ -115,7 +115,7 @@ OB	keep if state == "TX"
 	
 	# delimit ;
 	corp_add_patent_applications TX TEXAS , 
-		dta(~/final_datasets/TX$dtasuffix.dta) 
+		dta(TX$dtasuffix.dta) 
 		pat(/projects/reap.proj/data_share/patent_applications.dta) 
 		var(patent_application) 
 		frommonths(-12)
@@ -125,32 +125,47 @@ OB	keep if state == "TX"
 	# delimit ;
 	
 	corp_add_patent_assignments  TX TEXAS , 
-		dta(~/final_datasets/TX$dtasuffix.dta)
+		dta(TX$dtasuffix.dta)
 		pat("/projects/reap.proj/data_share/patent_assignments.dta" "/projects/reap.proj/data_share/patent_assignments2.dta"  "/projects/reap.proj/data_share/patent_assignments3.dta")
 		frommonths(-12)
 		tomonths(12)
 		var(patent_assignment)
 		statefileexists;
 	# delimit cr	
-	corp_add_ipos	 TX ,dta(~/final_datasets/TX$dtasuffix.dta) ipo(/projects/reap.proj/data/ipoallUS.dta) longstate(TEXAS)
-	corp_add_mergers TX ,dta(~/final_datasets/TX$dtasuffix.dta) merger(/projects/reap.proj/data/mergers.dta) longstate(TEXAS)
-corp_add_vc2 TX ,dta(~/final_datasets/TX$dtasuffix.dta) vc(~/final_datasets/VC.investors.dta) longstate(TEXAS)
+	corp_add_ipos	 TX ,dta(TX$dtasuffix.dta) ipo(/projects/reap.proj/data/ipoallUS.dta) longstate(TEXAS)
+	corp_add_mergers TX ,dta(TX$dtasuffix.dta) merger(/projects/reap.proj/data/mergers.dta) longstate(TEXAS)
 
 
+      corp_add_vc        TX ,dta(TX.dta) vc(~/final_datasets/VX.dta) longstate(TEXAS)
 
-corp_has_last_name, dtafile(~/final_datasets/TX$dtasuffix.dta) lastnamedta(~/ado/names/lastnames.dta) num(5000)
-corp_has_first_name, dtafile(~/final_datasets/TX$dtasuffix.dta) num(1000)
-corp_name_uniqueness, dtafile(~/final_datasets/TX$dtasuffix.dta)
+
+corp_has_last_name, dtafile(TX$dtasuffix.dta) lastnamedta(~/ado/names/lastnames.dta) num(5000)
+corp_has_first_name, dtafile(TX$dtasuffix.dta) num(1000)
+corp_name_uniqueness, dtafile(TX$dtasuffix.dta)
 
 clear
 u TX$dtasuffix.dta
 gen has_unique_name = uniquename <= 5
-save ~/final_datasets/TX$dtasuffix.dta, replace
+save TX$dtasuffix.dta, replace
 
 
 clear
-u ~/final_datasets/TX$dtasuffix.dta
+u TX$dtasuffix.dta
 gen is_DE = jurisdiction == "DE"
 gen  shortname = wordcount(entityname) <= 3
-save ~/final_datasets/TX$dtasuffix.dta, replace
+save TX$dtasuffix.dta, replace
+
+
+
+u TX$dtasuffix.dta, replace
+gen zip2 = substr(zipcode,1,2)
+replace zip2 = "" if regexm(zip2,"[^0-9]")
+destring zip2, replace
+gen region = "So Texas (AUS/SAT)" if zip2 == 78
+replace region = "Dallas/Houston" if inlist(zip2, 77,76)
+gen region = "Other Texas" if zip2 == 79
+
+ save TX$dtasuffix.dta, replace
+
+
 
