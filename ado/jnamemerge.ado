@@ -39,7 +39,7 @@ program define jnamemerge,rclass
 	
 	
 	if "`tempfolder'" == "" {
-		local root_folder = "/nobackup1/jorgeg/tmp"
+		local root_folder = "/NOBACKUP/scratch/share_scp/temp/"
 	}
 	else{
 		local root_folder = "`tempfolder'"
