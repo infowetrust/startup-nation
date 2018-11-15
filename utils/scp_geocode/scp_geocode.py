@@ -7,6 +7,9 @@
 #Free Software Foundation, WITHOUT ANY WARRANTY
 #http://www.gnu.org/licenses/
 
+## Sample Command:
+##  python3 scp_geocode.py --datafile data.csv --delim , --header n --start 0 --addcol [2,3,4,5]
+
 import argparse
 
 def census_geocode(datafile,delim,header,start,addcol):
