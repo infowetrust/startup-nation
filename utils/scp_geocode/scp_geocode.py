@@ -7,12 +7,15 @@
 #Free Software Foundation, WITHOUT ANY WARRANTY
 #http://www.gnu.org/licenses/
 
-## Sample Command:
-##  python3 scp_geocode.py --datafile data.csv --delim , --header n --start 0 --addcol [2,3,4,5]
-
+import pandas as pd
 import argparse
+import pdb
+from io import StringIO
 
-def census_geocode(datafile,delim,header,start,addcol):
+
+
+
+def census_geocode(stata_dta_stream,delim,header,start,addcolstr, output_name):
     """ (str,str,str,int,list[int]) -> files
     Datafile is file or path to process, delim is file's
     delimiter, specify if file has header row with y or n,
@@ -24,6 +27,9 @@ def census_geocode(datafile,delim,header,start,addcol):
     from urllib import error
     from censusgeocode import CensusGeocode
 
+    ## BUG: Add col string is parsed to int, but should  be done before calling this function
+    addcol = list(map(int, addcolstr))
+    
     cg=CensusGeocode()
 
     #Function for adding and summing entries in dictionaries
@@ -64,13 +70,14 @@ def census_geocode(datafile,delim,header,start,addcol):
     nomatch=[]
     matchfails={}
     counter=0
-    namefile=datafile[:-4]
-    if datafile[-4:]=='.csv':
+    namefile=output_name[:-4]
+    if output_name[-4:]=='.csv':
         ext='.csv'
     else:
         ext='.txt'
 
-    readfile=csv.reader(open(datafile,'r', encoding='utf-8', errors='ignore'),delimiter=delim)
+#    readfile=csv.reader(open(datafile,'r', encoding='utf-8', errors='ignore'),delimiter=delim)
+    readfile=csv.reader(stata_dta_stream,delimiter=delim)
     matchfile=open(namefile+'_matched'+ext,'a', newline='', encoding='utf-8', errors='ignore')
     matchwrite=csv.writer(matchfile, delimiter=delim, quotechar='"', quoting=csv.QUOTE_MINIMAL)
     nomatchfile=open(namefile+'_nomatch'+ext,'a', newline='', encoding='utf-8', errors='ignore')
@@ -210,7 +217,7 @@ def census_geocode(datafile,delim,header,start,addcol):
     ts=datetime.datetime.now().strftime("%Y_%m_%d_%H%M")
 
     report=open(namefile+'_report_'+ ts +'.txt','w')
-    report.write('Summary of Census Geocoding Output for ' + datafile + ' on ' + ts + '\n' + '\n')
+    report.write('Summary of Census Geocoding Output for ' + output_name + ' on ' + ts + '\n' + '\n')
     report.write(str(counter) + ' records processed in total.'+'\n')
     report.write(str(matched_cnt) + ' records matched' +'\n')
     report.write(str(nomatch_cnt) + ' records had no matches' +'\n'+'\n')
@@ -266,15 +273,20 @@ def main():
 
     #Geocoding parameters#
     argparser.add_argument('--datafile', type=str, help='Insert data file you want to geocode')
-    argparser.add_argument('--delim', type=str, help='Insert delimiter type for the file', default=",")
     argparser.add_argument('--header', type=str, help='Specify if file has header row with y or n')
-    argparser.add_argument('--start', type=int, help='Specify where to read in the file (0 for beginning)')
-    argparser.add_argument('--addcol', type=list, help='Insert list of column numbers containing address components')
 
-    # Parse the arguments#
+
     args = argparser.parse_args()
 
-    census_geocode(args.datafile, args.delim, args.header, args.start, args.addcol)
+    stata_dta = pd.read_stata(args.datafile)
+    stata_dta['full_address'] = stata_dta.address + ". " + stata_dta.city + ", " + stata_dta.state  + ". " + stata_dta.zipcode
+    stata_dta = stata_dta.loc[stata_dta.index,['dataid','full_address']]
+
+    stata_dta_stream = StringIO()  #creating an empty buffer
+    stata_dta.to_csv(stata_dta_stream, index=False)  #filling that buffer
+    stata_dta_stream.seek(0) #set to the start of the stream
+
+    census_geocode(stata_dta_stream, ",", args.header, 0, [2], output_name=args.datafile)
 
 if __name__ == "__main__":
     main()
