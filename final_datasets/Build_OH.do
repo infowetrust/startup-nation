@@ -1,5 +1,5 @@
  clear
- cd ~/final_datasets
+ cd /NOBACKUP/scratch/share_scp/scp_private/final_datasets
  
  
  local keepraw = 0
@@ -12,7 +12,7 @@ global only_DE 0
  
  
  clear
- import delimited dataid articlesfilingdoc entityname firmtype x3 x4 filingdate x5  active x6 x7 x8 x9 x10 city state  v1 v v3 v4 v5 v6 v7 v8 v9 z1 z2 z3 z4  using ~/projects/reap_proj/raw_data/Ohio/CORPDATA.BUS, delim("|")
+ import delimited dataid articlesfilingdoc entityname firmtype x3 x4 filingdate x5  active x6 x7 x8 x9 x10 city state  v1 v v3 v4 v5 v6 v7 v8 v9 z1 z2 z3 z4  using /NOBACKUP/scratch/share_scp/raw_data/Ohio/CORPDATA.BUS, delim("|")
  
  gen is_corp = inlist(firmtype,"CP","CF")
 gen is_foreign = inlist(firmtype,"CF","LF")
@@ -57,7 +57,7 @@ save $OH_dta_file,replace
  *** DIRECTORS *** 
  
 clear 
-import delimited dataid numdirector fullname  using ~/projects/reap_proj/raw_data/Ohio/CORPDATA.ASS, delim("|")
+import delimited dataid numdirector fullname  using /NOBACKUP/scratch/share_scp/raw_data/Ohio/CORPDATA.ASS, delim("|")
 
 /*assume that only the first three directors are important*/
 keep if numdirector <= 3
@@ -75,7 +75,7 @@ save OH.directors.dta,replace
 	
 	
  clear 
- import delimited dataid namechangeddate oldname using ~/projects/reap_proj/raw_data/Ohio/CORPDATA.NAM, delim("|")
+ import delimited dataid namechangeddate oldname using /NOBACKUP/scratch/share_scp/raw_data/Ohio/CORPDATA.NAM, delim("|")
  
 duplicates drop
 save OH.names.dta,replace
@@ -89,7 +89,9 @@ save OH.names.dta,replace
 
 
 	
-	
+	u OH.dta, replace
+	tomname entityname
+	save OH.dta, replace
 	corp_add_names,dta($OH_dta_file) names(OH.names.dta)
 	
 	
@@ -99,7 +101,7 @@ save OH.names.dta,replace
 	drop if missing(dataid)
 	save $OH_dta_file,replace
 
-	corp_add_gender, dta($OH_dta_file) directors(OH.directors.dta) names(~/ado/names/NATIONAL.TXT)
+	corp_add_gender, dta($OH_dta_file) directors(OH.directors.dta) names(/NOBACKUP/scratch/share_scp/scp_private/ado/names/NATIONAL.TXT)
 
 	corp_add_eponymy, dtapath($OH_dta_file) directorpath(OH.directors.dta)
 	
@@ -108,7 +110,7 @@ save OH.names.dta,replace
 	# delimit ;
 	corp_add_patent_applications OH OHIO , 
 		dta($OH_dta_file) 
-		pat(~/projects/reap_proj/data_share/patent_applications.dta) 
+		pat(/NOBACKUP/scratch/share_scp/ext_data/patent_applications.dta) 
 		var(patent_application) 
 		frommonths(-12)
 		tomonths(12)
@@ -116,7 +118,7 @@ save OH.names.dta,replace
 	
 	corp_add_patent_assignments  OH OHIO , 
 		dta($OH_dta_file)
-		pat("~/projects/reap_proj/data_share/patent_assignments.dta" "~/projects/reap_proj/data_share/patent_assignments2.dta")
+		pat("/NOBACKUP/scratch/share_scp/ext_data/patent_assignments.dta" "/NOBACKUP/scratch/share_scp/ext_data/patent_assignments2.dta")
 		frommonths(-12)
 		tomonths(12)
 		var(patent_assignment)
@@ -126,34 +128,135 @@ save OH.names.dta,replace
 	# delimit ;
 	corp_add_trademarks OH , 
 		dta($OH_dta_file) 
-		trademarkfile(~/projects/reap_proj/data/trademarks.dta) 
-		ownerfile(~/projects/reap_proj/data/trademark_owner.dta)
+		trademarkfile(/NOBACKUP/scratch/share_scp/ext_data/trademarks.dta) 
+		ownerfile(/NOBACKUP/scratch/share_scp/ext_data/trademark_owner.dta)
 		var(trademark) 
 		frommonths(-12)
-		classificationfile(~/projects/reap_proj/data/trademarks/classification.dta)
+		classificationfile(/NOBACKUP/scratch/share_scp/ext_data/classification.dta)
 		tomonths(12)
 		;
 	
 	# delimit cr	
 
-	corp_add_vc 	 OH  ,dta($OH_dta_file) vc(~/final_datasets/VX.dta) longstate(OHIO) 
+	corp_add_vc 	 OH  ,dta($OH_dta_file) vc(/NOBACKUP/scratch/share_scp/ext_data/VX.dta) longstate(OHIO) 
 
 
-	corp_add_ipos	 OH  ,dta($OH_dta_file) ipo(~/projects/reap_proj/data/ipoallUS.dta)  longstate(OHIO) 
-	corp_add_mergers OH  ,dta($OH_dta_file) merger(~/projects/reap_proj/data/mergers.dta)  longstate(OHIO) 
+	corp_add_ipos	 OH  ,dta($OH_dta_file) ipo(/NOBACKUP/scratch/share_scp/ext_data/ipoallUS.dta)  longstate(OHIO) 
+	corp_add_mergers OH  ,dta($OH_dta_file) merger(/NOBACKUP/scratch/share_scp/ext_data/mergers.dta)  longstate(OHIO) 
 
 
 *		set trace on
 *		set tracedepth 1
-	corp_add_industry_dummies , ind(~/nbercriw/industry_words.dta) dta($OH_dta_file)
-	corp_add_industry_dummies , ind(~/ado/VC_industry_words.dta) dta($OH_dta_file)
+	corp_add_industry_dummies , ind(/NOBACKUP/scratch/share_scp/ext_data/industry_words.dta) dta($OH_dta_file)
+	corp_add_industry_dummies , ind(/NOBACKUP/scratch/share_scp/ext_data/VC_industry_words.dta) dta($OH_dta_file)
 
-	
 	
 
 clear
 u $OH_dta_file
 gen  shortname = wordcount(entityname) <= 3
  save $OH_dta_file, replace
+ 
+***** address *********
+clear
+import delimited dataid using /NOBACKUP/scratch/share_scp/raw_data/Ohio/CORPDATA.ADR, delim("|")
+replace  v7 = substr(v7, 1, 5)
+
+*keep if v6 == "OH"
+replace v3 =trim(itrim(v3))
+replace v3 =upper(v3)
+replace v4 =trim(itrim(v4))
+replace v4 =upper(v4)
+replace v5 =trim(itrim(v5))
+replace v5 =upper(v5)
+replace v6 =trim(itrim(v6))
+replace v6 =upper(v6)
+replace v7 =trim(itrim(v7))
+
+gen a4 = ", " + v4 if v4 != ""
+gen a5 = ", " + v5 if v5 != ""
+gen a6 = ", " + v6 if v6 != ""
+gen a7 = ", " + v7 if v7 != ""
+
+
+gen address = v3 + a4 + a5 + a6+ a7
+
+sort dataid
+quietly by dataid: gen dup = cond(_N == 1,0,_n)
+
+drop if dup > 1
+drop dup
+rename (v3 v4 v5 v6 v7) (address1 address2 city state zipcode)
+
+keep dataid address city state zipcode address1 address2
+*keep if state == "OH"
+save OH.address.dta, replace
+*************** AGN address **********
+clear
+import delimited dataid using /NOBACKUP/scratch/share_scp/raw_data/Ohio/CORPDATA.AGN, delim("|")
+replace  v9 = substr(v9, 1, 5)
+
+replace v4 =trim(itrim(v4))
+replace v4 =upper(v4)
+replace v5 =trim(itrim(v5))
+replace v5 =upper(v5)
+replace v6 =trim(itrim(v6))
+replace v6 =upper(v6)
+replace v7 =trim(itrim(v7))
+replace v7 =upper(v7)
+replace v9 =trim(itrim(v9))
+
+
+gen a5 = ", " + v5 if v5 != ""
+gen a6 = ", " + v6 if v6 != ""
+gen a7 = ", " + v7 if v7 != ""
+gen a9 = ", " + v9 if v9 != ""
+
+
+gen address = v4 + a5 + a6+ a7 +a9
+
+sort dataid
+quietly by dataid: gen dup = cond(_N == 1,0,_n)
+
+drop if dup > 1
+drop dup
+rename (v4 v5 v6 v7 v9) (address1 address2 city state zipcode)
+
+keep dataid address city state zipcode address1 address2
+save address_AGN.dta
+
+append using OH.address.dta
+
+sort dataid
+quietly by dataid: gen dup = cond(_N == 1,0,_n)
+
+drop if dup > 1
+drop dup
+
+******** Merge *******
+rename (city state) (city2 state2)
+save OH.address.dta, replace
+u OH.dta, clear
+
+safedrop address
+safedrop zipcode
+save OH.dta, replace
+
+u OH.address.dta, clear
+merge 1:m dataid using OH.dta
+
+drop if _merge == 1 
+drop _merge
+
+replace city2 = city if city2 == ""
+drop city 
+rename city2 city
+
+replace state2 = state if state2 == ""
+drop state
+rename state2 state
+compress
+
+save OH.dta, replace
 
 
