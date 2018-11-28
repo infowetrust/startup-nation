@@ -8,7 +8,7 @@ program define corp_add_ipos,rclass
 	local state="`1'"
 	
 	if "`dtapath'" == "" {
-		local filepath = "~/data/`state'.dta"
+		local filepath = "/NOBACKUP/scratch/share_scp/scp_private/final_datasets/`state'.dta"
 	}
 	else {
 		local filepath = "`dtapath'"
@@ -26,9 +26,9 @@ program define corp_add_ipos,rclass
         rename businessdescription ipo_businessdescription
         keep issuedate match* mfull_name issuer financial_ipo ipo_businessdescription
 	rename issuedate ipodate
-	save ~/temp/`state'ipo.dta,replace
+	save /NOBACKUP/scratch/share_scp/temp/`state'ipo.dta,replace
  
-	jnamemerge `filepath' ~/temp/`state'ipo.dta , `skipcollapsed'
+	jnamemerge `filepath' /NOBACKUP/scratch/share_scp/temp/`state'ipo.dta , `skipcollapsed'
 	
 	/*
 	if "`nomatchdta'" != "" {

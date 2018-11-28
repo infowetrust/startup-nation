@@ -46,8 +46,8 @@ program define jnamemerge,rclass
 	}
 	
 	
-	local merge1 = "`root_folder'/merge1.$mergetempsuffix.dta"
-	local merge2 = "`root_folder'/merge2.$mergetempsuffix.dta"
+	local merge1 = "`root_folder'merge1.$mergetempsuffix.dta"
+	local merge2 = "`root_folder'merge2.$mergetempsuffix.dta"
 	
 	capture confirm file `merge1'
 	if _rc == 0{

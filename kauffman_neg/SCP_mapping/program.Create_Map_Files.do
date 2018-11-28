@@ -13,14 +13,14 @@ program define build_address_map_file, rclass
 {
     local state `1'
 
-    capture confirm file ~/projects/reap_proj/geocoding/`state'.geocoded.bypoint.dta
+    capture confirm file /NOBACKUP/scratch/share_scp/geocoded/dta/`state'.geocoded.bypoint.dta
 
     if _rc == 0 {
         clear
-        capture u ~/projects/reap_proj/geocoding/`state'.geocoded.bypoint.dta
+        capture u /NOBACKUP/scratch/share_scp/geocoded/dta/`state'.geocoded.bypoint.dta
         if _rc == 0 {
             
-            save ~/kauffman_neg/RJ/dta/`state'_address.dta , replace
+            save /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/SCP_mapping/dta/`state'_address.dta , replace
         }
         else {
 
@@ -38,11 +38,11 @@ program define build_city_map_file , rclass
     local state `1'
 
 
-    capture confirm file  ~/kauffman_neg/RJ/dta/`state'_cities_lat_lon.dta
+    capture confirm file  /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/SCP_mapping/dta/`state'_cities_lat_lon.dta
     if _rc != 0  | "`refresh'" == "refresh" {
         di "begin geocoding for `state' "
         clear
-        u ~/kauffman_neg/analysis34.minimal.dta
+        u /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/analysis34.minimal.dta
         keep if datastate == "`state'"
         safedrop obs
         gen obs = 1
@@ -60,25 +60,26 @@ program define build_city_map_file , rclass
 
         // Just keep the ones matched at the city level
         keep if g_quality == 3
-        save ~/kauffman_neg/RJ/dta/`state'_cities_lat_lon.dta , replace
+        save /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/SCP_mapping/dta/`state'_cities_
+_lon.dta , replace
     }
 
     //Loads from a text file that geocoded through a python script
     if "`usetext'" != "" {
         clear
-        import delimited id blank add g_lat g_lon  using ~/kauffman_neg/RJ/geocode/outfile.txt
+        import delimited id blank add g_lat g_lon  using /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/outfile.txt 
 
         keep id g_lat g_lon
         duplicates drop
         
-        merge 1:1 id using ~/kauffman_neg/map_cities.dta
+        merge 1:1 id using /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/map_cities.dta 
         keep if _merge == 3
         drop _merge
         keep if datastate  == "`state'"
         rename datastate state
         safedrop blank id
         drop if g_lat ==. | g_lon == .
-        save ~/kauffman_neg/RJ/dta/`state'_cities_lat_lon.dta , replace
+        save /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/SCP_mapping/dta/`state'_cities_lat_lon.dta , replace
 
         local N=_N
         di "`N' cities geocoded"
@@ -86,7 +87,7 @@ program define build_city_map_file , rclass
     }
 
     clear
-    u ~/kauffman_neg/analysis34.minimal.dta
+    u /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/analysis34.minimal.dta
     keep if datastate == "`state'"
     safedrop obs
     gen obs = 1
@@ -101,7 +102,7 @@ program define build_city_map_file , rclass
     /** Just drop all cities that are blank **/
     // TO DO: Potentially there could be a better approach
     drop if city == ""
-    merge m:1 city using ~/kauffman_neg/RJ/dta/`state'_cities_lat_lon.dta
+    merge m:1 city using /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/SCP_mapping/dta/`state'_cities_lat_lon.dta
     keep if _merge == 3
     drop _merge     
 
@@ -133,7 +134,7 @@ program define build_city_map_file , rclass
     //Some bad Cities to Drop
     gen l = length(city)
     drop if l < 2
-    save ~/kauffman_neg/RJ/dta/`state'_cities.dta , replace
+    save /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/SCP_mapping/dta/`state'_cities.dta , replace
 }
 end
 
@@ -143,11 +144,11 @@ program define output_agg_by_state_file, rclass
     syntax namelist
 {
     clear
-    u ~/kauffman_neg/analysis34.minimal.dta
+    u /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/analysis34.minimal.dta
     drop if incyear == .
     collapse (mean) quality (sum) obs, by(datastate incyear)
     rename datastate _stateabbr
-    merge m:1 _stateabbr using ~/kauffman_neg/RJ/dta/State_lat_lon.dta
+    merge m:1 _stateabbr using /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/SCP_mapping/dta/State_lat_lon.dta
     keep if _merge == 3
     drop _merge
     rename _stateabbr stateabbr
@@ -161,8 +162,8 @@ program define output_agg_by_state_file, rclass
     safedrop stateabbr quality
 
     reshape wide o qp , i(statecode) j(incyear)
-    save ~/kauffman_neg/RJ/dta/allstates_states.dta , replace
-    outsheet using ~/kauffman_neg/output/geocode/agg_by_state.csv , comma names replace noquote
+    save /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/SCP_mapping/dta/allstates_states.dta , replace
+    outsheet using /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/output/geocode/agg_by_state.csv , comma names replace noquote 
 }
 end
 
@@ -174,13 +175,13 @@ program define create_empty_county_file , rclass
     local state `1'
     
     clear
-    u ~/kauffman_neg/RJ/dta/countylist.dta
+    u /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/SCP_mapping/dta/countylist.dta
     keep if state == "`state'"
 
     forvalues y=1988/2014 {
         gen reai_`y' = ""
     }
-    save ~/kauffman_neg/RJ/dta/`state'_counties.dta , replace
+    save /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/SCP_mapping/dta/`state'_counties.dta , replace
 }
 end
 
@@ -192,7 +193,7 @@ program define build_county_map_file , rclass
 {
     local state `1'
     clear
-    u ~/kauffman_neg/analysis34.minimal.dta
+    u /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/analysis34.minimal.dta
     keep if datastate == "`state'"
 
     /** If this data does not exist, create emply county file **/
@@ -202,7 +203,7 @@ program define build_county_map_file , rclass
     }
     
     safedrop _merge
-    merge m:m zipcode using ~/kauffman_neg/county_zipcode.dta
+    merge m:m zipcode using /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/county_zipcode.dta 
 
     keep zipcode county bus_ratio quality incyear growthz
     tostring county, replace
@@ -232,13 +233,13 @@ program define build_county_map_file , rclass
     gen statefp = substr(countycode,1,2)
     gen countyfp = substr(countycode,3,3)
 
-    merge 1:1  statefp countyfp using ~/kauffman_neg/RJ/dta/countylist.dta
+    merge 1:1  statefp countyfp using /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/SCP_mapping/dta/countylist.dta 
     keep if state == "`state'"
     foreach v of varlist reai* {
         tostring `v', replace force
         replace  `v' = "" if `v' == "."
     }
-    save ~/kauffman_neg/RJ/dta/`state'_counties.dta , replace
+    save /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/SCP_mapping/dta/`state'_counties.dta , replace
     
 
 }
@@ -249,7 +250,7 @@ program define build_all_states_map_file  , rclass
 {
 
     clear
-    u ~/kauffman_neg/analysis34.minimal.dta
+    u /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/analysis34.minimal.dta
 
     safedrop obs
     gen obs=  1
@@ -257,7 +258,7 @@ program define build_all_states_map_file  , rclass
     gen reai = growthz/recpi if incyear <= 2008
     rename (incyear datastate) (year state)
     drop growthz
-    save ~/kauffman_neg/RJ/dta/by_state.dta , replace
+    save /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/SCP_mapping/dta/by_state.dta , replace
 
 
 }
@@ -273,8 +274,8 @@ capture program drop output_all_states_file
 program define output_all_states_file , rclass
 {
     clear
-    u ~/kauffman_neg/RJ/dta/by_state.dta
-    outsheet using ~/kauffman_neg/output/geocode/all_states_by_state.csv , comma names replace noquote
+    u /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/SCP_mapping/dta/by_state.dta
+    outsheet using /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/output/geocode/all_states_by_state.csv , comma names replace noquote
 }
 end
 
@@ -286,19 +287,19 @@ program define output_files, rclass
     local statelist `namelist'
 
     foreach state in `statelist' {
-        capture confirm file ~/kauffman_neg/RJ/dta/`state'`file_suffix'
+        capture confirm file /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/SCP_mapping/dta/`state'`file_suffix'
         if _rc != 0 {
 
-            di "Creating blank file ~/kauffman_neg/RJ/dta/`state'`file_suffix'"
+            di "Creating blank file /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/SCP_mapping/dta/`state'`file_suffix'"
             clear
             gen blank = ""
-            save ~/kauffman_neg/RJ/dta/`state'`file_suffix', replace
+            save /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/SCP_mapping/dta/`state'`file_suffix', replace
         }
     }
     
     
     clear
-    u ~/kauffman_neg/RJ/dta/allstates`file_suffix'
+    u /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/SCP_mapping/dta/allstates`file_suffix'
     safedrop reai_2015
     safedrop _merge
 
@@ -310,11 +311,11 @@ program define output_files, rclass
     foreach state in `statelist' {
 
         local csv = subinstr("`state'`file_suffix'", ".dta",".csv",.)
-        outsheet if datastate == "`state'" using ~/kauffman_neg/output/geocode/`csv' , replace comma noquote
+        outsheet if datastate == "`state'" using /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/output/geocode/`csv' , replace comma noquote
     }
 
     local csv = subinstr("`state'`file_suffix'", ".dta",".csv",.)
-    outsheet using ~/kauffman_neg/output/geocode/allstates`csv' , replace comma noquote
+    outsheet using /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/output/geocode/allstates`csv' , replace comma noquote
 
 }
 end
@@ -327,22 +328,22 @@ program define append_all_states , rclass
     local statelist `namelist'
 
     foreach state in `statelist' {
-        capture confirm file ~/kauffman_neg/RJ/dta/`state'`file_suffix'
+        capture confirm file /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/SCP_mapping/dta/`state'`file_suffix'
         if _rc != 0 {
             clear
             gen blank = ""
-            save ~/kauffman_neg/RJ/dta/`state'`file_suffix', replace
+            save /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/SCP_mapping/dta/`state'`file_suffix', replace
         }
     }
     
     
     clear
     gen state = ""
-    save ~/kauffman_neg/RJ/dta/allstates`file_suffix',  replace
+    save /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/SCP_mapping/dta/allstates`file_suffix',  replace
     foreach state in `statelist' {
         di "Adding State `state' to file allstates`file_suffix'"
         clear
-         u ~/kauffman_neg/RJ/dta/`state'`file_suffix'
+         u /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/SCP_mapping/dta/`state'`file_suffix'
         capture rename incyear year
         safedrop datastate
         gen datastate = "`state'"
@@ -358,25 +359,26 @@ program define append_all_states , rclass
             rename g_lon longitude
         }
 
-        append using ~/kauffman_neg/RJ/dta/allstates`file_suffix'
-        save ~/kauffman_neg/RJ/dta/allstates`file_suffix' , replace
-        if _N > 0 {
-            tabstat lat lon ,by(datastate)
-        }
+        append using /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/SCP_mapping/dta/allstates`file_suffix'
+        save /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/SCP_mapping/dta/allstates`file_suffix' , replace
+        
+	*if _N > 0 {
+            *tabstat latitude longitude ,by(datastate)
+        *}
     }
  
 
    /* Drop the duplicates in the same lat/lon in cities */
     if "`file_suffix'" == "_cities.dta" {
-        save ~/kauffman_neg/RJ/dta/allstates_cities.complete.dta , replace
+        save /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/SCP_mapping/dta/allstates_cities.complete.dta , replace
         safedrop keepme point
-        egen point = group(lat lon)
+        egen point = group(latitude longitude)
         bysort point city datastate: egen totobs = sum(obs)        
         bysort point: egen maxobs = max(totobs)
         keep if maxobs == totobs
         gsort -totobs
         duplicates drop point year, force
-        save ~/kauffman_neg/RJ/dta/allstates`file_suffix' , replace
+        save /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/SCP_mapping/dta/allstates`file_suffix' , replace
     }
 
 }
@@ -389,10 +391,10 @@ program define add_quality_percentiles , rclass
 {
 
     local statelist $statelist
-    use ~/kauffman_neg/RJ/dta/allstates`file_suffix' , replace
+    use /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/SCP_mapping/dta/allstates`file_suffix' , replace
 
     local before_quality =subinstr("`file_suffix'", ".dta",".before_quality.dta",.)
-    save ~/kauffman_neg/RJ/dta/allstates`before_quality' , replace
+    save /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/SCP_mapping/dta/allstates`before_quality' , replace
 
     /** Add Quality Percentiles **/
     sort quality
@@ -415,19 +417,19 @@ program define add_quality_percentiles , rclass
     drop if obs == .
 
     /** Keep only the main one **/
-    bysort  datastate lat lon: egen num_in_state = sum(obs)
-    bysort  lat lon: egen num_max = max(num_in_state)
+    bysort  datastate latitude longitude: egen num_in_state = sum(obs)
+    bysort  latitude longitude: egen num_max = max(num_in_state)
     keep if num_in_state == num_max
 
     /** there are a few duplicates remaining, they are too small, too few and do not matter, just force to kill one **/
     safedrop keepme
-    bysort lat lon: gen keepme = datastate == datastate[1]
+    bysort latitude longitude: gen keepme = datastate == datastate[1]
     keep if keepme
     drop keepme
     rename (obs quality_percentile_global quality_percentile_yearly) (o qg qy)
     safedrop id
-    egen id = group(lat lon)
-    drop if lat == . | lon == . | year < 1988
+    egen id = group(latitude longitude)
+    drop if latitude == . | longitude == . | year < 1988
     keep datastate id year lat lon o qg qy `keep'
 
 
@@ -440,9 +442,9 @@ program define add_quality_percentiles , rclass
         replace `v' = "0" if `v' == "."
     }
 
-    order id datastate `keep' lat lon 
+    order id datastate `keep' latitude longitude 
 
-    save ~/kauffman_neg/RJ/dta/allstates`file_suffix' , replace
+    save /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/SCP_mapping/dta/allstates`file_suffix' , replace
  }
 end
 

@@ -1,12 +1,11 @@
-cd ~/kauffman_neg/RJ/
-
+cd /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/SCP_mapping
 
 
 set trace on
 set tracedepth 1
 
 global statelist AK AR AZ CA CO FL GA IA ID IL KY MA ME MI MN MO NC ND NJ NM NY OH OK OR RI SC TN TX UT VA VT WA WI WY
-
+ 
 global states50 AL AK AZ AR CA CO CT DE FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY 
 
 do program.Create_Map_Files.do
@@ -22,16 +21,13 @@ foreach s in  AK AR AZ CA CO FL MI NJ NY WI WY{
 
 ***/
 
-
-
 append_all_states $statelist , file_suffix(_cities.dta)
 add_quality_percentiles $statelist , file_suffix(_cities.dta) keep(city state)
 output_files $statelist , file_suffix(_cities.dta)
 
 exit
 
-
-
+*********************** program stops ***********************
 
 foreach s in $states50 {
     build_county_map_file `s'
@@ -64,6 +60,7 @@ output_agg_by_state_file $statelist
 /*** City Files ***/
 
 global statelist  AR AZ CA CO FL GA IA ID IL KY MA ME MI MN MO NC ND NJ NM NY OH OK OR RI SC TN TX UT VA VT WA WI WY
+ssc install winsor
 
 
 foreach s in $statelist {
@@ -106,7 +103,7 @@ if 0==1{
 
 
 
-exit. ..
+exit
 
 /**********************************/
 /* Info Graphic Distribution Data */
@@ -114,7 +111,7 @@ exit. ..
 {
 
     clear
-    u ~/kauffman_neg/analysis34.collapsed.dta
+    u /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/analysis34.minimal.dta
     sort quality
     drop if quality == .
     gen percentile = floor((_n-1)/_N*100)
@@ -124,15 +121,15 @@ exit. ..
 
     keep  year percentile quality
     order year percentile quality
-    outsheet using ~/kauffman_neg/output/Average_Quality_100percentiles_by_year.csv, comma names replace
+    outsheet using /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/output/Average_Quality_100percentiles_by_year.csv, comma names replace
 
     
 
     
     clear
-    u ~/kauffman_neg/analysis34.collapsed.dta
+    u /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/analysis34.minimal.dta 
     sort quality
-    gen percentile = min(floor((_n-1)/_N*100)
+    gen percentile = floor((_n-1)/_N*100)
     safedrop obs
     gen obs = 1
     collapse (sum) obs , by(percentile incyear)
@@ -148,13 +145,13 @@ exit. ..
 
     keep  year percentile obs_adj share
     order year percentile obs_adj share
-    outsheet using ~/kauffman_neg/output/geocode/Yearly_Distribution_5pct_Groups_bypct.csv, comma names replace
+    outsheet using /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/output/geocode/Yearly_Distribution_5pct_Groups_bypct.csv, comma names replace
 
 
 
     clear
-    u ~/kauffman_neg/analysis34.collapsed.dta
-    sort quality
+    u /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/analysis34.minimal.dta
+    sort quality 
     gen percentile = min(floor(_n/_N*20)*5,95)
     safedrop obs
     gen obs = 1
@@ -166,11 +163,11 @@ exit. ..
 
     keep  year percentile obs share
     order year percentile obs share
-    outsheet using ~/kauffman_neg/output/geocode/Yearly_Distribution_5pct_Groups.csv, comma names replace
+    outsheet using /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/output/geocode/Yearly_Distribution_5pct_Groups.csv, comma names replace
 
 
     clear
-    u ~/kauffman_neg/analysis34.collapsed.dta
+    u /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/analysis34.minimal.dta
     sort quality
     gen percentile = min(floor(_n/_N*10)*10,90)
     safedrop obs
@@ -182,5 +179,5 @@ exit. ..
 
     keep  year percentile obs share
     order year percentile obs share
-    outsheet using ~/kauffman_neg/output/geocode/Yearly_Distribution_10pct_Groups.csv, comma names replace
+    outsheet using /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/output/geocode/Yearly_Distribution_10pct_Groups.csv, comma names replace
 }

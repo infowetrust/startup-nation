@@ -18,9 +18,9 @@ program define corp_add_vc,rclass
             keep if vcinvestmentstate == trim(itrim(upper("`longstate'")))
         }
 
-	save ~/temp/`state'vc.dta,replace
+	save /NOBACKUP/scratch/share_scp/temp/`state'vc.dta,replace
 	
-	jnamemerge `filepath' ~/temp/`state'vc.dta
+	jnamemerge `filepath' /NOBACKUP/scratch/share_scp/temp/`state'vc.dta
 
         safedrop _merge _mergex
        

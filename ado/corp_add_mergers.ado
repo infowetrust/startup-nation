@@ -7,7 +7,7 @@ program define corp_add_mergers, rclass
 	local state="`1'"
 	
 	if "`dtapath'" == "" {
-		local filepath = "~/data/`state'.dta"
+		local filepath = "/NOBACKUP/scratch/share_scp/scp_private/final_datasets/`state'.dta"
 	}
 	else {
 		local filepath = "`dtapath'"
@@ -24,9 +24,9 @@ program define corp_add_mergers, rclass
 	replace enterprisevalue = subinstr(enterprisevalue,",","",.)
 	gen x = length(enterprisevalue) > 0
 	gen mergeryear =year(date(dateannouncedstr,"MDY",2020))
-	save ~/temp/`state'.merger.dta,replace
+	save /NOBACKUP/scratch/share_scp/temp/`state'.merger.dta,replace
 
-	jnamemerge `filepath' ~/temp/`state'.merger.dta , `skipcollapsed'
+	jnamemerge `filepath' /NOBACKUP/scratch/share_scp/temp/`state'.merger.dta , `skipcollapsed'
 	
 	/*
 	if "`nomatchdta'" != "" {
