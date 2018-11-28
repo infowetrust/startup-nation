@@ -223,7 +223,7 @@ drop dup
 rename (v4 v5 v6 v7 v9) (address1 address2 city state zipcode)
 
 keep dataid address city state zipcode address1 address2
-save address_AGN.dta
+save address_AGN.dta,replace
 
 append using OH.address.dta
 
