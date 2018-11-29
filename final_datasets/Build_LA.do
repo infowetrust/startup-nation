@@ -1,121 +1,196 @@
-
-cd /projects/reap.proj/reapindex/Louisiana
-
-
-
-clear 
-xmluse /projects/reap.proj/raw_data/Louisiana/Filings.xml , doctype(dta)
-
-rename v1 dataid
-rename v5 entityname
-rename v7 dateinc
-rename v10 jurisdiction
-keep if inlist(jurisdiction,"Delaware","Minnesota")
-rename v3 type
-gen is_corp=1 if type == 43 | type == 66
-
-save MN1.dta, replace
-
 clear
-u MN_raw.dta,replace
-keep if v2 == 03
-compress
-save MN3.dta, replace
+cd /NOBACKUP/scratch/share_scp/scp_private/final_datasets
 
-rename v1 dataid
-gen address = trim(v9 + v10)
-gen city = v11
-gen state = v12
-gen zipcode = v13
-drop if missing(address)
-duplicates drop dataid, force
-merge 1:1 dataid using MN1.dta
-drop if _merge == 1 
-drop _merge
+global mergetempsuffix = "LA_State"
+global only_DE 0
+local dtasuffix = ""
+local keepraw = 0
 
-gen shortname = wordcount(entityname) < 4
-gen is_DE  = 1 if jurisdiction == "Delaware"
-gen incdate = date(dateinc,"MDY")
-gen incyear = year(incdate)
+import delimited using /NOBACKUP/scratch/share_scp/raw_data/Louisiana/Entities.csv, varname(1)
+drop addresstype v*
+split startdate, parse(T)
+drop startdate startdate2
+gen incdate = date(startdate1, "YMD")
+drop if incdate < td(01jan1988)
+gen incyear =year(incdate)
+replace zipcode = substr(itrim(trim(zipcode)),1,5)
 
-drop if missing(incdate)
-drop if missing(entityname)
-keep dataid entityname incdate incyear is_DE jurisdiction zipcode state city address is_corp shortname
-replace state = "MN" if missing(state)
-compress
-drop if is_DE & state != "MN"
-save MN.dta,replace
+rename (chartercategory id name address1) (firmtype dataid entityname address)
+replace firmtype = trim(itrim(firmtype))
+drop if inlist(firmtype, "X", "N", "W")
 
-/*
-No director file
-/* Build Director File */
+gen is_corp = inlist(firmtype, "D", "F")
+gen is_foreign = inlist(firmtype, "F")
+save LA.dta, replace
+
+keep if is_foreign
+tomname entityname
+save LA.foreign.dta, replace
+corp_get_DE_by_name ,dta(LA.foreign.dta)
+keep if is_DE
+append using LA.dta
+
+if $only_DE == 1 {
+   keep if is_DE ==1
+}
+
+keep dataid entityname incdate incyear is_corp is_DE address city state zipcode
+order dataid entityname incdate incyear is_corp is_DE address city state zipcode
+save LA.dta, replace
+
+****** DIRECTORS ****************
 clear
+import delimited using /NOBACKUP/scratch/share_scp/raw_data/Louisiana/OfficeraAgents.csv, varname(1)
+drop if missing(firstname)
+rename eid dataid
+keep dataid firstname lastname titles v9 v10 v15 v16 v17 v22
+order dataid firstname lastname titles v9 v10 v15 v16 v17 v22
+rename (v9 v10 v15 v16 v17 v22) (f1 l1 t1 f2 l2 t2)
 
-import delimited /projects/reap.proj/raw_data/NewMexico/DataSales_06012016/OfficersSP.txt, delim(tab) varname(1)
-save NM.directors.dta,replace
+replace titles = upper(trim(itrim(titles)))
+replace t1 = upper(trim(itrim(t1)))
+replace t2 = upper(trim(itrim(t2)))
 
-tostring businessno , generate(dataid)
-gen role = title
-gen fullname =firstname + " " +middlename + " " + lastname 
+replace titles = "PRESIDENT" if inlist(titles, "ALL OFFICERS", "CHAIRMAN", "PRESIDENT","CEO")
+replace titles = "MANAGER" if inlist(titles,"MANAGER","PARTNER","MEMBER")
+gen dummy = inlist(titles, "PRESIDENT", "MANAGER")
 
-keep if inlist(role,"President")
-keep dataid fullname role 
-drop if missing(fullname)
-save NM.directors.dta, replace
-*/
-*/
-**
-**
-** STEP 2: Add varCTbles. These varCTbles are within the first year
-**		and very similar to the ones used in "Where Is Silicon Valley?"
-**
-**	
-	u MN.dta , replace
-	tomname entityname
-	save MN.dta, replace
-/*
-	corp_add_eponymy, dtapath(MN.dta) directorpath(MN.directors.dta)
-*/
-	gen eponomous = 0
-       corp_add_industry_dummies , ind(~/ado/industry_words.dta) dta(MN.dta)
-	corp_add_industry_dummies , ind(~/ado/VC_industry_words.dta) dta(MN.dta)
-	
-	
+replace t1 = "PRESIDENT" if inlist(t1, "ALL OFFICERS", "CHAIRMAN", "PRESIDENT","CEO")
+replace t1 = "MANAGER" if inlist(t1,"MANAGER","PARTNER","MEMBER")
+gen dummy1 = inlist(t1, "PRESIDENT", "MANAGER")
+
+replace t2 = "PRESIDENT" if inlist(t2, "ALL OFFICERS", "CHAIRMAN", "PRESIDENT","CEO")
+replace t2 = "MANAGER" if inlist(t2,"MANAGER","PARTNER","MEMBER")
+gen dummy2 = inlist(t2, "PRESIDENT", "MANAGER")
+
+drop if dummy ==0 & dummy1 == 0 & dummy2 == 0
+replace firstname = f1 if dummy ==0 & dummy1 == 1
+replace lastname = l1 if dummy ==0 & dummy1 == 1
+replace titles = t1 if dummy ==0 & dummy1 == 1
+
+replace firstname = f2 if dummy ==0 & dummy2 == 1
+replace lastname = l2 if dummy ==0 & dummy2 == 1
+replace titles = t2 if dummy ==0 & dummy2 == 1
+
+replace firstname = f2 if dummy ==1 & dummy2 == 1
+replace lastname = l2 if dummy ==1 & dummy2 == 1
+replace titles = t2 if dummy ==1 & dummy2 == 1
+
+drop if strpos(firstname, "-")
+drop if strpos(firstname, "1")
+drop if strpos(firstname, "0")
+drop if strpos(firstname, "(")
+drop if strpos(firstname, "+")
+drop if strpos(firstname, "&")
+drop if strpos(firstname, "LLC")
+drop if strpos(firstname, "LTD")
+drop if strpos(firstname, `"""')
+drop if strpos(firstname, "'")
+drop if strpos(firstname, "1")
+drop if regexm(firstname,"[0-9]")
+drop if strlen(firstname) < 4
+
+drop if strpos(lastname, "-")
+drop if strpos(lastname, "1")
+drop if strpos(lastname, "0")
+drop if strpos(lastname, "(")
+drop if strpos(lastname, "+")
+drop if strpos(lastname, "&")
+drop if strpos(lastname, "LLC")
+drop if strpos(lastname, "LTD")
+drop if strpos(lastname, `"""')
+drop if strpos(lastname, "'")
+drop if strpos(lastname, "1")
+drop if regexm(lastname,"[0-9]")
+drop if strlen(lastname) < 4
+drop if missing(lastname)
+
+
+replace firstname = subinstr(firstname,","," ",.)
+replace firstname = subinstr(firstname,"."," ",.)
+replace firstname = subinstr(firstname,"MOST REV"," ",.)
+replace firstname = subinstr(firstname,"REV"," ",.)
+replace lastname = subinstr(lastname,"MOST REV"," ",.)
+replace lastname = subinstr(lastname,"REV"," ",.)
+
+replace lastname = subinstr(lastname,","," ",.)
+replace lastname = subinstr(lastname,"."," ",.)
+
+replace firstname = upper(trim(itrim(firstname)))
+replace lastname = upper(trim(itrim(lastname)))
+
+gen fullname = firstname + " "+ lastname
+replace fullname = trim(itrim(fullname))
+rename titles role
+keep dataid fullname role firstname
+order dataid fullname role firstname
+save LA.directors.dta, replace
+
+******* OLD NAMES **************
+clear
+import delimited using /NOBACKUP/scratch/share_scp/raw_data/Louisiana/PreviousNames.csv, varname(1)
+rename (previous1 dateofchange) (oldname date)
+keep dataid date oldname 
+split date, parse(T)
+gen date3 = date(date1, "YMD")
+drop date date1 date2
+rename date3 namechangeddate
+format namechangeddate %td
+
+duplicates drop
+save LA.names.dta, replace
+
+********** STEP 2: Add variables ***********************
+
+u LA.dta, replace
+tomname entityname
+save LA.dta, replace
+
+corp_add_names, dta(LA.dta) names(LA.names.dta)
+corp_add_gender, dta(LA.dta) directors(LA.directors.dta) names(/NOBACKUP/scratch/share_scp/scp_private/ado/names/NATIONAL.TXT)
+corp_add_eponymy, dtapath(LA.dta) directorpath(LA.directors.dta)
+
 	# delimit ;
-	corp_add_trademarks MN , 
-		dta(MN.dta) 
-		trademarkfile(/projects/reap.proj/data/trademarks.dta) 
-		ownerfile(/projects/reap.proj/data/trademark_owner.dta)
-		var(trademark) 
-		frommonths(-12)
-		tomonths(12)
-		statefileexists;
-	
-	
-	# delimit ;
-	corp_add_patent_applications MN MINNESOTA , 
-		dta(MN.dta) 
-		pat(/projects/reap.proj/data_share/patent_applications.dta) 
+	corp_add_patent_applications LA LOUISIANA , 
+		dta(LA.dta) 
+		pat(/NOBACKUP/scratch/share_scp/ext_data/patent_applications.dta) 
 		var(patent_application) 
 		frommonths(-12)
 		tomonths(12)
 		statefileexists;
 	
-	# delimit ;
-
-	
-	
-	
-	corp_add_patent_assignments  MN MINNESOTA , 
-		dta(MN.dta)
-		pat("/projects/reap.proj/data_share/patent_assignments.dta" "/projects/reap.proj/data_share/patent_assignments2.dta"  "/projects/reap.proj/data_share/patent_assignments3.dta")
+	corp_add_patent_assignments  LA LOUISIANA , 
+		dta(LA.dta)
+		pat("/NOBACKUP/scratch/share_scp/ext_data/patent_assignments.dta" "/NOBACKUP/scratch/share_scp/ext_data/patent_assignments2.dta")
 		frommonths(-12)
 		tomonths(12)
 		var(patent_assignment)
-		;
-	# delimit cr	
-
+		statefileexists;
 	
 
-	corp_add_ipos	 MN  ,dta(MN.dta) ipo(/projects/reap.proj/data/ipoallUS.dta)  longstate(MINNESOTA)
-	corp_add_mergers MN  ,dta(MN.dta) merger(/projects/reap.proj/data/mergers.dta)  longstate(MINNESOTA) 
+	# delimit ;
+	corp_add_trademarks LA , 
+		dta(LA.dta) 
+		trademarkfile(/NOBACKUP/scratch/share_scp/ext_data/trademarks.dta) 
+		ownerfile(/NOBACKUP/scratch/share_scp/ext_data/trademark_owner.dta)
+		var(trademark) 
+		frommonths(-12)
+		classificationfile(/NOBACKUP/scratch/share_scp/ext_data/classification.dta)
+		tomonths(12)
+		;
+		
+	# delimit cr	
+	
+	corp_add_vc 	 LA  ,dta(LA.dta) vc(/NOBACKUP/scratch/share_scp/ext_data/VX.dta) longstate(LOUISIANA) 
+	corp_add_ipos	 LA  ,dta(LA.dta) ipo(/NOBACKUP/scratch/share_scp/ext_data/ipoallUS.dta)  longstate(LOUISIANA) 
+	corp_add_mergers LA  ,dta(LA.dta) merger(/NOBACKUP/scratch/share_scp/ext_data/mergers.dta)  longstate(LOUISIANA) 
+
+	
+corp_add_industry_dummies , ind(/NOBACKUP/scratch/share_scp/ext_data/industry_words.dta) dta(LA.dta)
+corp_add_industry_dummies , ind(/NOBACKUP/scratch/share_scp/ext_data/VC_industry_words.dta) dta(LA.dta)
+
+clear
+u LA.dta
+gen  shortname = wordcount(entityname) <= 3
+duplicates drop
+save LA.dta, replace
