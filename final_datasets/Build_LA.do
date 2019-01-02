@@ -6,14 +6,13 @@ global only_DE 0
 local dtasuffix = ""
 local keepraw = 0
 
+clear
 import delimited using /NOBACKUP/scratch/share_scp/raw_data/Louisiana/Entities.csv, varname(1)
-drop addresstype v*
 split startdate, parse(T)
 drop startdate startdate2
 gen incdate = date(startdate1, "YMD")
 drop if incdate < td(01jan1988)
 gen incyear =year(incdate)
-replace zipcode = substr(itrim(trim(zipcode)),1,5)
 
 rename (chartercategory id name address1) (firmtype dataid entityname address)
 replace firmtype = trim(itrim(firmtype))
@@ -21,20 +20,28 @@ drop if inlist(firmtype, "X", "N", "W")
 
 gen is_corp = inlist(firmtype, "D", "F")
 gen is_foreign = inlist(firmtype, "F")
-save LA.dta, replace
 
-keep if is_foreign
-tomname entityname
-save LA.foreign.dta, replace
-corp_get_DE_by_name ,dta(LA.foreign.dta)
-keep if is_DE
-append using LA.dta
+gen jurisdiction = trim(state)
+keep if inlist(jurisdiction, "DE","LA")
+
+/** Companies in DE have a different address under principal address **/
+replace address = v24 if jurisdiction == "DE"
+replace city = v25 if jurisdiction == "DE"
+replace state = v26 if jurisdiction == "DE"
+replace zipcode = v6 if jurisdiction == "DE"
+    
+replace zipcode = substr(itrim(trim(zipcode)),1,5)
+
+gen local_firm= state == "LA"
+gen stateaddress = state
+gen is_DE = 1 if jurisdiction == "DE"
+replace is_DE = 0 if jurisdiction != "DE"
 
 if $only_DE == 1 {
    keep if is_DE ==1
 }
 
-keep dataid entityname incdate incyear is_corp is_DE address city state zipcode
+keep dataid entityname incdate incyear is_corp is_DE address city state zipcode local_firm stateaddress
 order dataid entityname incdate incyear is_corp is_DE address city state zipcode
 save LA.dta, replace
 
@@ -63,7 +70,7 @@ replace t2 = "PRESIDENT" if inlist(t2, "ALL OFFICERS", "CHAIRMAN", "PRESIDENT","
 replace t2 = "MANAGER" if inlist(t2,"MANAGER","PARTNER","MEMBER")
 gen dummy2 = inlist(t2, "PRESIDENT", "MANAGER")
 
-drop if dummy ==0 & dummy1 == 0 & dummy2 == 0
+// drop if dummy ==0 & dummy1 == 0 & dummy2 == 0 // keep for the legislator task
 replace firstname = f1 if dummy ==0 & dummy1 == 1
 replace lastname = l1 if dummy ==0 & dummy1 == 1
 replace titles = t1 if dummy ==0 & dummy1 == 1
@@ -77,30 +84,26 @@ replace lastname = l2 if dummy ==1 & dummy2 == 1
 replace titles = t2 if dummy ==1 & dummy2 == 1
 
 drop if strpos(firstname, "-")
-drop if strpos(firstname, "1")
-drop if strpos(firstname, "0")
 drop if strpos(firstname, "(")
+drop if strpos(firstname, `")"')
 drop if strpos(firstname, "+")
 drop if strpos(firstname, "&")
 drop if strpos(firstname, "LLC")
 drop if strpos(firstname, "LTD")
 drop if strpos(firstname, `"""')
 drop if strpos(firstname, "'")
-drop if strpos(firstname, "1")
 drop if regexm(firstname,"[0-9]")
 drop if strlen(firstname) < 4
 
 drop if strpos(lastname, "-")
-drop if strpos(lastname, "1")
-drop if strpos(lastname, "0")
 drop if strpos(lastname, "(")
+drop if strpos(firstname, `")"')
 drop if strpos(lastname, "+")
 drop if strpos(lastname, "&")
 drop if strpos(lastname, "LLC")
 drop if strpos(lastname, "LTD")
 drop if strpos(lastname, `"""')
 drop if strpos(lastname, "'")
-drop if strpos(lastname, "1")
 drop if regexm(lastname,"[0-9]")
 drop if strlen(lastname) < 4
 drop if missing(lastname)

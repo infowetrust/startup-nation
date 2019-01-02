@@ -1,19 +1,19 @@
 cd ~/projects/reap_proj/final_datasets
 global mergetempsuffix VABuild
 clear
-import delimited using /projects/reap.proj/raw_data/Virginia/2_corporate.csv , delim(",")
+import delimited using /NOBACKUP/scratch/share_scp/raw_data/Virginia/06_20_2017/2_corporate.csv , delim(",")
 gen is_corp = 1
 save VA.dta ,replace
 
 clear
-import delimited using /projects/reap.proj/raw_data/Virginia/3_lp.csv , delim(",")
+import delimited using /NOBACKUP/scratch/share_scp/raw_data/Virginia/3_lp.csv , delim(",")
 merge 1:1 corpid using VA.dta
 drop _merge
 tostring(corpzip),replace
 save VA.dta, replace
 
 clear
-import delimited using /projects/reap.proj/raw_data/Virginia/9_llc.csv , delim(",")
+import delimited using /NOBACKUP/scratch/share_scp/raw_data/Virginia/9_llc.csv , delim(",")
 merge 1:1 corpid using VA.dta
 drop _merge
 
@@ -56,19 +56,42 @@ save VA.dta,replace
 /* Build Director File */
 clear
 
-import delimited /projects/reap.proj/raw_data/Virginia/5_officers.csv, delim(",") varname(1)
-save VA.directors.dta,replace
+import delimited /NOBACKUP/scratch/share_scp/raw_data/Virginia/06_20_2017/5_officers.csv, delim(",") varname(1)
+rename mirzamyaqubvpasstsecr v1
+gen dataid = upper(trim(itrim(substr(v1,1,9))))
+gen lastname = upper(trim(itrim(substr(v1, 10, 15))))
+replace lastname = subinstr(lastname,"."," ",.)
+gen firstname = upper(trim(itrim(substr(v1, 40, 15))))
+replace firstname = upper(trim(itrim(substr(v2, 25, 30)))) if !missing(v2)
+replace firstname = subinstr(firstname,"."," ",.)
+gen role = upper(trim(itrim(substr(v1,80,16))))
+replace role = upper(trim(itrim(substr(v2, 70, 10)))) if !missing(v2)
+gen fullname = firstname + " " +lastname
+replace fullname = trim(itrim(fullname))
+// keep if regexm(role,"PRES")  for legislator task
+// drop if regexm(role,"VICE") 
+// drop if regexm(role,"PAS")
+// drop if missing(fullname)
+keep dataid role fullname
+save VA.directors_2017.dta, replace // latest data
+
+*************
+clear
+
+import delimited /NOBACKUP/scratch/share_scp/raw_data/Virginia/04_26_2016/5_officers.csv, delim(",") varname(1)
 
 rename dirccorpid dataid
-gen fullname = dircfirstname + dircmiddlename + dirclastname
+gen fullname = dircfirstname + " " + dircmiddlename + " " + dirclastname
 rename dirctitle role
-keep if regexm(role,"PRES")
-drop if regexm(role,"VICE")
-drop if regexm(role,"PAS")
+// keep if regexm(role,"PRES") for legislator task
+// drop if regexm(role,"VICE")
+// drop if regexm(role,"PAS")
 
 keep dataid fullname role 
 drop if missing(fullname)
-save VA.directors.dta, replace
+save /NOBACKUP/scratch/share_scp/scp_private/final_datasets/VA.directors.dta, replace
+
+ 
 
 
 **

@@ -99,9 +99,12 @@ save IA.dta,replace
 
 clear
 /* Build Director File */
+clear
+cd /NOBACKUP/scratch/share_scp/scp_private/final_datasets/
+
 #delim ;
 import delimited dataid NAME addr1 ADDR2 CITY STATE ZIP COUNTRY OFFICER_TYPE DIR_FLAG SHHOLDER_FLAG 
-using /projects/reap.proj/raw_data/Iowa/CrpWOff.txt, delim(tab);
+using /NOBACKUP/scratch/share_scp/raw_data/Iowa/CrpWOff.txt, delim(tab);
 #delim cr
 
 drop if !missing(v12)
@@ -109,14 +112,14 @@ drop if !missing(v13)
 drop if !missing(v14)
 rename NAME fullname
 rename OFFICER_TYPE role
-keep if inlist(role,"00","01","02","10","11","43","65")
+// keep if inlist(role,"00","01","02","10","11","43","65") for legislator task
 keep dataid fullname role
-/*split fullname, parse(,)
-
-gen name = fullname2 + fullname3 + fullname1 
-
-replace name = fullname3 + fullname2 + fullname1 if length(fullname3)>2
-split name
+replace fullname = upper(trim(itrim(subinstr(fullname,"."," ",.))))
+split fullname, parse(,)
+gen name = fullname2 + " " + fullname3 + " " + fullname1 
+replace name = fullname3 + " " + fullname2 + " " + fullname1 if length(trim(itrim(fullname3)))>2
+replace fullname = upper(trim(itrim(name)))
+/*split name
 gen firstname = name1 
 replace fullname = name */
 keep dataid fullname role 

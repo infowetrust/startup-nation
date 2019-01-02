@@ -37,14 +37,17 @@ corp_get_DE_by_name ,dta(OH.foreign.dta)
 keep if is_DE
 append using $OH_dta_file
 
+replace is_DE = 0 if is_DE == .
+
 if $only_DE == 1 {
     keep if is_DE == 1
 }
 keep dataid  entityname incdate incyear is_corp    city state zipcode is_nonprofit is_DE
 gen stateaddress  = state
 
-/** There is no address, but we never use it anyways **/
 gen address = ""
+replace state = trim(itrim(upper(state)))
+gen local_firm = state == "OH"
 save $OH_dta_file,replace
 
 
@@ -178,9 +181,6 @@ gen a5 = ", " + v5 if v5 != ""
 gen a6 = ", " + v6 if v6 != ""
 gen a7 = ", " + v7 if v7 != ""
 
-
-gen address = v3 + a4 + a5 + a6+ a7
-
 sort dataid
 quietly by dataid: gen dup = cond(_N == 1,0,_n)
 
@@ -188,9 +188,10 @@ drop if dup > 1
 drop dup
 rename (v3 v4 v5 v6 v7) (address1 address2 city state zipcode)
 
-keep dataid address city state zipcode address1 address2
-*keep if state == "OH"
+keep dataid city state zipcode address1 address2
+gen addr_priority = 1
 save OH.address.dta, replace
+
 *************** AGN address **********
 clear
 import delimited dataid using /NOBACKUP/scratch/share_scp/raw_data/Ohio/CORPDATA.AGN, delim("|")
@@ -213,8 +214,6 @@ gen a7 = ", " + v7 if v7 != ""
 gen a9 = ", " + v9 if v9 != ""
 
 
-gen address = v4 + a5 + a6+ a7 +a9
-
 sort dataid
 quietly by dataid: gen dup = cond(_N == 1,0,_n)
 
@@ -222,20 +221,20 @@ drop if dup > 1
 drop dup
 rename (v4 v5 v6 v7 v9) (address1 address2 city state zipcode)
 
-keep dataid address city state zipcode address1 address2
+keep dataid city state zipcode address1 address2
+gen addr_priority = 2
 save address_AGN.dta,replace
 
 append using OH.address.dta
 
 sort dataid
-quietly by dataid: gen dup = cond(_N == 1,0,_n)
-
-drop if dup > 1
-drop dup
-
-******** Merge *******
+quietly by dataid: egen min_priority = min(addr_priority)
+keep if addr_priority == min_priority
 rename (city state) (city2 state2)
 save OH.address.dta, replace
+
+
+******** Merge *******
 u OH.dta, clear
 
 safedrop address
@@ -248,6 +247,14 @@ merge 1:m dataid using OH.dta
 drop if _merge == 1 
 drop _merge
 
+gen     address = address1 + " " + address2
+replace address = trim(itrim(subinstr(address,",","",.)))
+
+//Only for DE firms, we don't want the address of the agent
+foreach v in  address city state zipcode {
+    replace `v' = "" if is_DE == 1 & addr_priority == 2
+}
+
 replace city2 = city if city2 == ""
 drop city 
 rename city2 city
@@ -255,8 +262,16 @@ rename city2 city
 replace state2 = state if state2 == ""
 drop state
 rename state2 state
+replace state = trim(itrim(upper(state)))
+replace stateaddress  = state
+
+
+
+
 compress
 
+replace local_firm = state == "OH"
 save OH.dta, replace
+save /NOBACKUP/scratch/share_scp/migration/datafiles/OH.dta, replace
 
 

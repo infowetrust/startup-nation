@@ -4,6 +4,7 @@ global mergetempsuffix NYmerge
 clear
 import delimited using /NOBACKUP/scratch/share_scp/raw_data/New_York/Active_Corporations_Online/Active_Corporations__Beginning_1800_06_26_2018.csv
 
+
 gen incdate = date(initialdosfilingdate,"MDY")
 gen incyear = year(incdate)
 
@@ -12,7 +13,9 @@ keep if incyear >= 1988
 
 /** Do not use the address for the corporation agents **/
 bysort registeredagentname: egen num_of_times = sum(1) if registeredagentname != ""
-gen dos_info_lawyers_address = num_of_times > 100 & num_of_times != .
+bysort dosprocessname: egen num_of_times2 = sum(1) if dosprocessname != ""
+
+gen dos_info_lawyers_address = num_of_times > 50 & num_of_times != . | num_of_times2 > 50 & num_of_times2 != .
 
 foreach v of varlist dosprocess* {
     replace `v' = "" if dos_info_lawyers_address == 1
@@ -131,7 +134,7 @@ replace zipcode = substr(itrim(trim(zipcode)), 1,5)
 //drop if current_status == "Active"
 
 keep dataid entityname incdate incyear is_corp address city state zipcode is_DE current_status
-*keep if is_DE == 1
+
 gen second_file = 1
 append using NY.dta 
 
@@ -206,4 +209,6 @@ clear
 u NY.dta
 safedrop shortname
 gen  shortname = wordcount(entityname) <= 3
+compress
  save NY.dta, replace
+save /NOBACKUP/scratch/share_scp/migration/datafiles/NY.dta, replace

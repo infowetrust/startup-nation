@@ -48,13 +48,15 @@ save VT.dta ,replace
 
 
 clear
+cd /NOBACKUP/scratch/share_scp/scp_private/final_datasets/
+local files `" "Domestic Corp" "Domestic LLC" "Domestic Partnership" "Foreign Corp" "Foreign LLC" "Partnership"  "'
 gen datafile = ""
 save VT.directors.dta, replace
 
 foreach file of local files {
     di "Loading: `file' Principal.txt"
     clear
-    import delimited using "/projects/reap.proj/raw_data/Vermont/`file' Principal.txt", delim(tab) varnames(1)
+    import delimited using "/NOBACKUP/scratch/share_scp/raw_data/Vermont/`file' Principal.txt", delim(tab) varnames(1)
    gen datafile = "`file'"
     append using VT.directors.dta, force
     save VT.directors.dta, replace
@@ -62,7 +64,14 @@ foreach file of local files {
 
 rename (businessid principalname principaltitle) (dataid fullname role)
 keep dataid fullname role
-keep if inlist(role, "President","Member","Manager","Partner","General Partner")
+replace fullname = upper(trim(itrim(subinstr(fullname,"."," ",.))))
+split fullname, parse(,)
+gen name = fullname2 + " " + fullname3 + " " + fullname1 
+
+replace name = fullname3 + " " + fullname2 + " " + fullname1 if length(trim(itrim(fullname3)))>2
+replace fullname = upper(trim(itrim(name)))
+
+// keep if inlist(role, "President","Member","Manager","Partner","General Partner") *for legislator task
 save VT.directors.dta, replace
 
 

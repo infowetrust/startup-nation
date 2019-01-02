@@ -1,10 +1,10 @@
-cd ~/migration/datafiles/
+cd /NOBACKUP/scratch/share_scp/scp_private/final_datasets
 global mergetempsuffix ARMERGE
 global only_DE 0
 
 
 clear 
-import delimited using ~/projects/reap_proj/raw_data/Arkansas/corp_data.txt, delim(tab)
+import delimited using /NOBACKUP/scratch/share_scp/raw_data/Arkansas/corp_data.txt, delim(tab)
 
 rename v1 dataid
 tostring dataid , replace
@@ -60,17 +60,17 @@ save AR.dta,replace
 /* Build Director File */
 clear
 
-import delimited /projects/reap.proj/raw_data/Arkansas/corp_officer_data.txt, delim(tab)
+import delimited /NOBACKUP/scratch/share_scp/raw_data/Arkansas/corp_officer_data.txt, delim(tab)
 save AR.directors.dta,replace
 
 tostring v1 , generate(dataid)
 gen role = trim(v4)
 gen fullname =v9 + " "+v10+" "+v8
 
-keep if inlist(role,"President")
+// keep if inlist(role,"President") for legislator task
 keep dataid fullname role 
 drop if missing(fullname)
-save AR.directors.dta, replace
+save /NOBACKUP/scratch/share_scp/scp_private/final_datasets/AR.directors.dta, replace
 */
 
 **
@@ -79,22 +79,23 @@ save AR.directors.dta, replace
 **		and very similar to the ones used in "Where Is Silicon Valley?"
 **
 **	
-	u AR.dta , replace
+	u /NOBACKUP/scratch/share_scp/scp_private/final_datasets/AR.dta , replace
+	
 	tomname entityname
-	save AR.dta, replace
+	save /NOBACKUP/scratch/share_scp/scp_private/final_datasets/AR.dta, replace
 
-	corp_add_eponymy, dtapath(AR.dta) directorpath(AR.directors.dta)
+	corp_add_eponymy, dtapath(/NOBACKUP/scratch/share_scp/scp_private/final_datasets/AR.dta) directorpath(/NOBACKUP/scratch/share_scp/scp_private/final_datasets/AR.directors.dta)
 
 
-       corp_add_industry_dummies , ind(~/ado/industry_words.dta) dta(AR.dta)
-	corp_add_industry_dummies , ind(~/ado/VC_industry_words.dta) dta(AR.dta)
+       corp_add_industry_dummies , ind(/NOBACKUP/scratch/share_scp/ext_data/industry_words.dta) dta(/NOBACKUP/scratch/share_scp/scp_private/final_datasets/AR.dta)
+	corp_add_industry_dummies , ind(/NOBACKUP/scratch/share_scp/ext_data/VC_industry_words.dta) dta(/NOBACKUP/scratch/share_scp/scp_private/final_datasets/AR.dta)
 	
 	
 	# delimit ;
 	corp_add_trademarks AR , 
-		dta(AR.dta) 
-		trademarkfile(/projects/reap.proj/data/trademarks.dta) 
-		ownerfile(/projects/reap.proj/data/trademark_owner.dta)
+		dta(/NOBACKUP/scratch/share_scp/scp_private/final_datasets/AR.dta) 
+		trademarkfile(/NOBACKUP/scratch/share_scp/ext_data/trademarks.dta) 
+		ownerfile(/NOBACKUP/scratch/share_scp/ext_data/trademark_owner.dta)
 		var(trademark) 
 		frommonths(-12)
 		tomonths(12)
@@ -103,8 +104,8 @@ save AR.directors.dta, replace
 	
 	# delimit ;
 	corp_add_patent_applications AR ARKANSAS , 
-		dta(AR.dta) 
-		pat(/projects/reap.proj/data_share/patent_applications.dta) 
+		dta(/NOBACKUP/scratch/share_scp/scp_private/final_datasets/AR.dta) 
+		pat(/NOBACKUP/scratch/share_scp/ext_data/patent_applications.dta) 
 		var(patent_application) 
 		frommonths(-12)
 		tomonths(12)
@@ -117,7 +118,7 @@ save AR.directors.dta, replace
 	
 	corp_add_patent_assignments  AR ARKANSAS , 
 		dta(AR.dta)
-		pat("/projects/reap.proj/data_share/patent_assignments.dta" "/projects/reap.proj/data_share/patent_assignments2.dta"  "/projects/reap.proj/data_share/patent_assignments3.dta")
+		pat("/NOBACKUP/scratch/share_scp/ext_data/patent_assignments.dta" "/NOBACKUP/scratch/share_scp/ext_data/patent_assignments2.dta"  "/NOBACKUP/scratch/share_scp/ext_data/patent_assignments3.dta")
 		frommonths(-12)
 		tomonths(12)
 		var(patent_assignment)
@@ -126,7 +127,10 @@ save AR.directors.dta, replace
 
 	
 
-	corp_add_ipos	 AR  ,dta(AR.dta) ipo(/projects/reap.proj/data/ipoallUS.dta)  longstate(ARKANSAS)
-	corp_add_mergers AR  ,dta(AR.dta) merger(/projects/reap.proj/data/mergers.dta)  longstate(ARKANSAS) 
+	corp_add_ipos	 AR  ,dta(/NOBACKUP/scratch/share_scp/scp_private/final_datasets/AR.dta) ipo(/NOBACKUP/scratch/share_scp/ext_data/ipoallUS.dta)  longstate(ARKANSAS)
+	corp_add_mergers AR  ,dta(/NOBACKUP/scratch/share_scp/scp_private/final_datasets/AR.dta) merger(/NOBACKUP/scratch/share_scp/ext_data/mergers.dta)  longstate(ARKANSAS) 
 
-      corp_add_vc        AR ,dta(AR.dta) vc(~/final_datasets/VX.dta) longstate(ARKANSAS)
+      corp_add_vc        AR ,dta(/NOBACKUP/scratch/share_scp/scp_private/final_datasets/AR.dta) vc(/NOBACKUP/scratch/share_scp/ext_data/VX.dta) longstate(ARKANSAS)
+      
+      ******* 	For now ******
+      save /NOBACKUP/scratch/share_scp/migration/datafiles/AR.dta, replace

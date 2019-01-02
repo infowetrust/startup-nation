@@ -2,7 +2,7 @@ cd /projects/reap.proj/reapindex/Colorado
 
 clear
 
-import delimited /projects/reap.proj/raw_data/Colorado/Entityextract-DLLC-DPC-FLLC-FPC-GOOD.txt,delim(tab)
+import delimited /NOBACKUP/scratch/share_scp/raw_dataColorado/Entityextract-DLLC-DPC-FLLC-FPC-GOOD.txt,delim(tab)
 
 
 rename entityid dataid
@@ -49,18 +49,21 @@ save CO.dta,replace
 
 /* Build Director File No role*/
 clear
-
-import delimited /projects/reap.proj/raw_data/Colorado/Entityextract-DLLC-DPC-FLLC-FPC-GOOD.txt,delim(tab)
-save CO.directors.dta,replace
+import delimited /NOBACKUP/scratch/share_scp/raw_data/Colorado/Entityextract-DLLC-DPC-FLLC-FPC-GOOD.txt,delim(tab)
 
 rename entityid dataid
-gen fullname = agfirstnm + agmiddlenm + aglastnm
+replace agfirstnm = upper(trim(itrim(agfirstnm)))
+replace agmiddlenm = upper(trim(itrim(agmiddlenm)))
+replace aglastnm = upper(trim(itrim(aglastnm)))
+
+gen fullname = agfirstnm + " " + agmiddlenm + " "+ aglastnm
+replace fullname = trim(itrim(fullname))
 
 //No specified role, only agents
-gen role = "agent"
+gen role = "AGENT"
 keep dataid fullname role 
 drop if missing(fullname)
-save CO.directors.dta, replace
+save /NOBACKUP/scratch/share_scp/scp_private/final_datasets/CO.directors.dta, replace
 
 
 **

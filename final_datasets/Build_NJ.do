@@ -2,16 +2,16 @@
 
 global mergetempsuffix NJDTA
 
-cd /projects/reap.proj/reapindex/NewJersey
+cd /NOBACKUP/scratch/share_scp/scp_private/final_datasets
 
 clear
 
-import delimited /projects/reap.proj/raw_data/NewJersey/corp_recs.imp,delim(tab)
+import delimited /NOBACKUP/scratch/share_scp/raw_data/NewJersey/corp_recs.imp,delim(tab)
 
 gen data = v1 + v2 + v3 + v4 + v5 + v6
 
 keep data
-save NJ.dta, replace
+// save NJ.dta, replace
 
 gen dataid = substr(data,1,10)
 gen entityname = substr(data,11,100)
@@ -31,11 +31,16 @@ gen address = trim(substr(data,288,70))
 gen city = trim(substr(data,358,30))
 gen state = trim(substr(data,388,2))
 gen zipcode = trim(substr(data,390,5))
+
 replace address = trim(substr(data,399,70)) if missing(address)
 replace city = trim(substr(data,469,30)) if missing(city)
 replace state = trim(substr(data,499,2)) if missing(state)
 replace zipcode = trim(substr(data,501,5)) if missing(zipcode)
 
+replace address = trim(substr(data, 177, 70)) if missing(address)
+replace city = trim(substr(data, 247, 30)) if missing(city)
+replace state = trim(substr(data, 277, 2)) if missing(state)
+replace zipcode = trim(substr(data, 279, 5)) if missing(zipcode)
 /*
 corp number 10
 corp name 100
@@ -70,6 +75,13 @@ gen shortname = wordcount(entityname) < 4
 gen is_DE = 1 if regexm(jurisdiction,"DE")
 replace is_DE = 0 if is_DE == .
 
+**** Fix Agent Address *****
+duplicates tag address, gen(dup)
+replace address = "" if dup > 5 // & is_DE == 1
+replace city = "" if dup > 5 // & is_DE == 1
+replace state = "" if dup > 5 // & is_DE == 1
+replace zipcode = "" if dup > 5 // & is_DE == 1
+duplicates tag address, gen(dup2)
 /* Generating Variables */
 
 gen incdate = date(idate,"YMD")
@@ -79,7 +91,7 @@ drop if missing(incdate)
 drop if missing(entityname)
 
 
-keep dataid entityname incdate incyear type is_DE jurisdiction zipcode state city address is_corp shortname potentiallylocal
+keep dataid entityname incdate incyear type is_DE jurisdiction zipcode state city address is_corp shortname potentiallylocal 
 
 gen stateaddress = state
 gen local_firm = potentiallylocal
@@ -106,8 +118,8 @@ save NJ.dta,replace
 	# delimit ;
 	corp_add_trademarks NJ , 
 		dta(NJ.dta) 
-		trademarkfile(/projects/reap.proj/data/trademarks.dta) 
-		ownerfile(/projects/reap.proj/data/trademark_owner.dta)
+		trademarkfile(/NOBACKUP/scratch/share_scp/ext_data/trademarks.dta) 
+		ownerfile(/NOBACKUP/scratch/share_scp/ext_data/trademark_owner.dta)
 		var(trademark) 
 		frommonths(-12)
 		tomonths(12)
@@ -117,7 +129,7 @@ save NJ.dta,replace
 	# delimit ;
 	corp_add_patent_applications NJ NEW JERSEY , 
 		dta(NJ.dta) 
-		pat(/projects/reap.proj/data_share/patent_applications.dta) 
+		pat(/NOBACKUP/scratch/share_scp/ext_data/patent_applications.dta) 
 		var(patent_application) 
 		frommonths(-12)
 		tomonths(12)
@@ -130,7 +142,7 @@ save NJ.dta,replace
 	
 	corp_add_patent_assignments NJ NEW JERSEY , 
 		dta(NJ.dta)
-		pat("/projects/reap.proj/data_share/patent_assignments.dta" "/projects/reap.proj/data_share/patent_assignments2.dta"  "/projects/reap.proj/data_share/patent_assignments3.dta")
+		pat("/NOBACKUP/scratch/share_scp/ext_data/patent_assignments.dta" "/NOBACKUP/scratch/share_scp/ext_data/patent_assignments2.dta"  "/NOBACKUP/scratch/share_scp/ext_data/patent_assignments3.dta")
 		frommonths(-12)
 		tomonths(12)
 		var(patent_assignment)
@@ -139,10 +151,13 @@ save NJ.dta,replace
 
 	
 
-	corp_add_ipos	 NJ  ,dta(NJ.dta) ipo(/projects/reap.proj/data/ipoallUS.dta)  longstate(NEW JERSEY) 
-	corp_add_mergers NJ  ,dta(NJ.dta) merger(/projects/reap.proj/data/mergers.dta)  longstate(NEW JERSEY) 
+	corp_add_ipos	 NJ  ,dta(NJ.dta) ipo(/NOBACKUP/scratch/share_scp/ext_data/ipoallUS.dta)  longstate(NEW JERSEY) 
+	corp_add_mergers NJ  ,dta(NJ.dta) merger(/NOBACKUP/scratch/share_scp/ext_data/mergers.dta)  longstate(NEW JERSEY) 
 	
-	corp_add_industry_dummies , ind(~/ado/industry_words.dta) dta(NJ.dta)
-	corp_add_industry_dummies , ind(~/ado/VC_industry_words.dta) dta(NJ.dta)
+	corp_add_industry_dummies , ind(/NOBACKUP/scratch/share_scp/ext_data/industry_words.dta) dta(NJ.dta)
+	corp_add_industry_dummies , ind(/NOBACKUP/scratch/share_scp/ext_data/VC_industry_words.dta) dta(NJ.dta)
 	
-      corp_add_vc        NJ ,dta(NJ.dta) vc(~/final_datasets/VX.dta) longstate(NEW JERSEY)
+      corp_add_vc        NJ ,dta(NJ.dta) vc(/NOBACKUP/scratch/share_scp/ext_data/VX.dta) longstate(NEW JERSEY)
+     compress
+     save NJ.dta, replace
+     save /NOBACKUP/scratch/share_scp/migration/datafiles/NJ.dta, replace

@@ -80,7 +80,8 @@ save ID.dta, replace
 
 
 clear
-import delimited using /projects/reap.proj/raw_data/Idaho/CorpDat.txt, delim(tab)
+cd /NOBACKUP/scratch/share_scp/scp_private/final_datasets/
+import delimited using /NOBACKUP/scratch/share_scp/raw_data/Idaho/CorpDat.txt, delim(tab)
 * Generating Variables 
 
 gen dataid = substr(v1,2,7)

@@ -57,15 +57,17 @@ save $NM_dta_file,replace
 
 /* Build Director File */
 clear
+cd /NOBACKUP/scratch/share_scp/scp_private/final_datasets/
 
-import delimited ~/projects/reap_proj/raw_data/NewMexico/DataSales_06012016/OfficersSP.txt, delim(tab) varname(1)
+import delimited /NOBACKUP/scratch/share_scp/raw_data/NewMexico/DataSales_06012016/OfficersSP.txt, delim(tab) varname(1)
 save NM.directors.dta,replace
 
 tostring businessno , generate(dataid)
-gen role = title
+gen role = upper(trim(itrim(title)))
 gen fullname =firstname + " " +middlename + " " + lastname 
+replace fullname = upper(trim(itrim(fullname)))
 
-keep if inlist(role,"President")
+// keep if inlist(role,"President") for legislator task
 keep dataid fullname role 
 drop if missing(fullname)
 save NM.directors.dta, replace
