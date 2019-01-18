@@ -90,6 +90,7 @@ gen incyear = year(incdate)
 drop if missing(incdate)
 drop if missing(entityname)
 
+replace zipcode = "0" + zipcode if strlen(zipcode) == 4
 
 keep dataid entityname incdate incyear type is_DE jurisdiction zipcode state city address is_corp shortname potentiallylocal 
 

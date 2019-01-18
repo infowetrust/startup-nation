@@ -16,7 +16,7 @@ global mergetempsuffix="WA_Official"
     replace address_ord = 3 if missing(address_ord)
 
     gen instances = 1
-
+    replace zip = trim(itrim(zip))
     drop if zip == "" /** Get rid of some empty ones **/
     collapse (sum) instances, by(ubi address city state zip address_ord)
     gsort ubi address_ord -instances

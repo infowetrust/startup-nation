@@ -1,4 +1,4 @@
-
+\
 cd /NOBACKUP/scratch/share_scp/scp_private/final_datasets
 
 global mergetempsuffix WYmerge
@@ -12,7 +12,7 @@ gen address = itrim(trim(addr1 + " " + addr2  + " " + addr3))
 
 
 replace jurisdiction = "DE" if jurisdiction == "Delaware"
-replace jurisdiction = "WY" if jurisdiction == ""
+replace jurisdiction = "WY" if jurisdiction == "" | jurisdiction == "Wyoming"
 gen potentiallylocal= inlist(jurisdiction,"DE","WY")
  
 gen is_nonprofit = filing_type == "NonProfit Corporation"

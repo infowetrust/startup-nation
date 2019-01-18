@@ -42,11 +42,11 @@ import delimited corporationtypeid corporationtype using "/NOBACKUP/scratch/shar
 
 merge 1:m corporationtypeid using MO.dta
 drop if _merge == 1
-replace corporationtype = "Gen. For Profit Corporation" if _merge == 2
+replace corporationtype = "Gen. Business - For Profit" if _merge == 2
 drop _merge
 
 
-keep if inlist(corporationtype, "Limited Liability Company","","LLP","Limited Partnership","Professional Corporation","Close Corporation","Gen. For Profit Corporation")
+keep if inlist(corporationtype, "Limited Liability Company","","LLP","Limited Partnership","Professional Corporation","Close Corporation","Gen. Business - For Profit")
 
 gen is_corp = strpos(corporationtype,"Corporation") > 0
 save MO.dta, replace

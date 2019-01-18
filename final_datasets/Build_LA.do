@@ -32,6 +32,7 @@ replace zipcode = v6 if jurisdiction == "DE"
     
 replace zipcode = substr(itrim(trim(zipcode)),1,5)
 
+replace state = trim(itrim(state))
 gen local_firm= state == "LA"
 gen stateaddress = state
 gen is_DE = 1 if jurisdiction == "DE"

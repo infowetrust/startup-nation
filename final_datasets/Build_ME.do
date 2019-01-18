@@ -65,7 +65,8 @@ gen local_firm = potentiallylocal
 if "$only_DE" == "1" {
     keep if is_DE
 }
-
+replace zipcode = trim(zipcode)
+replace zipcode = "0"+zipcode if strlen(zipcode) ==4
 compress
 duplicates drop
 save $ME_file,replace

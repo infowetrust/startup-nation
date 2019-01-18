@@ -1,5 +1,5 @@
 
-cd ~/projects/reap_proj/final_datasets
+cd /NOBACKUP/scratch/share_scp/scp_private/final_datasets
 global mergetempsuffix="MA_Official"
 
 
@@ -11,7 +11,7 @@ global dtasuffix
 ** STEP 1: Load the data dump from MA Corporations 
 */
 	clear
-	import delimited using "~/projects/reap_proj/raw_data/Massachusetts/2015_June/CorpData.txt", delim(",") varnames(1) 
+	import delimited using "/NOBACKUP/scratch/share_scp/raw_data/Massachusetts/2015_June/CorpData.txt", delim(",") varnames(1) 
 
 	gen incdate = date(dateoforganization,"MDY") 
 	gen incyear = year(incdate)
