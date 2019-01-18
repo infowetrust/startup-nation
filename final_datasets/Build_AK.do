@@ -1,10 +1,9 @@
-log using ~/migration/datafiles/buildlog/AK.log , text replace 
+cd /NOBACKUP/scratch/share_scp/scp_private/scp2018/
 
-cd ~/final_datasets/
 global mergetempsuffix = "migration.AK"
 
 clear
-import delimited using /projects/reap.proj/raw_data/Alaska/CorporationsDownload.CSV, delim(",") varnames(1)
+import delimited using /NOBACKUP/scratch/share_scp/raw_data/Alaska/2018/CorporationsDownload.CSV, delim(",") varnames(1)
 
 rename (entitynumber legalname) (dataid entityname)
 keep if homecountry == "UNITED STATES" | homecountry == ""
@@ -17,6 +16,7 @@ rename stateprovince state
 
 replace state = "AK" if missing(state)
 rename homestate jurisdiction
+replace jurisdiction = trim(itrim(jurisdiction))
 replace jurisdiction = "AL" if jurisdiction == "ALABAMA"
 replace jurisdiction = "AK" if jurisdiction == "ALASKA"
 replace jurisdiction = "AZ" if jurisdiction == "ARIZONA"
@@ -83,20 +83,36 @@ drop if is_nonprofit
 gen incdate = date(akformeddate,"MDY")
 gen incyear = year(incdate)
 gen address = address1 + " " + address2
+replace address = trim(itrim(address))
 drop address1 address2
 gen shortname = wordcount(entityname) <= 3
+drop if incyear > 2019
 save AK.dta, replace
 
 
 clear
-import delimited using /projects/reap.proj/raw_data/Alaska/OfficialsDownload.csv, delim(",") varnames(1)
+import delimited using /NOBACKUP/scratch/share_scp/raw_data/Alaska/2018/OfficialsDownload.csv, delim(",") varnames(1)
 rename parententitynumber dataid
 
 keep if inlist(officialtitle,"Member","President","Manager","Owner","Incorporator","General Manager")
 gen is_individual = length(officialfirstname) > 0
 drop if !is_individual
 rename (officialfirst officiallast) (firstname lastname)
-gen fullname = itrim(trim(firstname + " " + lastname))
+
+	replace lastname = subinstr(lastname,"."," ",.)
+	replace lastname = subinstr(lastname,"*"," ",.)
+	replace lastname = subinstr(lastname,","," ",.)
+	replace lastname = upper(trim(itrim(lastname)))
+	
+	
+	replace firstname = subinstr(firstname,"."," ",.)
+	replace firstname = subinstr(firstname,"*"," ",.)
+	replace firstname = subinstr(firstname,","," ",.)
+	replace firstname = upper(trim(itrim(firstname)))
+	
+	gen fullname = firstname + " " + lastname
+	replace fullname = trim(itrim(fullname))
+	
 gen title = "President"
 
 keep fullname title firstname lastname dataid
@@ -110,7 +126,7 @@ save AK.directors.dta, replace
 **
 **	
 
-        
+    clear
     u AK.dta, replace
 	tomname entityname
 	save AK.dta, replace
@@ -148,10 +164,10 @@ save AK.directors.dta, replace
 		statefileexists;
 	
 	# delimit cr	
-	corp_add_ipos	 AK ,dta(~/migration/datafiles/AK.dta) ipo(/projects/reap.proj/data/ipoallUS.dta) longstate(ALASKA)
+	// corp_add_ipos	 AK ,dta(~/migration/datafiles/AK.dta) ipo(/projects/reap.proj/data/ipoallUS.dta) longstate(ALASKA)
 	corp_add_mergers AK ,dta(~/migration/datafiles/AK.dta) merger(/projects/reap.proj/data/mergers.dta)  longstate(ALASKA)
 
-        corp_add_vc 	 AK ,dta(AK.dta) vc(~/final_datasets/VX.dta) longstate(ALASKA)
+        // corp_add_vc 	 AK ,dta(AK.dta) vc(~/final_datasets/VX.dta) longstate(ALASKA)
 
 
 
