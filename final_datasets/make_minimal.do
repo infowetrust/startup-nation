@@ -1,12 +1,13 @@
 cd /NOBACKUP/scratch/share_scp/scp_private/final_datasets
 clear
 global mergetempsuffix = "_"
-global statelist AK AR AZ CA CO FL GA IA ID IL KY MA ME MI MN MO NC ND NJ NM NY OH OK OR RI SC TN TX UT VA VT WA WI WY
-global longstatelist ALASKA ARKANSAS ARIZONA CALIFORNIA COLORADO FLORIDA GEORGIA IOWA IDAHO ILLINOIS KENTUCKY MASSACHUSETTS MAINE MICHIGAN MINNESOTA MISSOURI NORTH_CAROLINA NORTH_DAKOTA NEW_JERSEY NEW_MEXICO NEW_YORK OHIO OKLAHOMA OREGON RHODE_ISLAND SOUTH_CAROLINA TENNESSEE TEXAS UTAH VIRGINIA VERMONT WASHINGTON WISCONSIN WYOMING
-global prepare_mergerfile 0
-global prepare_states 0
+global statelist AK AR AZ CA CO FL GA IA ID IL KY LA MA ME MI MN MO NC ND NJ NM NY OH OK OR RI SC TN TX UT VA VT WA WI WY
+global longstatelist ALASKA ARKANSAS ARIZONA CALIFORNIA COLORADO FLORIDA GEORGIA IOWA IDAHO ILLINOIS KENTUCKY LOUISIANA MASSACHUSETTS MAINE MICHIGAN MINNESOTA MISSOURI NORTH_CAROLINA NORTH_DAKOTA NEW_JERSEY NEW_MEXICO NEW_YORK OHIO OKLAHOMA OREGON RHODE_ISLAND SOUTH_CAROLINA TENNESSEE TEXAS UTAH VIRGINIA VERMONT WASHINGTON WISCONSIN WYOMING
+global prepare_mergerfile 1
+global prepare_states 1
 global append_states 1
-global make_minimal 0
+global make_minimal 1
+global yuting 1
 
 set more off
 if $prepare_mergerfile == 1{
@@ -66,41 +67,75 @@ forvalues i = 1/`n'{
 	local longstate= subinstr("`longstate'","_"," ",.)
 	
 	u /NOBACKUP/scratch/share_scp/scp_private/final_datasets/`state'.dta, clear
-	safedrop dateannounced* targetname enterprisevalue equityvalue x mergeryear mergerdate
+	
+	safedrop dateannounced* targetname enterprisevalue equityvalue equityvalue_old equityvalue_new equityvalue_Z x mergeryear mergeryear_old mergeryear_new mergeryear_Z mergerdate mergerdate_old mergerdate_new mergerdate_Z ipo growthz_old growthz_new growthz_Z acq acq_old acq_new acq_Z
+	safedrop patent_assignment patent_application trademark 
+	save `state'.dta,replace
+		
+		# delimit ;
+	corp_add_trademarks `state' , 
+		dta(`state'.dta) 
+		trademarkfile(/NOBACKUP/scratch/share_scp/ext_data/2018dta/trademarks/trademarks.dta) 
+		ownerfile(/NOBACKUP/scratch/share_scp/ext_data/2018dta/trademarks/trademark_owner.dta)
+		var(trademark) 
+		frommonths(-12)
+		tomonths(12)
+		statefileexists;
+	
+	
+	# delimit ;
+	corp_add_patent_applications `state' `longstate' , 
+		dta(`state'.dta) 
+		pat(/NOBACKUP/scratch/share_scp/ext_data/2018dta/patent_applications/patent_applications.dta) 
+		var(patent_application) 
+		frommonths(-12)
+		tomonths(12)
+		statefileexists;
+	
+	# delimit ;
+
+	corp_add_patent_assignments `state' `longstate' , 
+		dta(`state'.dta)
+		pat("/NOBACKUP/scratch/share_scp/ext_data/2018dta/patent_assignments/patent_assignments.dta")
+		frommonths(-12)
+		tomonths(12)
+		var(patent_assignment)
+		;
+	# delimit cr
 	gen ipo = !missing(ipodate) & inrange(ipodate-incdate,0,365*6)
 	
-	save `state'.only.dta, replace
-	save `state'.only.origin.dta, replace
+	save `state'.dta, replace
+	save `state'.origin.dta, replace
 	
-	corp_add_mergers `state' ,dta(`state'.only.dta) merger(/NOBACKUP/scratch/share_scp/ext_data/mergers.pre2014.dta) longstate(`longstate')
+	corp_add_mergers `state' ,dta(`state'.dta) merger(/NOBACKUP/scratch/share_scp/ext_data/mergers.pre2014.dta) longstate(`longstate')
 	replace targetsic = trim(targetsic)
-	gen acq = !missing(mergerdate) & inrange(mergerdate-incdate,0,365*6) & substr(targetsic, 1,1) != "6" & !missing(targetsic)
-	gen growthz  = ipo | acq
+	// gen acq = !missing(mergerdate) & inrange(mergerdate-incdate,0,365*6) & substr(targetsic, 1,1) != "6" & !missing(targetsic)
+	// gen growthz  = ipo | acq
 	
-	foreach var of varlist equityvalue mergeryear mergerdate acq growthz{
+	foreach var of varlist equityvalue mergeryear mergerdate{
 	rename `var' `var'_old
 	}
-	save `state'.only.dta, replace
+	save `state'.dta, replace
 	
-	corp_add_mergers `state' ,dta(`state'.only.dta) merger(/NOBACKUP/scratch/share_scp/ext_data/2018dta/mergers/mergers.pre2014.dta) longstate(`longstate') 
+	corp_add_mergers `state' ,dta(`state'.dta) merger(/NOBACKUP/scratch/share_scp/ext_data/2018dta/mergers/mergers.pre2014.dta) longstate(`longstate') 
 	replace targetsic = trim(targetsic)
-	gen acq = !missing(mergerdate) & inrange(mergerdate-incdate,0,365*6) & substr(targetsic, 1,1) != "6" & !missing(targetsic)
-	gen growthz  = ipo | acq
+	// gen acq = !missing(mergerdate) & inrange(mergerdate-incdate,0,365*6) & substr(targetsic, 1,1) != "6" & !missing(targetsic)
+	// gen growthz  = ipo | acq
 	
-	foreach var of varlist equityvalue mergeryear mergerdate acq growthz{
+	foreach var of varlist equityvalue mergeryear mergerdate{
 	rename `var' `var'_new
 	}
-	save `state'.only.dta, replace
+	save `state'.dta, replace
 	
-	corp_add_mergers `state' ,dta(`state'.only.dta) merger(/NOBACKUP/scratch/share_scp/ext_data/2018dta/mergers/Z_mergers.pre2014.dta) longstate(`longstate') 
+	corp_add_mergers `state' ,dta(`state'.dta) merger(/NOBACKUP/scratch/share_scp/ext_data/2018dta/mergers/Z_mergers.pre2014.dta) longstate(`longstate') 
 	replace targetsic = trim(targetsic)
-	gen acq = !missing(mergerdate) & inrange(mergerdate-incdate,0,365*6) & substr(targetsic, 1,1) != "6" & !missing(targetsic)
-	gen growthz  = ipo | acq
+	// gen acq = !missing(mergerdate) & inrange(mergerdate-incdate,0,365*6) & substr(targetsic, 1,1) != "6" & !missing(targetsic)
+	// gen growthz  = ipo | acq
 	
-	foreach var of varlist equityvalue mergeryear mergerdate acq growthz{
+	foreach var of varlist equityvalue mergeryear mergerdate {
 	rename `var' `var'_Z
 	}
-	save `state'.only.dta, replace
+	save `state'.dta, replace
 	
 
 }
@@ -113,72 +148,63 @@ if $append_states == 1{
 	local n: word count $statelist
 	forvalues i = 1/`n'{
 	local state: word `i' of $statelist
-	u `state'.only.dta,clear
+	u `state'.dta,clear
 	capture confirm variable eponymous
     	if _rc != 0 {
 	        gen eponymous = 0
          }
-	
-	replace patent_assignment = 0 if missing(patent_assignment)
-	replace patent_application = 0 if missing(patent_application)
-	replace trademark = 0 if missing(trademark)
-	gen patent = max(patent_assignment, patent_application)
-	gen patent_noDE = patent & !is_DE
-	gen nopatent_DE = !patent & is_DE
-	gen patent_and_DE = patent & is_DE
-	
-	
-	gen clust_local = is_Local
-	gen clust_high_tech = is_HighTech | is_Chemical
-	gen clust_resource_int = is_Energy | is_Agriculture_and_Food | is_Mining
-	gen clust_traded_services = is_Services | is_Publishing
-	gen clust_traded_manufacturing = is_Auto | is_Clothing | is_Distribution | is_Consuma | is_Paper
-	gen clust_traded = max(clust_high_tech, clust_resource_int, clust_traded_services, clust_traded_manufacturing)
-	
-	gen datastate = "`state'" //run in minimal2
-	keep if datastate == state // not in minimal2
-	
-	keep dataid datastate city zipcode incyear incdate trademark shortname eponymous ipodate mergerdate* is_* growthz* patent patent_noDE nopatent_DE patent_and_DE clust*
-	compress
-	save `state'.minimal.dta,replace
+	capture confirm variable local_firm
+	if _rc != 0 {
+		gen local_firm = is_Local
 	}
+	save `state'.dta, replace
+	corp_collapse_any_state `state' , workingfolder(/NOBACKUP/scratch/share_scp/scp_private/final_datasets/) outputsuffix("new")
+	gen datastate = "`state'" 
+	save `state'.collapsed.new.dta, replace
+	}
+
 	clear
 	gen a = .
 	local n: word count $statelist
 	forvalues i = 1/`n'{
 		local state: word `i' of $statelist
 		di "Adding state `state'"
-		append using `state'.minimal.dta, force
-
-		save allstates.minimal2.dta, replace
+		append using `state'.collapsed.new.dta, force
+		save allstates.minimal.new.dta, replace
 	}
 	drop a
-	save allstates.minimal2.dta, replace
+	save allstates.minimal.new.dta, replace
 	
 }
 
 if $make_minimal == 1 {	
-	u allstates.minimal.dta, clear
-
-	// rename state datastate //commented in minimal2
+	u allstates.minimal.new.dta, clear
+	
 	encode datastate, gen(statecode)
 	// levelsof datastate, local(states) clean
 	
-	logit growthz_old eponymous shortname is_corp nopatent_DE patent_noDE patent_and_DE trademark clust_local clust_traded is_biotech is_ecommerce is_medicaldev is_semicond i.statecode if inrange(incyear, 1988,2008), vce(robust) or
-	esttab using "/user/user1/yl4180/save/Quality Model for All States.csv", pr2 se indicate("State FE=*statecode") replace
+	eststo clear
+	eststo: logit growthz_old eponymous shortname is_corp nopatent_DE patent_noDE patent_and_DE trademark clust_local clust_traded is_biotech is_ecommerce is_medicaldev is_semicond i.statecode if inrange(incyear, 1988,2008), vce(robust) or
 	predict quality_old, pr
-	logit growthz_new eponymous shortname is_corp nopatent_DE patent_noDE patent_and_DE trademark clust_local clust_traded is_biotech is_ecommerce is_medicaldev is_semicond i.statecode if inrange(incyear, 1988,2008), vce(robust) or
-	esttab using "/user/user1/yl4180/save/Quality Model for All States.csv", pr2 se indicate("State FE=*statecode") append
+	
+	eststo: logit growthz_new eponymous shortname is_corp nopatent_DE patent_noDE patent_and_DE trademark clust_local clust_traded is_biotech is_ecommerce is_medicaldev is_semicond i.statecode if inrange(incyear, 1988,2008), vce(robust) or
 	predict quality_new, pr
 	
-	logit growthz_Z eponymous shortname is_corp nopatent_DE patent_noDE patent_and_DE trademark clust_local clust_traded is_biotech is_ecommerce is_medicaldev is_semicond i.statecode if inrange(incyear, 1988,2008), vce(robust) or
-	esttab using "/user/user1yl4180/save/Quality Model for All State.csv", pr2 se indicate("State FE=*statecode") append
+	eststo: logit growthz_Z eponymous shortname is_corp nopatent_DE patent_noDE patent_and_DE trademark clust_local clust_traded is_biotech is_ecommerce is_medicaldev is_semicond i.statecode if inrange(incyear, 1988,2008), vce(robust) or
+	esttab using "/user/user1/yl4180/save/Quality Model for All_State.csv", pr2 se eform indicate("State FE=*statecode") replace
 	predict quality_Z, pr
+	
+	replace quality_old = 0 if missing(quality_old)
+	replace quality_new = 0 if missing(quality_new)
+	replace quality_Z = 0 if missing(quality_Z)
 	
 	corr quality_old quality_new quality_Z
 	
 	save allstates.minimal_final.dta, replace
-	u allstates.minimal_final.dta, clear
 	
 
 }
+
+if $yuting == 1{
+	do Yu-ting_minimal.do
+	}
