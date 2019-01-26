@@ -8,20 +8,19 @@
 /*following two stylings keep Mapbox logo in lower left even with small screens*/
 
 .mapboxgl-ctrl-bottom-left {
-  left: 21%;
+  left:21%;
 }
 
 @media all and (max-width: 1500px) {
-  .mapboxgl-ctrl-bottom-left {
+.mapboxgl-ctrl-bottom-left{
     margin-left: 0px;
     left: 330px;
-  }
-}
+}}
 
 #console {
   position: absolute;
   width: 20%; /* 230px */
-  min-width: 300px;
+  min-width: 300px;   
   height: 100%;
   margin: -8px 0px;
   /*padding: 10px 10px;*/
@@ -31,63 +30,64 @@
   padding-bottom: 0px;
   background-color: white;
   border-radius: 0px;
-  box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.1);
+  box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.10);
   font: 18px 'Helvetica Neue', Arial, Helvetica, sans-serif;
 }
 
 /* The slider itself */
 .slider {
-  -webkit-appearance: none; /*Override default CSS styles */
-  appearance: none;
-  display: block;
-  position: relative;
-  z-index: 12;
-  width: 100%; /* Full-width */
-  height: 0px; /* Specified height */
-  /*margin: 0 auto;*/
-  margin-top: 15px;
-  background: rgba(0, 0, 0, 0); /*transparent track color*/
-  /*background: black; TESTING track color*/
-  outline: none; /* Remove outline */
-  opacity: 1; /* Set transparency (for mouse-over effects on hover) */
-  -webkit-transition: 0.2s; /* 0.2 seconds transition on hover */
-  transition: opacity 0.2s;
+-webkit-appearance: none;   /*Override default CSS styles */
+appearance: none;
+display:block;
+position:relative;
+z-index: 12;
+width: 100%; /* Full-width */
+height: 0px; /* Specified height */
+/*margin: 0 auto;*/
+margin-top: 15px;
+background: rgba(0,0,0,0); /*transparent track color*/
+/*background: black; TESTING track color*/
+outline: none; /* Remove outline */
+opacity: 1; /* Set transparency (for mouse-over effects on hover) */
+-webkit-transition: .2s; /* 0.2 seconds transition on hover */
+transition: opacity .2s;
 }
 
-/* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */
+
+/* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */ 
 .slider::-webkit-slider-thumb {
-  -webkit-appearance: none; /* Override default look */
-  appearance: none;
-  width: 4%; /* Set a specific slider handle width */
-  /*padding-top:100%;*/
-  height: 15px; /* Slider handle height*/
-  border-radius: 50%; /* Makes circle*/
-  background: #2f6bc7; /* thumb color */
-  cursor: pointer; /* Cursor on hover */
+-webkit-appearance: none; /* Override default look */
+appearance: none;
+width: 4%; /* Set a specific slider handle width */
+/*padding-top:100%;*/
+height: 15px; /* Slider handle height*/
+border-radius: 50%; /* Makes circle*/
+background: #2F6BC7; /* thumb color */
+cursor: pointer; /* Cursor on hover */
 }
 
 /* Mouse-over effects */
 .slider::-webkit-slider-thumb:hover {
-  background: #e77367;
-  opacity: 1; /* Fully shown on mouse-over */
+background: #E77367;
+opacity: 1; /* Fully shown on mouse-over */
 }
 
 .slider::-moz-range-thumb {
-  width: 4%; /* Set a specific slider handle width */
-  height: 4; /* Slider handle height */
-  border-radius: 50%;
-  background: #2f6bc7; /* background */
-  cursor: pointer; /* Cursor on hover */
+width: 4%; /* Set a specific slider handle width */
+height: 4; /* Slider handle height */
+border-radius: 50%;
+background: #2F6BC7; /* background */
+cursor: pointer; /* Cursor on hover */
 }
 
 .ticks {
-  position: absolute;
-  z-index: 11;
-  display: block;
-  left: 12px;
-  width: calc(100% - 20px);
-  margin-top: 3px;
-  height: 25px;
+position: absolute;
+z-index: 11;
+display: block;
+left:12px;
+width: calc(100% - 20px);
+margin-top: 3px;		
+height: 25px;
 }
 
 .mapboxgl-popup {
@@ -101,8 +101,8 @@
   font-size: 95%;
 }
 
-a.imageLink {
-  text-decoration: none;
+a.imageLink{
+text-decoration:none;
 }
 
 .label {
@@ -112,15 +112,40 @@ a.imageLink {
 }
 
 .blue-label {
-  color: #2f6bc7; /*blue from color ramp*/
+  color:#2F6BC7; /*blue from color ramp*/
 }
 
 .gray-label {
-  color: Gainsboro;
+  color:Gainsboro;
 }
 
 .purple-label {
-  color: #452d95; /*purple from color ramp*/
+  color:#452D95; /*purple from color ramp*/
+}
+
+/*text formatting*/
+.purple-header {
+  color: #452D95;
+  font-weight: bold;
+  font-size: medium;
+}
+
+.black-header {
+  color: black;
+  font-weight: bold;
+  font-size: medium;
+}
+
+.black-small {
+  color: black;
+  font-weight: normal;
+  font-size: small;
+}
+
+.grey-small {
+  color: blue;
+  font-weight: normal;
+  font-size: small;
 }
 
 .quality-scale ul {
@@ -143,8 +168,8 @@ a.imageLink {
 
 ul
 
-    /*removes bullets & indentations from all tooltips */
- {
+/*removes bullets & indentations from all tooltips */
+  {
   list-style-type: none;
   padding: 0;
   margin: 0;
