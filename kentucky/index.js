@@ -9,8 +9,8 @@
 
     // Set bounds to USA (with a big buffer)
     var bounds = [
-      [-95, 35], // Southwest coordinates X,Y
-      [-80, 40] // Northeast coordinates X,Y
+      [-100, 30], // Southwest coordinates X,Y
+      [-75, 45] // Northeast coordinates X,Y
     ];
     var centerPoint = [-87.2, 37.5]
 
