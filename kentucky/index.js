@@ -12,7 +12,7 @@
       [-95, 35], // Southwest coordinates X,Y
       [-80, 40] // Northeast coordinates X,Y
     ];
-    var centerPoint = [-101, 33]
+    var centerPoint = [-87.2, 37.5]
 
     //Load a new map in the 'map' HTML div
     var map = new mapboxgl.Map({
@@ -25,7 +25,7 @@
       attributionControl: false,
       hash: true,
       center: centerPoint,
-      zoom: 11,
+      zoom: 6.3,
       minZoom: 3,
       maxZoom: 15,
       maxBounds: bounds // Sets var bounds as max
