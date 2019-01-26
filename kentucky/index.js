@@ -25,7 +25,7 @@
       attributionControl: false,
       hash: true,
       center: centerPoint,
-      zoom: 6.3,
+      zoom: 7,
       minZoom: 3,
       maxZoom: 15,
       maxBounds: bounds // Sets var bounds as max
