@@ -90,6 +90,20 @@ margin-top: 3px;
 height: 25px;
 }
 
+
+line.white {
+stroke: rgba(0,0,0,0);
+stroke-width:2;
+}
+line.all-years {
+stroke: gray;
+stroke-width:1;
+}
+line.five-years {
+stroke: gray;
+stroke-width:2;
+}
+
 .mapboxgl-popup {
   max-width: 400px;
   font: 12px/12px 'Helvetica Neue', Arial, Helvetica, sans-serif;
