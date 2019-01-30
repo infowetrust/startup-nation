@@ -21,7 +21,7 @@ var map = new mapboxgl.Map({
   
   style: 'mapbox://styles/startupcarto/cjrdwob723lhr2tmqwm09a3mk',
   attributionControl: false,
-  hash: true,
+  hash: true, //populates URL with zoom level and coordinates of current view
   center: centerPoint,
   zoom: 7,
   minZoom: 3,
@@ -285,7 +285,7 @@ map.on('load', function () {
     //use current year
     document.getElementById('Year').innerText = Year;
 
-    //state updates (deleted)
+    //state updates (deleted for Kentucky map)
 
     //city updates
     map.setPaintProperty('cityCircle', 'circle-color', {
@@ -407,12 +407,3 @@ map.addControl(new mapboxgl.NavigationControl({
 map.dragRotate.disable();
 // disable map rotation using touch rotation gesture
 map.touchZoomRotate.disableRotation();
-
-
-//hides Alaska beyond specified zoom level
-//map.on('zoomend', function () {
-  //if (map.getZoom() > 3.75) {
-    //document.getElementById('minimap1').style.visibility = 'hidden'
-  // } else {
-  //   document.getElementById('minimap1').style.visibility = 'visible'
-  // }    });
