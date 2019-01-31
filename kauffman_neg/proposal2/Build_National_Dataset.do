@@ -1,4 +1,4 @@
-log using ~/kauffman_neg/output/Build_National_Dataset.log, text replace 
+log using /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/output/Build_National_Dataset.log, text replace 
 set linesize 120
 
 /*
@@ -12,45 +12,47 @@ set linesize 120
  *      using each measure makes sense.
  */
 
-cd ~/kauffman_neg/
+cd /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/
 
 local dataset_states $dataset_state_list
 
 if "$collapse_files" == "1" {
-    corp_collapse_any_state `dataset_states' , workingfolder(~/final_datasets/)
+    corp_collapse_any_state `dataset_states' , workingfolder(/NOBACKUP/scratch/share_scp/scp_private/final_datasets/)
 }
 
 if "$collapse_new_states" == "1" {
-   corp_collapse_any_state $new_states , workingfolder(~/final_datasets/)
+   corp_collapse_any_state $new_states , workingfolder(/NOBACKUP/scratch/share_scp/scp_private/final_datasets/)
 }
 
 
 /*
 A few  changes taht I have had to make that do not fit anywhere:
-u ~/final_datasets/CO.collapsed.dta
+u /NOBACKUP/scratch/share_scp/scp_private/final_datasets/CO.collapsed.dta
 format dataid %15.0f
 tostring dataid, format(%15.0f) replace
-save ~/final_datasets/CO.collapsed.dta , replace
+save /NOBACKUP/scratch/share_scp/scp_private/final_datasets/CO.collapsed.dta , replace
  */
 
 
 clear
 gen dataid = ""
-save mstate.collapsed.dta, replace
+save mstate.collapsed.new.dta, replace
 
 foreach state in `dataset_states' {
+corp_collapse_any_state `dataset_states' , workingfolder(/NOBACKUP/scratch/share_scp/scp_private/final_datasets/) outputsuffix("new") // added
+corp_collapse_any_state $new_states , workingfolder(/NOBACKUP/scratch/share_scp/scp_private/final_datasets/) outputsuffix("new")  //added
         di "***************************************"
         di "           Adding State `state'        "
         di "***************************************"
 
-        u ~/final_datasets/`state'.collapsed.dta, replace
+        u /NOBACKUP/scratch/share_scp/scp_private/final_datasets/`state'.collapsed.new.dta, replace
         tostring dataid, replace
         safedrop datastate
         gen datastate = "`state'"
         tostring zipcode, replace
         replace zipcode = substr(trim(itrim(zipcode)),1,5)
-        qui: append using mstate.collapsed.dta
-        save mstate.collapsed.dta, replace
+        qui: append using mstate.collapsed.new.dta
+        save mstate.collapsed.new.dta, replace
 }
 
 
