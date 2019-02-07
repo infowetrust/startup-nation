@@ -47,13 +47,13 @@ global mergetempsuffix="WA_Official"
 
     //add addresses
     merge m:1 ubi using /NOBACKUP/scratch/share_scp/temp/WA.addresses.dta
-    drop if _merge == 1
+    drop if _merge == 2
     drop _merge
     
     tostring ubi, replace
     rename (businessname ubi) (entityname dataid)
     gen corpnumber = dataid 
-    rename (stateofincorporation zip) (jurisdiction    zipcode)
+    rename (stateofincorporation zip) (jurisdiction zipcode)
     
     keep dataid entityname incdate incyear deathdate deathyear is_corp jurisdiction is_nonprofit address city state zipcode corpnumber
 
