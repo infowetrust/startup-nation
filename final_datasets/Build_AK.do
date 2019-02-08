@@ -1,6 +1,8 @@
 cd /NOBACKUP/scratch/share_scp/scp_private/scp2018/
+
 global mergetempsuffix = "migration.AK"
-clear 
+
+clear
 import delimited using /NOBACKUP/scratch/share_scp/raw_data/Alaska/2018/CorporationsDownload.CSV, delim(",") varnames(1)
 
 rename (entitynumber legalname) (dataid entityname)
@@ -124,20 +126,20 @@ save AK.directors.dta, replace
 **
 **	
 
-    clear
+  clear
     u AK.dta, replace
 	tomname entityname
 	save AK.dta, replace
-	corp_add_industry_dummies , ind(~/ado/industry_words.dta) dta(~/migration/datafiles//AK.dta)
-	corp_add_industry_dummies , ind(~/ado/VC_industry_words.dta) dta(~/migration/datafiles//AK.dta)
+	corp_add_industry_dummies , ind(/NOBACKUP/scratch/share_scp/ext_data/industry_words.dta) dta(AK.dta)
+	corp_add_industry_dummies , ind(/NOBACKUP/scratch/share_scp/ext_data/VC_industry_words.dta) dta(AK.dta)
 
-	corp_add_eponymy, dtapath(~/migration/datafiles/AK.dta) directorpath(~/migration/datafiles/AK.directors.dta)
+	corp_add_eponymy, dtapath(AK.dta) directorpath(AK.directors.dta)
 	
 	# delimit ;
 	corp_add_trademarks AK , 
-		dta(~/migration/datafiles/AK.dta) 
-		trademarkfile(/projects/reap.proj/data/trademarks.dta) 
-		ownerfile(/projects/reap.proj/data/trademark_owner.dta)
+		dta(AK.dta) 
+		trademarkfile(/NOBACKUP/scratch/share_scp/ext_data/2018dta/trademarks/trademarks.dta) 
+		ownerfile(/NOBACKUP/scratch/share_scp/ext_data/2018dta/trademarks/trademark_owner.dta)
 		var(trademark) 
 		frommonths(-12)
 		tomonths(12)
@@ -146,28 +148,29 @@ save AK.directors.dta, replace
 	
 	# delimit ;
 	corp_add_patent_applications AK ALASKA , 
-		dta(~/migration/datafiles/AK.dta) 
-		pat(/projects/reap.proj/data_share/patent_applications.dta) 
+		dta(AK.dta) 
+		pat(/NOBACKUP/scratch/share_scp/ext_data/2018dta/patent_applications/patent_applications.dta) 
 		var(patent_application) 
 		frommonths(-12)
 		tomonths(12)
 		statefileexists;
 	
 	corp_add_patent_assignments  AK ALASKA , 
-		dta(~/migration/datafiles/AK.dta)
-		pat("/projects/reap.proj/data_share/patent_assignments.dta" "/projects/reap.proj/data_share/patent_assignments2.dta")
+		dta(AK.dta)
+		pat("/NOBACKUP/scratch/share_scp/ext_data/2018dta/patent_assignments/patent_assignments.dta")
 		frommonths(-12)
 		tomonths(12)
 		var(patent_assignment)
 		statefileexists;
 	
 	# delimit cr	
-	// corp_add_ipos	 AK ,dta(~/migration/datafiles/AK.dta) ipo(/projects/reap.proj/data/ipoallUS.dta) longstate(ALASKA)
-	corp_add_mergers AK ,dta(~/migration/datafiles/AK.dta) merger(/projects/reap.proj/data/mergers.dta)  longstate(ALASKA)
-
-        // corp_add_vc 	 AK ,dta(AK.dta) vc(~/final_datasets/VX.dta) longstate(ALASKA)
-
-
+	corp_add_ipos	 AK ,dta(AK.dta) ipo(/projects/reap.proj/data/ipoallUS.dta) longstate(ALASKA)
+	corp_add_mergers AK  ,dta(AK.dta) merger(/NOBACKUP/scratch/share_scp/ext_data/2018dta/mergers/mergers_2018.dta)  longstate(ALASKA) 
+	replace targetsic = trim(targetsic)
+	foreach var of varlist equityvalue mergeryear mergerdate{
+	rename `var' `var'_new
+	}
+        corp_add_vc 	 AK ,dta(AK.dta) vc(~/final_datasets/VX.dta) longstate(ALASKA)
 
 
  
