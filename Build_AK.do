@@ -1,4 +1,4 @@
-cd /NOBACKUP/scratch/share_scp/scp_private/scp2018/
+cd /NOBACKUP/scratch/share_scp/scp_private/scp2018
 
 global mergetempsuffix = "migration.AK"
 
