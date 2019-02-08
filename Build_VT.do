@@ -1,4 +1,3 @@
-
 clear
 cd /NOBACKUP/scratch/share_scp/scp_private/scp2018
 
