@@ -1,6 +1,5 @@
 
-
-cd /NOBACKUP/scratch/share_scp/scp_private/final_datasets
+cd /NOBACKUP/scratch/share_scp/scp_private/scp2018
 
 global mergetempsuffix MISSOURI
 global only_DE 0
@@ -10,7 +9,7 @@ global only_DE 0
  **/
 
  clear
-import delimited corpid entityid corporationtypeid corporationstatusid corporationnumber citizenship dateformed dissolvedate duration countyofinc stateofinc countryofinc purpose profession registeredagentname using "/NOBACKUP/scratch/share_scp/raw_data/Missouri/Corporation.txt", delimiters(",") stringcols(_all) bindquote(loose)
+import delimited corpid entityid corporationtypeid corporationstatusid corporationnumber citizenship dateformed dissolvedate duration countyofinc stateofinc countryofinc purpose profession registeredagentname using "/NOBACKUP/scratch/share_scp/raw_data/Missouri/2018/Corporation.txt", delimiters(",") stringcols(_all) bindquote(loose)
 
 
 drop if v16 != ""
@@ -38,7 +37,7 @@ save MO.dta, replace
 
 
 clear
-import delimited corporationtypeid corporationtype using "/NOBACKUP/scratch/share_scp/raw_data/Missouri/CorporationType.txt", delimiters(",") stringcols(_all)
+import delimited corporationtypeid corporationtype using "/NOBACKUP/scratch/share_scp/raw_data/Missouri/2018/CorporationType.txt", delimiters(",") stringcols(_all)
 
 merge 1:m corporationtypeid using MO.dta
 drop if _merge == 1
@@ -54,14 +53,14 @@ save MO.dta, replace
 
 
 clear
-import delimited nametypeid nametype  using "/NOBACKUP/scratch/share_scp/raw_data/Missouri/NameType.txt", delimiters(",") stringcols(_all)
+import delimited nametypeid nametype  using "/NOBACKUP/scratch/share_scp/raw_data/Missouri/2018/NameType.txt", delimiters(",") stringcols(_all)
 
-save /NOBACKUP/scratch/share_scp/scp_private/final_datasets/temp/nametypes.dta, replace
+save /NOBACKUP/scratch/share_scp/scp_private/scp2018/temp/nametypes.dta, replace
 
 clear
-import delimited corporationnameid corpid name nametypeid title salutation prefix lastname middlename firstname suffix  using "/NOBACKUP/scratch/share_scp/raw_data/Missouri/CorporationName.txt", delimiters(",") stringcols(_all)
+import delimited corporationnameid corpid name nametypeid title salutation prefix lastname middlename firstname suffix  using "/NOBACKUP/scratch/share_scp/raw_data/Missouri/2018/CorporationName.txt", delimiters(",") stringcols(_all)
 
-merge m:1 nametypeid using /NOBACKUP/scratch/share_scp/scp_private/final_datasets/temp/nametypes.dta
+merge m:1 nametypeid using /NOBACKUP/scratch/share_scp/scp_private/scp2018/temp/nametypes.dta
 drop _merge
 
 /* keep only the first name of the firm */
@@ -90,13 +89,13 @@ save MO.dta, replace
 
 
 clear
-import delimited addresstypeid description  using /NOBACKUP/scratch/share_scp/raw_data/Missouri/AddressType.txt, delimiters(",") stringcols(_all)
+import delimited addresstypeid description  using /NOBACKUP/scratch/share_scp/raw_data/Missouri/2018/AddressType.txt, delimiters(",") stringcols(_all)
 
-save addresstypes.dta, replace
+save temp/addresstypes.dta, replace
 
 
 clear
-import delimited addressid corporationid addresstypeid addr1 addr2 addr3 city state zipcode county country  using /NOBACKUP/scratch/share_scp/raw_data/Missouri/Address.txt, delimiters(",") stringcols(_all)
+import delimited addressid corporationid addresstypeid addr1 addr2 addr3 city state zipcode county country  using /NOBACKUP/scratch/share_scp/raw_data/Missouri/2018/Address.txt, delimiters(",") stringcols(_all)
 
 destring addresstype, replace
 
@@ -132,23 +131,23 @@ save MO.dta, replace
 
 
 clear
-import delimited partytypeid partytype  using /NOBACKUP/scratch/share_scp/raw_data/Missouri/PartyType.txt, delimiters(",") stringcols(_all)
+import delimited partytypeid partytype  using /NOBACKUP/scratch/share_scp/raw_data/Missouri/2018/PartyType.txt, delimiters(",") stringcols(_all)
 
-save partytypes.dta , replace
+save temp/partytypes.dta , replace
 
 
 clear
-import delimited xid  officerid partytypeid   using /NOBACKUP/scratch/share_scp/raw_data/Missouri/OfficerPartyType.txt, delimiters(",") stringcols(_all)
+import delimited xid  officerid partytypeid   using /NOBACKUP/scratch/share_scp/raw_data/Missouri/2018/OfficerPartyType.txt, delimiters(",") stringcols(_all)
 
-merge m:1 partytypeid using partytypes.dta
+merge m:1 partytypeid using temp/partytypes.dta
 keep if _merge == 3
 drop _merge
-save partytypes.dta, replace
+save temp/partytypes.dta, replace
 
 
 clear
-import delimited officerid corpid mr salutation fullname  using /NOBACKUP/scratch/share_scp/raw_data/Missouri/Officer.txt, delimiters(",") stringcols(_all)
-merge m:m officerid using partytypes.dta
+import delimited officerid corpid mr salutation fullname  using /NOBACKUP/scratch/share_scp/raw_data/Missouri/2018/Officer.txt, delimiters(",") stringcols(_all)
+merge m:m officerid using temp/partytypes.dta
 keep if _merge == 3
 drop _merge
 keep if inlist(partytype,"CEO","Manager","Member/Manager","President","Chairman","Partner","Organizer")
@@ -156,6 +155,8 @@ keep if inlist(partytype,"CEO","Manager","Member/Manager","President","Chairman"
 rename partytype title
 rename corpid dataid
 keep dataid title fullname
+replace title = trim(itrim(upper(title)))
+replace fullname = trim(itrim(upper(fullname)))
 save MO.directors.dta, replace
 
 
@@ -171,7 +172,6 @@ save MO.directors.dta, replace
 **	
 
 
-cd /NOBACKUP/scratch/share_scp/scp_private/final_datasets
         clear
         u MO.dta
 	tomname entityname
@@ -183,8 +183,8 @@ corp_add_industry_dummies , ind(/NOBACKUP/scratch/share_scp/ext_data/industry_wo
 	# delimit ;
 	corp_add_trademarks MO , 
 		dta(MO.dta) 
-		trademarkfile(/NOBACKUP/scratch/share_scp/ext_data/trademarks.dta) 
-		ownerfile(/NOBACKUP/scratch/share_scp/ext_data/trademark_owner.dta)
+		trademarkfile(/NOBACKUP/scratch/share_scp/ext_data/2018dta/trademarks/trademarks.dta) 
+		ownerfile(/NOBACKUP/scratch/share_scp/ext_data/2018dta/trademarks/trademark_owner.dta)
 		var(trademark) 
 		frommonths(-12)
 		tomonths(12)
@@ -194,7 +194,7 @@ corp_add_industry_dummies , ind(/NOBACKUP/scratch/share_scp/ext_data/industry_wo
 	# delimit ;
 	corp_add_patent_applications MO MISSOURI , 
 		dta(MO.dta) 
-		pat(/NOBACKUP/scratch/share_scp/ext_data/patent_applications.dta) 
+		pat(/NOBACKUP/scratch/share_scp/ext_data/2018dta/patent_applications/patent_applications.dta) 
 		var(patent_application) 
 		frommonths(-12)
 		tomonths(12)
@@ -205,7 +205,7 @@ corp_add_industry_dummies , ind(/NOBACKUP/scratch/share_scp/ext_data/industry_wo
 /* No Observations */	
 	corp_add_patent_assignments  MO MISSOURI , 
 		dta(MO.dta)
-		pat("/NOBACKUP/scratch/share_scp/ext_data/patent_assignments.dta" "/NOBACKUP/scratch/share_scp/ext_data/patent_assignments2.dta"  "/NOBACKUP/scratch/share_scp/ext_data/patent_assignments3.dta")
+		pat("/NOBACKUP/scratch/share_scp/ext_data/2018dta/patent_assignments/patent_assignments.dta")
 		frommonths(-12)
 		tomonths(12)
 		var(patent_assignment)
@@ -213,16 +213,14 @@ corp_add_industry_dummies , ind(/NOBACKUP/scratch/share_scp/ext_data/industry_wo
 	# delimit cr	
 	
 	corp_add_ipos	 MO ,dta(MO.dta) ipo(/NOBACKUP/scratch/share_scp/ext_data/ipoallUS.dta) longstate(MISSOURI)
-	corp_add_mergers MO ,dta(MO.dta) merger(/NOBACKUP/scratch/share_scp/ext_data/mergers.dta) longstate(MISSOURI)
+	corp_add_mergers MO  ,dta(MO.dta) merger(/NOBACKUP/scratch/share_scp/ext_data/2018dta/mergers/mergers_2018.dta)  longstate(MISSOURI) 
+	replace targetsic = trim(targetsic)
+	foreach var of varlist equityvalue mergeryear mergerdate{
+	rename `var' `var'_new
+	}
 
 
-
-
-
-
-
-
-corp_add_vc MO ,dta(MO.dta) vc(/NOBACKUP/scratch/share_scp/ext_data/VX.dta) longstate(MISSOURI)
+	corp_add_vc MO ,dta(MO.dta) vc(/NOBACKUP/scratch/share_scp/ext_data/VX.dta) longstate(MISSOURI)
 
 
 
@@ -231,10 +229,7 @@ corp_add_vc MO ,dta(MO.dta) vc(/NOBACKUP/scratch/share_scp/ext_data/VX.dta) long
 clear
 u MO.dta
 // gen is_DE = jurisdiction == "DE"
+safedrop shortname
 gen  shortname = wordcount(entityname) <= 3
 compress
 save MO.dta, replace
-save /NOBACKUP/scratch/share_scp/migration/datafiles/MO.dta, replace
-
-
-    

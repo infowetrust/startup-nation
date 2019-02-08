@@ -1,43 +1,127 @@
-
-cd ~/projects/reap_proj/final_datasets
-
-global mergetempsuffix="migration.FL"
-
 clear
+
+cd /NOBACKUP/scratch/share_scp/raw_data/Florida/2018
+// !wget "ftp://ftp.dos.state.fl.us/public/doc/Quarterly/Cor/cordata.zip"
+// !unzip cordata.zip
+
+cd /NOBACKUP/scratch/share_scp/scp_private/scp2018
+global mergetempsuffix="migration.FL"
+clear
+/*
 gen cor_name = ""
 save FL.dta, replace
-forvalues doci=0/10 {
+
+forvalues doci=0/9 {
 	di "*** loading file cordata`doci' ***"
 	clear
-	infile using ~/scripts/dct/FL.dct, using(/projects/reap.proj/raw_data/Florida/cordata`doci'.txt)
+	import delimited using "/NOBACKUP/scratch/share_scp/raw_data/Florida/2018/cordata`doci'.txt", stringcol(_all) // we need dct file!
 		
-	append using ~/migration/datafiles/FL.dta
-	save FL.dta, replace
+	// append using FL.dta
+	save FL_cor`doci'.dta, replace
+}
+*/
+
+***** NO dictionary version ******
+clear
+forvalues doci = 0/9 {
+di "*** loading file cordata`doci' ***"
+clear
+import delimited using "/NOBACKUP/scratch/share_scp/raw_data/Florida/2018/cordata`doci'.txt", stringcol(_all)
+
+forvalues num = 2/27 {
+replace v1 = v1 + ", "+ v`num' if !missing(v`num')
+drop v`num'
 }
 
+gen dataid = substr(v1,1,12)
+gen tag = "wrong" if strlen(trim(dataid))<12
+gen entityname = substr(v1, 13, 99)
+replace entityname = trim(itrim(entityname))
 
-clear
+gen cor_filing_type = substr(v1, 203,10)
+replace cor_filing_type = itrim(trim(cor_filing_type))
+replace cor_filing_type = substr(cor_filing_type, 2,5) if substr(cor_filing_type, 1,1) == "A" | substr(cor_filing_type, 1,1) == "I"
 
-use ~/migration/datafiles/FL.dta
+gen address1 = substr(v1, 220, 40)
+gen address2 = substr(v1, 260, 40)
 
+replace address1 = trim(itrim(upper(address1)))
+replace address2 = trim(itrim(upper(address2)))
+gen address = trim(itrim(address1 + " " + address2))
+
+*** state ***
+gen state = substr(v1, 332, 9)
+forvalue i = 0/9{
+replace state = subinstr(state, "`i'"," ",.)
+}
+replace state = subinstr(state, "-"," ",.)
+replace state = trim(itrim(upper(state)))
+replace state = "FL" if state == "F"
+
+**** city ****
+gen city = substr(v1, 300, 30)
+forvalue i = 0/9{
+replace city = subinstr(city, "`i'"," ",.)
+}
+replace city = trim(itrim(upper(city)))
+
+*** zipcode ****
+gen zipcode = substr(v1, 335, 5)
+replace zipcode = substr(v1, 335, 10) if regexm(zipcode, "[A-Z]")
+local list ="A B C D E F G H I J K L M N O P Q R S T U V W X Y Z"
+local n : word count `list'
+forvalues i = 1/`n'{
+local letter: word `i' of `list'
+replace zipcode = subinstr(zipcode, "`letter'"," ",.)
+}
+replace zipcode = trim(itrim(zipcode))
+replace zipcode = substr(zipcode, 1, 5)
+
+**** incdate ****
+gen cor_file_date = substr(v1, 473, 16)
+local list ="A B C D E F G H I J K L M N O P Q R S T U V W X Y Z"
+local n : word count `list'
+forvalues i = 1/`n'{
+local letter: word `i' of `list'
+replace cor_file_date = subinstr(cor_file_date, "`letter'"," ",.)
+}
+replace cor_file_date = trim(itrim(cor_file_date))
+replace cor_file_date = substr(cor_file_date, 1, 8)
+replace cor_file_date = substr(v1, 474, 16) if year(date(cor_file_date, "MDY")) > 2019
+replace cor_file_date = trim(itrim(cor_file_date))
+replace cor_file_date = substr(cor_file_date, 1, 8)
 gen incdate = date(cor_file_date,"MDY")
 gen incyear = year(incdate)
 
-replace state_country = "FL" if state_country == ""
+**** jurisdiction ****
+gen jurisdiction = substr(v1, 503, 12)
+forvalue i = 0/9{
+replace jurisdiction = subinstr(jurisdiction, "`i'"," ",.)
+}
+replace jurisdiction = trim(itrim(upper(jurisdiction)))
+replace jurisdiction = "FL" if missing(jurisdiction) | jurisdiction == "N FL"
+replace jurisdiction = substr(jurisdiction, 1, 2)
+
+******
 gen is_nonprofit = inlist(cor_filing_type,"DOMNP","FORNP")
-
 gen is_corp = inlist(cor_filing_type,"DOMP", "DOMNP","FORP","FORNP")
-gen address = trim(itrim(cor_mail_add_1 +" " +  cor_mail_add_2))
-rename (state_country cor_number cor_mail_city cor_mail_state cor_mail_zip cor_name) (jurisdiction dataid city state zipcode entityname)
 gen stateaddress = state
-
 gen local_firm = inlist(jurisdiction,"DE","FL") & state == "DE"
+drop if incyear > 2019
+drop if missing(entityname) | missing(dataid)
+keep dataid entityname incdate incyear is_corp jurisdiction is_nonprofit address city state zipcode local_firm stateaddress v1
+save FL_`doci'.dta,replace
+}
 
-keep dataid entityname incdate incyear   is_corp jurisdiction is_nonprofit address city state zipcode local_firm stateaddress
-save FL.dta,replace
+u FL_0.dta, clear
+forvalues doci = 1/9{
+append using FL_`doci'.dta
+save FL.dta, replace
+}
 
 
 
+/*
 clear
 gen fullname = ""
 save FL.directors.dta, replace
@@ -62,11 +146,11 @@ forvalues i=1/5{
 	split fullname, limit(2)
 	rename (fullname1 fullname2) (firstname lastname)
 	
-	append using ~/migration/datafiles/FL.directors.dta, force
+	append using FL.directors.dta, force
 	save FL.directors.dta, replace
 }
 
-
+*/
 	u FL.dta
 	tomname entityname
 	drop if missing(dataid)
@@ -80,22 +164,21 @@ clear
 
 
 
-	corp_add_industry_dummies , ind(~/nbercriw/industry_words.dta) dta(~/migration/datafiles/FL.dta)
-	corp_add_industry_dummies , ind(~/ado/VC_industry_words.dta) dta(~/migration/datafiles/FL.dta)
+	corp_add_industry_dummies , ind(/NOBACKUP/scratch/share_scp/ext_data/industry_words.dta) dta(FL.dta)
+	corp_add_industry_dummies , ind(/NOBACKUP/scratch/share_scp/ext_data/VC_industry_words.dta) dta(FL.dta)
  
 
-*	corp_add_gender, dta(~/migration/datafiles/FL.dta) directors(~/migration/datafiles/FL.directors.dta) names(~/ado/names/NATIONAL.TXT)
+*	corp_add_gender, dta(FL.dta) directors(FL.directors.dta) names(~/ado/names/NATIONAL.TXT)
 
 	corp_add_eponymy, dtapath(FL.dta) directorpath(FL.directors.dta)
 	
-	# delimit ;
+# delimit ;
 	corp_add_trademarks FL , 
 		dta(FL.dta) 
-		trademarkfile(/projects/reap.proj/data/trademarks.dta) 
-		ownerfile(/projects/reap.proj/data/trademark_owner.dta)
+		trademarkfile(/NOBACKUP/scratch/share_scp/ext_data/2018dta/trademarks/trademarks.dta) 
+		ownerfile(/NOBACKUP/scratch/share_scp/ext_data/2018dta/trademarks/trademark_owner.dta)
 		var(trademark) 
 		frommonths(-12)
-		classificationfile(/projects/reap.proj/data/trademarks/classification.dta)
 		tomonths(12)
 		statefileexists;
 	
@@ -103,36 +186,39 @@ clear
 	# delimit ;
 	corp_add_patent_applications FL FLORIDA , 
 		dta(FL.dta) 
-		pat(/projects/reap.proj/data_share/patent_applications.dta) 
+		pat(/NOBACKUP/scratch/share_scp/ext_data/2018dta/patent_applications/patent_applications.dta) 
 		var(patent_application) 
 		frommonths(-12)
 		tomonths(12)
 		statefileexists;
-	# delimit ;
 	
-	set trace on;
-	set tracedepth 1;
-	corp_add_patent_assignments  FL FLORIDA 
-		, 
+	# delimit ;
+
+/* No Observations */	
+	corp_add_patent_assignments  FL FLORIDA , 
 		dta(FL.dta)
-		pat("/projects/reap.proj/data_share/patent_assignments.dta" "/projects/reap.proj/data_share/patent_assignments2.dta" )
+		pat("/NOBACKUP/scratch/share_scp/ext_data/2018dta/patent_assignments/patent_assignments.dta")
 		frommonths(-12)
 		tomonths(12)
 		var(patent_assignment)
 		statefileexists;
-		
-
 	# delimit cr	
+	
+	corp_add_ipos	 FL ,dta(FL.dta) ipo(/NOBACKUP/scratch/share_scp/ext_data/ipoallUS.dta) longstate(FLORIDA)
+	corp_add_mergers FL  ,dta(FL.dta) merger(/NOBACKUP/scratch/share_scp/ext_data/2018dta/mergers/mergers_2018.dta)  longstate(FLORIDA) 
+	replace targetsic = trim(targetsic)
+	foreach var of varlist equityvalue mergeryear mergerdate{
+	rename `var' `var'_new
+	}
 
 
-	corp_add_ipos	 FL  ,dta(~/migration/datafiles/FL.dta) ipo(/projects/reap.proj/data/ipoallUS.dta)  longstate(FLORIDA) 
-	corp_add_mergers FL  ,dta(~/migration/datafiles/FL.dta) merger(/projects/reap.proj/data/mergers.dta)  longstate(FLORIDA) 
+	corp_add_vc FL ,dta(FL.dta) vc(/NOBACKUP/scratch/share_scp/ext_data/VX.dta) longstate(FLORIDA)
 
-
- 
 
 clear
-u ~/migration/datafiles/FL.dta
+u FL.dta
+safedrop is_DE
+safedrop shortname
 gen is_DE = jurisdiction == "DE"
 gen  shortname = wordcount(entityname) <= 3
 

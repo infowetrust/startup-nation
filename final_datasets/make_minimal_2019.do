@@ -3,11 +3,11 @@ clear
 global mergetempsuffix = "_"
 global statelist AK AR AZ CA CO FL GA IA ID IL KY LA MA ME MI MN MO NC ND NJ NM NY OH OK OR RI SC TN TX UT VA VT WA WI WY
 global longstatelist ALASKA ARKANSAS ARIZONA CALIFORNIA COLORADO FLORIDA GEORGIA IOWA IDAHO ILLINOIS KENTUCKY LOUISIANA MASSACHUSETTS MAINE MICHIGAN MINNESOTA MISSOURI NORTH_CAROLINA NORTH_DAKOTA NEW_JERSEY NEW_MEXICO NEW_YORK OHIO OKLAHOMA OREGON RHODE_ISLAND SOUTH_CAROLINA TENNESSEE TEXAS UTAH VIRGINIA VERMONT WASHINGTON WISCONSIN WYOMING
-global fix_local_firm 1
 global prepare_mergerfile 0
 global prepare_states 0
-global collapse_states 1
+global append_states 1
 global make_minimal 1
+global fileshare 1
 global yuting 0
 
 set more off
@@ -70,9 +70,10 @@ forvalues i = 1/`n'{
 	u /NOBACKUP/scratch/share_scp/scp_private/final_datasets/`state'.dta, clear
 	
 	safedrop dateannounced* targetname enterprisevalue equityvalue equityvalue_old equityvalue_new equityvalue_Z x mergeryear mergeryear_old mergeryear_new mergeryear_Z mergerdate mergerdate_old mergerdate_new mergerdate_Z ipo growthz_old growthz_new growthz_Z acq acq_old acq_new acq_Z
+	
 	safedrop patent_assignment patent_application trademark 
 	save `state'.dta,replace
-		
+	
 		# delimit ;
 	corp_add_trademarks `state' , 
 		dta(`state'.dta) 
@@ -144,57 +145,46 @@ forvalues i = 1/`n'{
 	
 	 }
 
-if $fix_local_firm == 1{
-	clear
-	global statelist NM NY OH OK OR RI SC TN TX UT VA VT WA WI AK AR AZ CA CO FL GA IA ID IL KY LA MA ME MI MN MO NC ND NJ //WY
-	foreach state in $statelist{
-	u `state'.dta, clear
-	replace state = trim(itrim(state))
-	capture confirm variable jurisdiction
-	if _rc == 0 {
-	safedrop local_firm
-	replace jurisdiction = trim(itrim(upper(jurisdiction)))
-	replace jurisdiction = "`state'" if missing(jurisdiction)
-	gen local_firm= inlist(jurisdiction, "`state'","DE") & state == "`state'"
-	}
-	else {
-	safedrop local_firm
-	gen local_firm = state == "`state'"
-	}
-	save `state'.dta, replace
-	}
-	}
-if $collapse_states == 1{
+if $append_states == 1{
 	clear
 	global statelist AK AR AZ CA CO FL GA IA ID IL KY LA MA ME MI MN MO NC ND NJ NM NY OH OK OR RI SC TN TX UT VA VT WA WI WY
-	foreach state in $statelist{
+	global longstatelist ALASKA ARKANSAS ARIZONA CALIFORNIA COLORADO FLORIDA GEORGIA IOWA IDAHO ILLINOIS KENTUCKY LOUISIANA MASSACHUSETTS MAINE MICHIGAN MINNESOTA MISSOURI NORTH_CAROLINA NORTH_DAKOTA NEW_JERSEY NEW_MEXICO NEW_YORK OHIO OKLAHOMA OREGON RHODE_ISLAND SOUTH_CAROLINA TENNESSEE TEXAS UTAH VIRGINIA VERMONT WASHINGTON WISCONSIN WYOMING
+	
+	local n: word count $statelist
+	forvalues i = 1/`n'{
+	local state: word `i' of $statelist
+	
 	u `state'.dta,clear
 	capture confirm variable eponymous
     	if _rc != 0 {
 	        gen eponymous = 0
          }
-	save `state'.dta, replace
-	corp_collapse_any_state_3merge `state' , workingfolder(/NOBACKUP/scratch/share_scp/scp_private/final_datasets/) outputsuffix("new")
-	gen datastate = "`state'" 
-	save `state'.collapsed.new.dta, replace
+	capture confirm variable local_firm
+	if _rc != 0 {
+		gen local_firm = is_Local
 	}
-
+	save `state'.dta, replace
+	corp_collapse_any_state_3merge `state' , workingfolder(/NOBACKUP/scratch/share_scp/scp_private/final_datasets/) outputsuffix("2019")
+	gen datastate = "`state'" 
+	save `state'.collapsed.2019.dta, replace
+	}
+	
 	clear
 	gen a = .
-	foreach state in $statelist{
+	local n: word count $statelist
+	forvalues i = 1/`n'{
+		local state: word `i' of $statelist
 		di "Adding state `state'"
-		append using `state'.collapsed.new.dta, force
-		save allstates.minimal.new.dta, replace
+		append using `state'.collapsed.2019.dta, force
+		save allstates.minimal.2019.dta, replace
 	}
 	drop a
-	compress
-	drop if incyear < 1988 | incyear > 2014
-	save allstates.minimal.new.dta, replace
+	save allstates.minimal.2019.dta, replace
 	
 }
 
 if $make_minimal == 1 {	
-	u allstates.minimal.new.dta, clear
+	u allstates.minimal.2019.dta, clear
 	
 	
 	encode datastate, gen(statecode)
@@ -208,9 +198,9 @@ if $make_minimal == 1 {
 	predict quality_new, pr
 	
 	//added below, try to replace qualitynow for the last couple of years
-	//logit growthz_new eponymous shortname is_corp is_DE trademark clust_local clust_traded is_biotech is_ecommerce is_medicaldev is_semicond i.statecode if inrange(incyear, 1988,2008), vce(robust) or
-	//predict qualitynow, pr
-	//replace quality_new = qualitynow if inrange(incyear, 2014, 2018)
+	logit growthz_new eponymous shortname is_corp is_DE trademark clust_local clust_traded is_biotech is_ecommerce is_medicaldev is_semicond i.statecode if inrange(incyear, 1988,2008), vce(robust) or
+	predict qualitynow, pr
+	replace quality_new = qualitynow if inrange(incyear, 2015, 2018)
 	//
 	
 	eststo: logit growthz_Z eponymous shortname is_corp nopatent_DE patent_noDE patent_and_DE trademark clust_local clust_traded is_biotech is_ecommerce is_medicaldev is_semicond i.statecode if inrange(incyear, 1988,2008), vce(robust) or
@@ -220,14 +210,20 @@ if $make_minimal == 1 {
 	replace quality_old = 0 if missing(quality_old)
 	replace quality_new = 0 if missing(quality_new)
 	replace quality_Z = 0 if missing(quality_Z)
+	replace qualitynow = 0 if missing(qualitynow)
 	
-	corr quality_old quality_new quality_Z
+	//corr quality_old quality_new quality_Z
+	compress
+	save minimal_2019.dta, replace
 	
-	save allstates.minimal_final.dta, replace
-	do audit_minimal.do
 
 }
 
 if $yuting == 1{
 	do Yu-ting_minimal.do
+	}
+	
+if $fileshare == 1{
+	do /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/zipcodeshare_new.do
+	do /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/counties_share_new.do
 	}

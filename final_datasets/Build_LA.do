@@ -42,8 +42,8 @@ if $only_DE == 1 {
    keep if is_DE ==1
 }
 
-keep dataid entityname incdate incyear is_corp is_DE address city state zipcode local_firm stateaddress
-order dataid entityname incdate incyear is_corp is_DE address city state zipcode
+keep dataid entityname incdate incyear is_corp is_DE address city state zipcode local_firm stateaddress jurisdiction
+order dataid entityname incdate incyear is_corp is_DE address city state zipcode jurisdiction
 save LA.dta, replace
 
 ****** DIRECTORS ****************

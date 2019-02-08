@@ -7,7 +7,7 @@ rename (mergerdate_new quality_new diffmerger_new growthz_new is_merger_new) (me
 
 logit growthz eponymous shortname is_corp is_DE trademark clust_local clust_traded is_biotech is_ecommerce is_medicaldev is_semicond if inrange(incyear, 1988,2008), vce(robust) or
 predict qualitynow, pr
-replace quality = qualitynow if inrange(incyear, 2016, 2018)
+replace quality = qualitynow if inrange(incyear, 2014, 2018)
 
 replace zipcode = itrim(trim(zipcode))
 replace zipcode = substr(zipcode, 1,5)
@@ -42,7 +42,7 @@ keep zipcode county bus_ratio quality incyear growthz
     merge m:1  statefp countyfp using /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg/SCP_mapping/dta/countylist.dta 
     keep if _merge == 3
     drop _merge 
-    drop statefp countyfp countycode
+    // drop statefp countyfp countycode
     sort state countyname year
     compress
 order year state countyname obs growthz quality recpi reai raw_reai
