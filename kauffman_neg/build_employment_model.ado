@@ -9,6 +9,8 @@ program define build_employment_model, rclass
                         is_biotech is_ecommerce is_IT is_medicaldev is_semicond
                         ib`fe'.statecode;
 
+#delimit cr
+
           di "Running Employment Model 100/500"
 
           eststo clear
@@ -18,3 +20,5 @@ program define build_employment_model, rclass
           eststo, title("All States"):logit emp_over_1000 `full_model_params' if inrange(incyear,1997-6,2011-6), vce(robust) or iter(60)
 
          esttab, pr2 se star(* .1 ** .05)
+
+end
