@@ -11,33 +11,33 @@ program define corp_add_patent_assignments,rclass
 		di "PATH: `x'"
 	}
 
-        /*** First, create a file to store to ~/temp/state.patents.dta *****/
+        /*** First, create a file to store to /NOBACKUP/scratch/share_scp/temp/state.patents.dta *****/
         
 	local state="`1'"
 	local longstate=trim(subinstr("`2' `3'",",","",.))
 	di "Long State: `longstate'"
 	local first = 0 
-	capture confirm file ~/temp/`state'.patents.dta
+	capture confirm file /NOBACKUP/scratch/share_scp/temp/`state'.patents.dta
 	if "`statefileexists'" == ""  | _rc != 0{
 		foreach patfile in `pathlist' {
 			use `patfile',replace
 			keep if strpos(assignee_address,"`longstate'") > 0
 			tomname assignee_name, dropexisting
 			if `first' > 0 {
-				append using ~/temp/`state'.patents.dta
+				append using /NOBACKUP/scratch/share_scp/temp/`state'.patents.dta
 			}
 			local first = `first' + 1
-			save ~/temp/`state'.patents.dta,replace
+			save /NOBACKUP/scratch/share_scp/temp/`state'.patents.dta,replace
 		}
 
                 duplicates drop
-                save ~/temp/`state'.patents.dta,replace
+                save /NOBACKUP/scratch/share_scp/temp/`state'.patents.dta,replace
 	}
 
 
 
         /*** Now, merge them *****/
-	jnamemerge  ~/temp/`state'.patents.dta `dtapath' ,  `skipcollapsed'
+	jnamemerge  /NOBACKUP/scratch/share_scp/temp/`state'.patents.dta `dtapath' ,  `skipcollapsed'
 	drop if _mergex == "no match"
 	
 

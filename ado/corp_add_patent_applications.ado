@@ -9,7 +9,7 @@ program define corp_add_patent_applications,rclass
 	local longstate=trim("`2' `3'")
 	
 
-	capture confirm file ~/temp/`state'.patentapp.dta
+	capture confirm file /NOBACKUP/scratch/share_scp/temp/`state'.patentapp.dta
 
 	if "`statefileexists'" == "" | _rc != 0 {
 		clear
@@ -18,10 +18,10 @@ program define corp_add_patent_applications,rclass
 		tomname assignee
 		safedrop _merge _mergex
 		desc
-		save ~/temp/`state'.patentapp.dta,replace
+		save /NOBACKUP/scratch/share_scp/temp/`state'.patentapp.dta,replace
 	}
 	
-	jnamemerge   ~/temp/`state'.patentapp.dta `dtapath' ,  `skipcollapsed'
+	jnamemerge   /NOBACKUP/scratch/share_scp/temp/`state'.patentapp.dta `dtapath' ,  `skipcollapsed'
 
 	drop if _mergex == "no match"
 	safedrop _merge _mergex

@@ -3,7 +3,7 @@ capture program drop tomname
 program define tomname, rclass
 	set trace off
 	version 9.1
-	syntax varname,[COMMAsplit] [DROPexisting] [firstword]
+	syntax varname,[COMMAsplit] [DROPexisting] [firstword] [parendrop]
 
 	/* If the necessary variables already exist then:
 		- If the dropexisting parameter is provided the program drops them
@@ -22,13 +22,28 @@ program define tomname, rclass
 			}
 		}
 	}
+	
 	 
 	
 	di "Generating matching name variables", as text
 	
 	/* Generate variable mfull_name which will hold the full name of the firm */
 	gen mfull_name = `1'	
-	qui: replace mfull_name = itrim(upper(mfull_name))
+	qui: replace mfull_name = trim(itrim(upper(mfull_name)))
+	
+	
+	/* If parendrop parameter is provided, drop everything in parenthesis */
+	if "`parendrop'" == "parendrop" { 
+		gen __re = "\([A-Za-z0-9, \.]*\)"
+		replace mfull_name = regexr(mfull_name, __re, "") if regexm(mfull_name , __re)
+	}
+	
+	if "`commasplit'" == "commasplit" { 
+		replace mfull_name = substr(mfull_name, 1, strpos(mfull_name, ",")-1) if strpos(mfull_name, ",")
+	}
+	
+	
+	
 
 	/*  Replace a long set of word abbreviations by their unabbreviated counterparts 
 		All the replace commands run twice to account for the unlikely case that a phrase appears twice
@@ -47,6 +62,15 @@ program define tomname, rclass
 	qui: replace mfull_name = regexs(1) + regexs(2) + "CORPORATION" + regexs(4) if regexm(mfull_name,"(^.*)([^A-Z])(CORP)($)")
 	qui: replace mfull_name = regexs(1) + regexs(2) + "UNIVERSITY" + regexs(4) if regexm(mfull_name,"(^.*)([^A-Z])(UNIV)($)")
 	qui: replace mfull_name = regexs(1) + regexs(2) + "DEPARTMENT" + regexs(4) if regexm(mfull_name,"(^.*)([^A-Z])(DEPT)($)")
+	qui: replace mfull_name = regexs(1) + regexs(2) + "ASSOCIATES" + regexs(4) if regexm(mfull_name,"(^.*)([^A-Z])(ASSOC)($)")
+	
+	qui: replace mfull_name = regexs(1) + regexs(2) + "INTERNATIONAL" + regexs(4) if regexm(mfull_name,"(^.*)([^A-Z])(INTL)([^A-Z].*$)")
+	qui: replace mfull_name = regexs(1) + regexs(2) + "COMMUNICATIONS" + regexs(4) if regexm(mfull_name,"(^.*)([^A-Z])(COMMUN)([^A-Z].*$)")
+	qui: replace mfull_name = regexs(1) + regexs(2) + "TELECOMMUNICATIONS" + regexs(4) if regexm(mfull_name,"(^.*)([^A-Z])(TELECOM)([^A-Z].*$)")
+	qui: replace mfull_name = regexs(1) + regexs(2) + "NATIONAL" + regexs(4) if regexm(mfull_name,"(^.*)([^A-Z])(NATL)([^A-Z].*$)")
+	qui: replace mfull_name = regexs(1) + regexs(2) + "BRANCH" + regexs(4) if regexm(mfull_name,"(^.*)([^A-Z])(BRNCH)([^A-Z].*$)")
+	qui: replace mfull_name = regexs(1) + regexs(2) + "BANK" + regexs(4) if regexm(mfull_name,"(^.*)([^A-Z])(BK)([^A-Z].*$)")
+	qui: replace mfull_name = regexs(1) + regexs(2) + "PROPERTY" + regexs(4) if regexm(mfull_name,"(^.*)([^A-Z])(PPTY)([^A-Z].*$)")
 	qui: replace mfull_name = subinstr(mfull_name,"LIMITED LIABILITY COMPANY","LLC",.)
 	qui: replace mfull_name = regexr(mfull_name," ASSOCIATE( |$)"," ASSOCIATES ")
 	

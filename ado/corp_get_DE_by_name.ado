@@ -5,7 +5,7 @@ program define corp_get_DE_by_name , rclass
      syntax , dta(string) [DE_dta(string)] [skip_incdate_comparison]
 {
     if "`DE_dta'" == "" {
-        local DE_dta = "~/projects/reap_proj/data/DE_matching_set.dta"
+        local DE_dta = "/NOBACKUP/scratch/share_scp/scp_private/ado/DE_matching_set.dta"
     }
         
 

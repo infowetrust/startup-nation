@@ -7,7 +7,7 @@ program define corp_add_trademarks,rclass
 	local file="`dtafile'"
 	di "State = `state' , File = `file'"
 
-	capture confirm file ~/temp/`state'.trademarks.dta
+	capture confirm file /NOBACKUP/scratch/share_scp/temp/`state'.trademarks.dta
 	di _rc
 	if "`statefileexists'" == ""  | _rc != 0{
 		di "Making new temp trademark file"
@@ -31,10 +31,10 @@ program define corp_add_trademarks,rclass
 		
 		
 		tomname own_name
-		save ~/temp/`state'.trademarks.dta,replace
+		save /NOBACKUP/scratch/share_scp/temp/`state'.trademarks.dta,replace
 	}
 	
-	jnamemerge  ~/temp/`state'.trademarks.dta `dtafile' ,  `skipcollapsed'
+	jnamemerge  /NOBACKUP/scratch/share_scp/temp/`state'.trademarks.dta `dtafile' ,  `skipcollapsed'
 
 	keep if _mergex != "no match"
 	keep if !missing(registration_dt)

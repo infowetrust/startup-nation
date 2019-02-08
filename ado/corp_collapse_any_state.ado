@@ -3,7 +3,7 @@
 
 capture program drop corp_collapse_any_state
 program define corp_collapse_any_state, rclass
-	syntax anything , [outputsuffix(string)] [workingfolder(string)] [extra(string)] [blankfields(string)] [by(string)] [force_local_firm]
+	syntax anything , [outputsuffix(string)] [workingfolder(string)] [extra(string)] [blankfields(string)] [by(string)] [force_local_firm] [nosave]
 
 
 local params = substr("`0'",1, strpos("`0'", ","))
@@ -25,12 +25,12 @@ foreach state in `params' {
         ** If force_local_firm is set, then you simply assume all firms are local
         ** when local_firm is not found.
         if "`force_local_firm'" == "" {
-            keep if local_firm
+            keep if local_firm == 1 //change to equals to 1
         }
        else {
            capture confirm variable local_firm
            if _rc == 0 {
-               keep if local_firm
+               keep if local_firm == 1 //change to equals to 1
            }
        }
 	
@@ -51,7 +51,7 @@ foreach state in `params' {
 		}
 	}
 	
-	gen is_merger = !missing(mergerdate)
+	gen is_merger = !missing(mergerdate) 
 	
 	replace region = state if missing(region)
 	gen patent_count = patent_assignment + patent_application
@@ -76,7 +76,7 @@ foreach state in `params' {
 		(sum) patent_count patent_application_count=patent_application
 		
 		`extra'
-	, by ( city zipcode dataid `by');
+	, by ( city zipcode dataid targetsic `by'); 
 	
 	# delimit cr
 	
@@ -97,7 +97,7 @@ foreach state in `params' {
 	
 	gen diffmerger = month(mergerdate) - month(incdate) + 12*(year(mergerdate) - year(incdate))
 	gen diffipo = month(ipodate) - month(incdate) + 12*(year(ipodate) - year(incdate))
-	gen growthz = inrange(diffmerger,0,12*6) & !missing(diffmerger) | inrange(diffipo,0,12*6) & !missing(diffipo) 
+	gen growthz = inrange(diffmerger,0,12*6) & !missing(diffmerger) | inrange(diffipo,0,12*6) & !missing(diffipo)  & substr(targetsic, 1,1) != "6" & !missing(targetsic) 
 	
 	gen diffdeath = month(deathdate) - month(incdate) + 12*(year(deathdate) - year(incdate))
 	gen is_dead = inrange(diffdeath,0,12*6) & !missing(diffdeath)
@@ -157,9 +157,11 @@ foreach state in `params' {
 	 if "`outputsuffix'" != ""  {
 		local ox = ".`outputsuffix'"
 	}
-	
-	di " `workingfolder'`state'.collapsed`ox'.dta"
-	save `workingfolder'`state'.collapsed`ox'.dta, replace
+
+        if "`nosave'" == "" { 
+            	di " `workingfolder'`state'.collapsed`ox'.dta"
+                save `workingfolder'`state'.collapsed`ox'.dta, replace
+        }
 }
 
 

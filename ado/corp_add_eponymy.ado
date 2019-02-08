@@ -19,7 +19,7 @@ program define corp_add_eponymy, rclass
 	rename fullname full_fullname
 	safedrop _id
 	gen _id = _n
-	keep _id fullname1 fullname2 fullname3 fullname4 fullname5 entityname dataid
+	keep _id fullname* entityname dataid
 	reshape long fullname,i(_id) j(nameorder)
 	drop if fullname == ""
 	drop if length(fullname) < 4
