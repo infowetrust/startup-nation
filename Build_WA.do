@@ -93,7 +93,7 @@ global mergetempsuffix="WA_Official"
 	
 	gen fullname = firstname + " " + middlename + " " + lastname
 	replace fullname = trim(itrim(fullname))
-	
+	rename title role
 	replace role = "PRESIDENT" if inlist(role,"GOVERNOR")
 	// replace title = "MANAGER" if inlist(title,"Manager","Partner","Member")
 	rename ubi dataid  
