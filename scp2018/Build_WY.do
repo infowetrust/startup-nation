@@ -125,9 +125,8 @@ save WY.directors.dta,replace
 
 **
 **
-** STEP 2: Add variables. These variables are within the first year
-**		and very similar to the ones used in "Where Is Silicon Valley?"
-**
+** STEP 2: Add variables.
+
 **	
 	u WY.dta, replace
 	tomname entityname
@@ -143,8 +142,8 @@ save WY.directors.dta,replace
 	# delimit ;
 	corp_add_trademarks WY , 
 		dta(WY.dta) 
-		trademarkfile(/NOBACKUP/scratch/share_scp/ext_data/trademarks.dta) 
-		ownerfile(/NOBACKUP/scratch/share_scp/ext_data/trademark_owner.dta)
+		trademarkfile(/NOBACKUP/scratch/share_scp/ext_data/2018dta/trademarks/trademarks.dta) 
+		ownerfile(/NOBACKUP/scratch/share_scp/ext_data/2018dta/trademarks/trademark_owner.dta)
 		var(trademark) 
 		frommonths(-12)
 		tomonths(12)
@@ -154,7 +153,7 @@ save WY.directors.dta,replace
 	# delimit ;
 	corp_add_patent_applications WY WYOMING , 
 		dta(WY.dta) 
-		pat(/NOBACKUP/scratch/share_scp/ext_data/patent_applications.dta) 
+		pat(/NOBACKUP/scratch/share_scp/ext_data/2018dta/patent_applications/patent_applications.dta) 
 		var(patent_application) 
 		frommonths(-12)
 		tomonths(12)
@@ -162,7 +161,7 @@ save WY.directors.dta,replace
 	
 	corp_add_patent_assignments  WY WYOMING , 
 		dta(WY.dta)
-		pat("/NOBACKUP/scratch/share_scp/ext_data/patent_assignments.dta" "/NOBACKUP/scratch/share_scp/ext_data/patent_assignments2.dta")
+		pat("/NOBACKUP/scratch/share_scp/ext_data/2018dta/patent_assignments/patent_assignments.dta")
 		frommonths(-12)
 		tomonths(12)
 		var(patent_assignment)
@@ -170,11 +169,14 @@ save WY.directors.dta,replace
 	
 	# delimit cr	
 	corp_add_ipos	 WY ,dta(WY.dta) ipo(/NOBACKUP/scratch/share_scp/ext_data/ipoallUS.dta) longstate(WYOMING)
-	corp_add_mergers WY ,dta(WY.dta) merger(/NOBACKUP/scratch/share_scp/ext_data/mergers.dta)  longstate(WYOMING)
-
+	corp_add_mergers WY  ,dta(WY.dta) merger(/NOBACKUP/scratch/share_scp/ext_data/2018dta/mergers/mergers_2018.dta)  longstate(WYOMING) 
+	replace targetsic = trim(targetsic)
+	foreach var of varlist equityvalue mergeryear mergerdate{
+	rename `var' `var'_new
+	}
 
 
 
  
-      corp_add_vc        WY ,dta(WY.dta) vc(/NOBACKUP/scratch/share_scp/ext_data/VX.dta) longstate(WYOMING)
-      
+       corp_add_vc        WY ,dta(WY.dta) vc(/NOBACKUP/scratch/share_scp/ext_data/VX.dta) longstate(WYOMING)
+   
