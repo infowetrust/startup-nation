@@ -3,7 +3,7 @@ cd /NOBACKUP/scratch/share_scp/scp_private/scp2018
 global mergetempsuffix="WA_Official"
 
 
-/**
+**
 ** STEP 1: Load the data dump from MA Corporations 
 /** This data uses the director address to locate companies **/
 {
@@ -122,7 +122,6 @@ global mergetempsuffix="WA_Official"
 	corp_add_industry_dummies , ind(/NOBACKUP/scratch/share_scp/ext_data/industry_words.dta) dta(WA.dta)
 
 	corp_add_industry_dummies , ind(/NOBACKUP/scratch/share_scp/ext_data/VC_industry_words.dta) dta(WA.dta)
-*/
 	u WA.dta, clear
 	corp_add_gender, dta(WA.dta) directors(WA.directors.dta) names(~/ado/names/NATIONAL.TXT) precision(1)
 	corp_add_eponymy, dtapath(WA.dta) directorpath(WA.directors.dta)

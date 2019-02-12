@@ -1,8 +1,4 @@
 cd /NOBACKUP/scratch/share_scp/scp_private/scp2018
-
-**** If we want to replace old KY.dta ******
-// cd /NOBACKUP/scratch/share_scp/scp_private/scp2018
-
 global mergetempsuffix KY
 
 clear
@@ -28,7 +24,7 @@ gen zipcode = v24
 
 replace state = trim(itrim(state))
 replace city = upper(trim(itrim(city)))
-replace zipcode = trim(itrim(zipcode))
+replace zipcode = trim(itrim(substr(zipcode,1,5)))
 replace address = upper(trim(itrim(address)))
 
 
@@ -40,7 +36,7 @@ replace jurisdiction = trim(itrim(upper(jurisdiction)))
 keep if inlist(jurisdiction, "DE", "KY")
 gen is_DE = 1 if jurisdiction == "DE"
 
-gen local_firm= inlist(jurisdiction,"KY","DE") | state == "KY" 
+gen local_firm= inlist(jurisdiction,"KY","DE") & state == "KY" 
 
 /* Generating Variables */
 

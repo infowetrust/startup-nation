@@ -1,7 +1,5 @@
  clear
- cd ~/final_datasets
- 
- 
+ cd /NOBACKUP/scratch/share_scp/scp_private/scp2018/
  local keepraw = 0
  local dtasuffix
  di "Suffix : `dtasuffix'"
@@ -11,14 +9,14 @@ global mergetempsuffix="migration.CA"
  
 
 	clear
-	infile using /projects/reap.proj/raw_data/California/CA_CORPHISTORY, using(/projects/reap.proj/raw_data/California/01Jun2015/CORPHISTORY.TXT)
+	infile using /NOBACKUP/scratch/share_scp/raw_data/California/CA_CORPHISTORY, using(/NOBACKUP/scratch/share_scp/raw_data/California/2018/CORPHISTORY.TXT)
 	keep if transactioncode == "AMDT"
 	gen namechangeddate = date(transactiondate,"YMD")
 	save CAtempnames.dta,replace
 
 
 	clear
-	infile using /projects/reap.proj/raw_data/California/CA_CORPMASTER,  using(/projects/reap.proj/raw_data/California/01Jun2015/CORPMASTER.TXT)
+	infile using /NOBACKUP/scratch/share_scp/raw_data/California/CA_CORPMASTER,  using(/NOBACKUP/scratch/share_scp/raw_data/California/2018/CORPMASTER.TXT)
 	gen ord = _n
 	recast long ord 
 	gen dataid = ord
@@ -31,7 +29,7 @@ global mergetempsuffix="migration.CA"
 	replace jurisdiction_state = "DE" if jurisdiction_state == "DELAWARE"
 	replace jurisdiction_state = "CA" if jurisdiction_state == ""
 
-	gen address = address1 + " " + address2
+	gen address = trim(itrim(upper(address1 + " " + address2)))
 	
 	
 	rename (jurisdiction_state state_county)(jurisdiction state)
@@ -41,7 +39,7 @@ global mergetempsuffix="migration.CA"
 	sort incdate entityname 
 	gen is_nonprofit= corptaxbase == "N" & !missing(corptaxbase)
 	
-        gen local_firm = inlist(jurisdiction,"DELAWARE","DE","","CA")
+        gen local_firm = inlist(jurisdiction, "DE", "CA") & state == "CA"
         replace local_firm =  0 if !(state == "CA")
 	
 	
@@ -59,11 +57,14 @@ global mergetempsuffix="migration.CA"
 	rename fullname1 firstname
 	gen title = "PRESIDENT"
 	keep dataid title firstname fullname
+	replace fullname = trim(itrim(fullname))
+	tostring dataid, replace
+	drop if missing(fullname)
 	save CA.directors.dta,replace
 	
 	
 	clear
-	infile using /projects/reap.proj/raw_data/California/CA_CORPHISTORY,  using(/projects/reap.proj/raw_data/California/01Jun2015/CORPHISTORY.TXT)
+	infile using /NOBACKUP/scratch/share_scp/raw_data/California/CA_CORPHISTORY,  using(/NOBACKUP/scratch/share_scp/raw_data/California/2018/CORPHISTORY.TXT)
 	keep if transactioncode == "AMDT"
 	gen namechangeddate = date(transactiondate,"YMD")
 	save CAtempnames.dta,replace
@@ -77,13 +78,14 @@ global mergetempsuffix="migration.CA"
 	rename newcorpname oldname
 	keep dataid oldname namechangeddate
 	duplicates drop
+	tostring dataid, replace format(%12.0f)
 	save CA.names.dta,replace
 
 	** LLCs
 	local keepraw = 0
 	clear
 
-	infile using /projects/reap.proj/raw_data/California/CA_LPMASTER, using(/projects/reap.proj/raw_data/California/01Jun2015/LPMASTER.TXT)
+	infile using /NOBACKUP/scratch/share_scp/raw_data/California/CA_LPMASTER, using(/NOBACKUP/scratch/share_scp/raw_data/California/2018/LPMASTER.TXT)
 	rename id corpnumber
         gen llcid = corpnumber
         gen ord = _n
@@ -102,7 +104,7 @@ global mergetempsuffix="migration.CA"
 
 	** Final Data Drops
 
-        gen local_firm = inlist(jurisdiction,"CA","DE")
+        gen local_firm = inlist(jurisdiction,"CA","DE") & (state == "CA" | state == "")
         replace local_firm = 0 if !(state == "CA" | state == "")
 	
 	preserve
@@ -112,6 +114,7 @@ global mergetempsuffix="migration.CA"
 	replace entityname = regexr(entityname,"WHICH WILL DO .*$","")
 	
 	append using CA`dtasuffix'.dta
+	tostring dataid, replace format(%12.0f)
 	compress
 	save CA`dtasuffix'.dta,replace
 	
@@ -120,18 +123,22 @@ global mergetempsuffix="migration.CA"
 
 	keep dataid manager1 manager2 registeredagent
 	rename (registeredagent) (manager3)
+	tostring dataid, replace format(%12.0f)
+	duplicates drop dataid, force
 	reshape long manager, i(dataid) j(managernum)
 	gen title = "MANAGER"
 	rename manager fullname
 	split fullname, parse(" ") limit(2)
 	rename fullname1 firstname
 	keep dataid title firstname fullname
+	replace fullname = trim(itrim(fullname))
+	replace firstname = trim(itrim(firstname))
 	append using CA.directors.dta
 	save CA.directors.dta,replace
 	
 	
 	 clear
-	infile using /projects/reap.proj/raw_data/California/CA_CORPHISTORY,  using(/projects/reap.proj/raw_data/California/01Jun2015/CORPHISTORY.TXT)
+	infile using /NOBACKUP/scratch/share_scp/raw_data/California/CA_CORPHISTORY,  using(/NOBACKUP/scratch/share_scp/raw_data/California/2018/CORPHISTORY.TXT)
 	keep if transactioncode == "MERG"
 	drop if strpos(comment, "OUTGOING")
 	rename (corpnumber namecorpnumber) (histmergedintoid histmergedid)
@@ -159,13 +166,13 @@ global mergetempsuffix="migration.CA"
 
 
 
-	corp_add_eponymy, dtapath(CA`dtasuffix'.dta) directorpath(CA.directors.dta)
+	//corp_add_eponymy, dtapath(CA`dtasuffix'.dta) directorpath(CA.directors.dta)
 	
 	# delimit ;
 	corp_add_trademarks CA , 
 		dta(CA`dtasuffix'.dta) 
-		trademarkfile(/projects/reap.proj/data/trademarks.dta) 
-		ownerfile(/projects/reap.proj/data/trademark_owner.dta)
+		trademarkfile(/NOBACKUP/scratch/share_scp/ext_data/2018dta/trademarks/trademarks.dta) 
+		ownerfile(/NOBACKUP/scratch/share_scp/ext_data/2018dta/trademarks/trademark_owner.dta)
 		var(trademark) 
 		frommonths(-12)
 		tomonths(12)
@@ -175,7 +182,7 @@ global mergetempsuffix="migration.CA"
 	# delimit ;
 	corp_add_patent_applications CA CALIFORNIA , 
 		dta(CA`dtasuffix'.dta) 
-		pat(/projects/reap.proj/data_share/patent_applications.dta) 
+		pat(/NOBACKUP/scratch/share_scp/ext_data/2018dta/patent_applications/patent_applications.dta) 
 		var(patent_application) 
 		frommonths(-12)
 		tomonths(12)
@@ -183,30 +190,36 @@ global mergetempsuffix="migration.CA"
 	
 	corp_add_patent_assignments  CA CALIFORNIA , 
 		dta(CA`dtasuffix'.dta)
-		pat("/projects/reap.proj/data_share/patent_assignments.dta" "/projects/reap.proj/data_share/patent_assignments2.dta")
+		pat("/NOBACKUP/scratch/share_scp/ext_data/2018dta/patent_assignments/patent_assignments.dta")
 		frommonths(-12)
 		tomonths(12)
 		var(patent_assignment)
 		statefileexists;
 	# delimit cr	
 	
-	corp_add_vc2 	 CA  ,dta(~/migration/datafiles/CA.dta) vc(~/migration/datafiles/VC.investors.withequity.dta) longstate(CALIFORNIA) 
+	//corp_add_vc2 	 CA  ,dta(~/migration/datafiles/CA.dta) vc(~/migration/datafiles/VC.investors.withequity.dta) longstate(CALIFORNIA) 
 
-	corp_add_ipos	 CA  ,dta(~/migration/datafiles/CA`dtasuffix'.dta) ipo(/projects/reap.proj/data/ipoallUS.dta)  longstate(CALIFORNIA) 
-	corp_add_mergers CA  ,dta(~/migration/datafiles/CA`dtasuffix'.dta) merger(/projects/reap.proj/data/mergers.dta)  longstate(CALIFORNIA) 
-
-
-
-	corp_add_industry_dummies , ind(~/nbercriw/industry_words.dta) dta(~/migration/datafiles/CA`dtasuffix'.dta)
-	corp_add_industry_dummies , ind(~/ado/VC_industry_words.dta) dta(~/migration/datafiles/CA`dtasuffix'.dta)
+	corp_add_ipos	 CA  ,dta(CA`dtasuffix'.dta) ipo(/NOBACKUP/scratch/share_scp/ext_data/ipoallUS.dta)  longstate(CALIFORNIA) 
+	
+	corp_add_mergers CA  ,dta(CA.dta) merger(/NOBACKUP/scratch/share_scp/ext_data/2018dta/mergers/mergers_2018.dta)  longstate(CALIFORNIA) 
+	replace targetsic = trim(targetsic)
+	foreach var of varlist equityvalue mergeryear mergerdate{
+	rename `var' `var'_new
+	}
+	
+	corp_add_industry_dummies , ind(/NOBACKUP/scratch/share_scp/ext_data/industry_words.dta) dta(CA`dtasuffix'.dta)
+	corp_add_industry_dummies , ind(/NOBACKUP/scratch/share_scp/ext_data/VC_industry_words.dta) dta(CA`dtasuffix'.dta)
 
 	
 	
 
 clear
-u ~/migration/datafiles/CA`dtasuffix'.dta
+u CA`dtasuffix'.dta
+
 gen is_DE = jurisdiction == "DE"
 gen  shortname = wordcount(entityname) <= 3
- save CA.`dtasuffix'.dta, replace
+duplicates drop
+compress
+ save CA`dtasuffix'.dta, replace
 
 
