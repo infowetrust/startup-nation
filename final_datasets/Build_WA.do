@@ -26,7 +26,7 @@ global mergetempsuffix="WA_Official"
     replace zip = itrim(trim(zip))
     replace zip = substr(zip,1,5)
     drop if ubi == . /** these are only 4, not big deal if dropping **/
-    save WA.addresses.dta , replace
+    save WA.address.dta , replace
     
 }    
 
@@ -97,11 +97,13 @@ global mergetempsuffix="WA_Official"
 	replace role = "PRESIDENT" if inlist(role,"GOVERNOR")
 	// replace title = "MANAGER" if inlist(title,"Manager","Partner","Member")
 	rename ubi dataid  
+	tostring dataid, replace
 	drop v*                                      
         save WA.diraddress.dta , replace
 
 	keep if inlist(role,"PRESIDENT","MANAGER","CEO")
 	keep dataid fullname role firstname
+	tostring dataid, replace
 	order dataid fullname role
 	save WA.directors.dta,replace
 
@@ -120,7 +122,6 @@ global mergetempsuffix="WA_Official"
 	corp_add_industry_dummies , ind(/NOBACKUP/scratch/share_scp/ext_data/industry_words.dta) dta(WA.dta)
 
 	corp_add_industry_dummies , ind(/NOBACKUP/scratch/share_scp/ext_data/VC_industry_words.dta) dta(WA.dta)
-	
 	u WA.dta, clear
 	corp_add_gender, dta(WA.dta) directors(WA.directors.dta) names(~/ado/names/NATIONAL.TXT) precision(1)
 	corp_add_eponymy, dtapath(WA.dta) directorpath(WA.directors.dta)

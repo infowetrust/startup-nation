@@ -5,6 +5,7 @@ global WI_dta_file WI.dta
 
 
 clear 
+/*
 import delimited using "/NOBACKUP/scratch/share_scp/raw_data/Wisconsin/20160523220000COMFicheX.txt"
 tostring v8,replace
 replace v1 = v1 + v2 +v3+v4+v5+v6+v7+v8
@@ -17,15 +18,15 @@ gen num = _n
 gen line = regexm(v1, "[0-9][0-9]/[0-9][0-9]/[0-9][0-9][0-9][0-9]")
 replace line = 2 if line[_n-1] ==1
 replace line = 3 if line == 0 
-save WIstart.dta, replace
+save $WI_dta_file , replace
 keep if line == 1
 gen three = _n
-save WInow.dta,replace
+save $WI_dta_file , replace
 merge 1:1 num using WIstart.dta
 drop _merge
 sort num
 replace three = three[_n-2] if line == 3
-save WInow.dta, replace
+save $WI_dta_file , replace
  
 forvalues n=1/3{
 savesome if line == `n' using WI_`n'.dta
@@ -42,7 +43,7 @@ merge 1:1 id using WI_2.dta
 drop _merge
 merge 1:1 three using WI_3.dta
 drop _merge 
-save WInow.dta, replace
+save .dta, replace
 
 keep var1 var2 var3
 gen entityname = trim(itrim(upper(substr(var1, 1, 67))))
@@ -104,8 +105,6 @@ replace state = "" if state == "WI" & is_DE & (strpos(address,"8040 EXCELSIOR") 
 replace state = "" if regagent == "C T CORPORATION SYSTEM" | regagent == "THE PRENTICE-HALL CORPORATION SYSTEM" | regagent == "CSC-LAWYERS INCORPORATING SERVICE CO"
 gen stateaddress = state
 
-tomname entityname, dropexisting
-
 keep dataid entityname incdate incyear is_DE jurisdiction zipcode state city address is_corp shortname foreign 
 order dataid entityname incdate incyear is_DE jurisdiction zipcode state city address is_corp shortname foreign 
 save $WI_dta_file, replace
@@ -122,11 +121,11 @@ save $WI_dta_file, replace
 ** STEP 2: Add varCTbles. These varCTbles are within the first year
 **		and very similar to the ones used in "Where Is Silicon Valley?"
 **
-**	
+**/	
 
 
 u $WI_dta_file, clear
-
+tomname entityname
 save $WI_dta_file, replace
 
        corp_add_industry_dummies , ind(/NOBACKUP/scratch/share_scp/ext_data/industry_words.dta) dta($WI_dta_file)

@@ -3,11 +3,11 @@ clear
 global mergetempsuffix = "_"
 global statelist AK AR AZ CA CO FL GA IA ID IL KY LA MA ME MI MN MO NC ND NJ NM NY OH OK OR RI SC TN TX UT VA VT WA WI WY
 global longstatelist ALASKA ARKANSAS ARIZONA CALIFORNIA COLORADO FLORIDA GEORGIA IOWA IDAHO ILLINOIS KENTUCKY LOUISIANA MASSACHUSETTS MAINE MICHIGAN MINNESOTA MISSOURI NORTH_CAROLINA NORTH_DAKOTA NEW_JERSEY NEW_MEXICO NEW_YORK OHIO OKLAHOMA OREGON RHODE_ISLAND SOUTH_CAROLINA TENNESSEE TEXAS UTAH VIRGINIA VERMONT WASHINGTON WISCONSIN WYOMING
-global fix_local_firm 1
 global prepare_mergerfile 0
 global prepare_states 0
+global fix_local_firm 1
 global collapse_states 1
-global make_minimal 1
+global make_minimal 0
 global yuting 0
 
 set more off
@@ -146,7 +146,7 @@ forvalues i = 1/`n'{
 
 if $fix_local_firm == 1{
 	clear
-	global statelist NM NY OH OK OR RI SC TN TX UT VA VT WA WI AK AR AZ CA CO FL GA IA ID IL KY LA MA ME MI MN MO NC ND NJ //WY
+	global statelist AK AR AZ CA CO FL GA IA ID IL KY LA MA ME MI MN MO NC ND NJ NM NY OH OK OR RI SC TN TX UT VA VT WA WI WY
 	foreach state in $statelist{
 	u `state'.dta, clear
 	replace state = trim(itrim(state))
