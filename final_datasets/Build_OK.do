@@ -10,28 +10,28 @@
 
 
 
-cd /projects/reap.proj/final_datasets/
+cd /NOBACKUP/scratch/share_scp/scp_private/scp2018
 
 /*
 1:01 -- Firm List
-898867:02 -- Address
-3557314:03 --  Agent (we don't want)
-4356409:04 -- Officers
-5404401:05
-6454123:06
+1051689:02 -- Address
+4165845:03 --  Agent (we don't want)
+5099025:04 -- Officers
+6179297:05
+7406556:06
 
 */
 
 
 clear
-import delimited using /projects/reap.proj/raw_data/Oklahoma/CORP_MSTR_151003.txt, delim("~") rowrange(1:898866) varnames(1) stringcols(_all) colrange(:19)
+import delimited using /NOBACKUP/scratch/share_scp/raw_data/Oklahoma/2018/CORP_MSTR_190202.txt, delim("~") rowrange(1:1051688) varnames(1) stringcols(_all) colrange(:19)
 save OK.dta, replace
 
 
 clear
-import delimited using /projects/reap.proj/raw_data/Oklahoma/CORP_MSTR_151003.txt, delim("~") rowrange(898867:3557313) varnames(898867) stringcols(_all) colrange(:19)
+import delimited using /NOBACKUP/scratch/share_scp/raw_data/Oklahoma/2018/CORP_MSTR_190202.txt, delim("~") rowrange(1051689:4165844) varnames(1051689) stringcols(_all) colrange(:19)
 
-gen address = trim(itrim(address1 + " " + address2))
+gen address = upper(trim(itrim(address1 + " " + address2)))
 drop address1 address2
 rename zip_code zipcode
 
@@ -60,13 +60,16 @@ gen incdate = date(creation_date,"MDY")
 rename filing_number dataid
 rename foreign_state jurisdiction
 
-/*Only keep those firms that are in Oklahoma and with jurisdition eitheri n OK, or empty, or in DE */
+/*Only keep those firms that are in Oklahoma and with jurisdition either in OK, or empty, or in DE */
+replace jurisdiction = trim(itrim(jurisdiction))
 replace jurisdiction = "OK" if jurisdiction == ""
+replace state = trim(itrim(state))
 replace state = "OK" if state == ""
 gen stateaddress = state
 gen local_firm = inlist(jurisdiction,"DE","OK") & stateaddress == "OK"
 
 ** Keep only USA firms
+replace foreign_country = trim(itrim(foreign_country))
 keep if inlist(foreign_country," ","","US","USA")
 drop foreign_country
 
@@ -83,21 +86,21 @@ save OK.dta, replace
 	
 /*
 1:01 -- Firm List
-898867:02 -- Address
-3557314:03 --  Agent (we don't want)
-4356409:04 -- Officers
-5404401:05
-6454123:06
+1051687:02 -- Address
+4165842:03 --  Agent (we don't want)
+5099024:04 -- Officers
+6179295:05
+7406556:06
 
 */
 
 
 clear
-import delimited using /projects/reap.proj/raw_data/Oklahoma/CORP_MSTR_151003.txt, delim("~") rowrange(4356412:5404400) varnames(4356412) stringcols(_all)
+import delimited using /NOBACKUP/scratch/share_scp/raw_data/Oklahoma/2018/CORP_MSTR_190202.txt, delim("~") rowrange(5099029:6179296) varnames(5099029) stringcols(_all)
 rename filing_number dataid
-gen fullname = itrim(first_name + " " + middle_name + " " + last_name)
-rename officer_title role
-replace role = upper(role)
+gen fullname = upper(trim(itrim(first_name + " " + middle_name + " " + last_name)))
+rename officer_title role   
+replace role = trim(itrim(upper(role)))
 keep if inlist(role, "PARTNER","OWNER","CEO","MANAGER","PRESIDENT")
 keep dataid fullname role first_name
 order dataid fullname role
@@ -119,14 +122,14 @@ save OK.directors.dta, replace
 	corp_add_eponymy, dtapath(OK.dta) directorpath(OK.directors.dta)
 	
 	
-	corp_add_industry_dummies , ind(~/ado/industry_words.dta) dta(OK.dta)
-	corp_add_industry_dummies , ind(~/ado/VC_industry_words.dta) dta(OK.dta)
+	corp_add_industry_dummies , ind(/NOBACKUP/scratch/share_scp/ext_data/industry_words.dta) dta(OK.dta)
+	corp_add_industry_dummies , ind(/NOBACKUP/scratch/share_scp/ext_data/VC_industry_words.dta) dta(OK.dta)
 	
 	# delimit ;
 	corp_add_trademarks OK , 
 		dta(OK.dta) 
-		trademarkfile(/projects/reap.proj/data/trademarks.dta) 
-		ownerfile(/projects/reap.proj/data/trademark_owner.dta)
+		trademarkfile(/NOBACKUP/scratch/share_scp/ext_data/2018dta/trademarks/trademarks.dta) 
+		ownerfile(/NOBACKUP/scratch/share_scp/ext_data/2018dta/trademarks/trademark_owner.dta)
 		var(trademark) 
 		frommonths(-12)
 		tomonths(12)
@@ -136,7 +139,7 @@ save OK.directors.dta, replace
 	# delimit ;
 	corp_add_patent_applications OK OKLAHOMA , 
 		dta(OK.dta) 
-		pat(/projects/reap.proj/data_share/patent_applications.dta) 
+		pat(/NOBACKUP/scratch/share_scp/ext_data/2018dta/patent_applications/patent_applications.dta) 
 		var(patent_application) 
 		frommonths(-12)
 		tomonths(12)
@@ -147,25 +150,29 @@ save OK.directors.dta, replace
 /* No Patent Assignment */	
 	corp_add_patent_assignments  OK OKLAHOMA , 
 		dta(OK.dta)
-		pat("/projects/reap.proj/data_share/patent_assignments.dta" "/projects/reap.proj/data_share/patent_assignments2.dta"  "/projects/reap.proj/data_share/patent_assignments3.dta")
+		pat("/NOBACKUP/scratch/share_scp/ext_data/2018dta/patent_assignments/patent_assignments.dta")
 		frommonths(-12)
 		tomonths(12)
 		var(patent_assignment)
 		statefileexists;
 		
 	# delimit cr	
-	corp_add_ipos	 OK ,dta(OK.dta) ipo(/projects/reap.proj/data/ipoallUS.dta) longstate(OKLAHOMA)
-	corp_add_mergers OK ,dta(OK.dta) merger(/projects/reap.proj/data/mergers.dta) longstate(OKLAHOMA)
+	corp_add_ipos	 OK ,dta(OK.dta) ipo(/NOBACKUP/scratch/share_scp/ext_data/ipoallUS.dta) longstate(OKLAHOMA)
+	corp_add_mergers OK ,dta(OK.dta) merger(/NOBACKUP/scratch/share_scp/ext_data/2018dta/mergers/mergers_2018.dta) longstate(OKLAHOMA)
+	replace targetsic = trim(targetsic)
+	foreach var of varlist equityvalue mergeryear mergerdate{
+	rename `var' `var'_new
+	}
 
 
-corp_add_vc2 OK ,dta(OK.dta) vc(~/final_datasets/VC.investors.dta) longstate(OKLAHOMA)
+//corp_add_vc2 OK ,dta(OK.dta) vc(~/final_datasets/VC.investors.dta) longstate(OKLAHOMA)
 
 
-
-corp_has_last_name, dtafile(OK.dta) lastnamedta(~/ado/names/lastnames.dta) num(5000)
+/*
+corp_has_last_name, dtafile(OK.dta) lastnamedta(~/ado/names/lastnames.dta) num(5000) //don't have this dta
 corp_has_first_name, dtafile(OK.dta) num(1000)
 corp_name_uniqueness, dtafile(OK.dta)
-
+*/
 clear
 u OK.dta
 gen has_unique_name = uniquename <= 5
@@ -180,5 +187,5 @@ gen is_DE = jurisdiction == "DE"
 gen  shortname = wordcount(entityname) <= 3
 save OK.dta, replace
 
-!/projects/reap.proj/chown_reap_proj.sh /projects/reap.proj/final_datasets/OK.dta
-!cp  /projects/reap.proj/final_datasets/OK.dta ~/final_datasets/
+//!/projects/reap.proj/chown_reap_proj.sh /projects/reap.proj/final_datasets/OK.dta
+//!cp  /projects/reap.proj/final_datasets/OK.dta ~/final_datasets/
