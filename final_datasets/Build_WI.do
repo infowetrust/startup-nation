@@ -5,7 +5,7 @@ global WI_dta_file WI.dta
 
 
 clear 
-/*
+
 import delimited using "/NOBACKUP/scratch/share_scp/raw_data/Wisconsin/20160523220000COMFicheX.txt"
 tostring v8,replace
 replace v1 = v1 + v2 +v3+v4+v5+v6+v7+v8
@@ -121,7 +121,7 @@ save $WI_dta_file, replace
 ** STEP 2: Add varCTbles. These varCTbles are within the first year
 **		and very similar to the ones used in "Where Is Silicon Valley?"
 **
-**/	
+**	
 
 
 u $WI_dta_file, clear
@@ -175,7 +175,7 @@ save $WI_dta_file, replace
 	foreach var of varlist equityvalue mergeryear mergerdate{
 	rename `var' `var'_new
 	}
-	
+	save $WI_dta_file , replace
 corp_add_vc WI ,dta($WI_dta_file) vc(/NOBACKUP/scratch/share_scp/ext_data/VX.dta) longstate(WISCONSIN)
 
 clear

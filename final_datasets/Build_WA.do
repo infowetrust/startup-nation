@@ -167,6 +167,7 @@ global mergetempsuffix="WA_Official"
 	foreach var of varlist equityvalue mergeryear mergerdate{
 	rename `var' `var'_new
 	}
+	save WA.dta, replace
 	corp_add_vc 	 WA  ,dta(WA.dta) vc(/NOBACKUP/scratch/share_scp/ext_data/VX.dta) longstate(WASHINGTON)
 
  

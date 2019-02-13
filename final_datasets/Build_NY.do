@@ -161,6 +161,7 @@ save NY.dta , replace
 append using ../final_datasets/NY.dta, keep(entityname dataid zipcode state city address incdate incyear is_corp is_DE current_status corpnumber local_firm stateaddress shortname)
 
 replace entityname = trim(itrim(entityname))
+shortstate state, gen(name) replace
 replace state = trim(itrim(state))
 replace city = trim(itrim(city))
 replace zipcode = trim(itrim(zipcode))

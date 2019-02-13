@@ -164,7 +164,7 @@ save OK.directors.dta, replace
 	rename `var' `var'_new
 	}
 
-
+save OK.dta, replace
 //corp_add_vc2 OK ,dta(OK.dta) vc(~/final_datasets/VC.investors.dta) longstate(OKLAHOMA)
 
 
@@ -185,6 +185,8 @@ clear
 u OK.dta
 gen is_DE = jurisdiction == "DE"
 gen  shortname = wordcount(entityname) <= 3
+compress
+duplicates drop
 save OK.dta, replace
 
 //!/projects/reap.proj/chown_reap_proj.sh /projects/reap.proj/final_datasets/OK.dta
