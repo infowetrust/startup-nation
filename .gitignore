@@ -3,3 +3,10 @@ kauffman_neg/.DS_Store
 .DS_Store
 *.dta
 stata14*
+*.csv
+*.txt
+*.gph
+*.log
+*.xls
+*.xlsx
+*.xml
