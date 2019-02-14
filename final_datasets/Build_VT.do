@@ -27,7 +27,7 @@ replace jurisdiction = "DE" if placeof == "Delaware"
 gen is_DE = jurisdiction == "DE"
 
 gen stateaddress = state
-gen local_firm= inlist(jurisdiction, "VT","DE") & stateaddress == "VT"
+gen local_firm= inlist(jurisdiction, "VT","DE") & stateaddress == "VT" | stateaddress == ""
     
 gen incdate = date(businessorigindate, "YMD")
 gen incyear = year(incdate)

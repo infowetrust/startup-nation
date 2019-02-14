@@ -33,7 +33,7 @@ replace jurisdiction = "TENNESSEE" if missing(jurisdiction) & country == "USA"
 keep if country == "USA" | missing(country)
 gen is_DE = jurisdiction == "DELAWARE"
 
-gen local_firm= inlist(jurisdiction,"TENNESSEE","DELAWARE") & state == "TN" | missing(state)
+gen local_firm= inlist(jurisdiction,"TENNESSEE","DELAWARE") & addrstate == "TN" | missing(addrstate)
 
 
 /* Generating Variables */

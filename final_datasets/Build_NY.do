@@ -152,6 +152,7 @@ replace zipcode = itrim(trim(zipcode))
 replace shortname = wordcount(entityname) <= 3
 replace corpnumber = dataid
 
+replace state = "NY" if missing(state)
 replace local_firm= state == "NY"
 replace stateaddress = state
 

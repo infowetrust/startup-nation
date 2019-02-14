@@ -1,5 +1,5 @@
 set more off
-cd ~/final_datasets
+cd /NOBACKUP/scratch/share_scp/scp_private/scp2018/
 global mergetempsuffix="TX_Official"
 
 /* Change this to create test samples */
@@ -12,12 +12,13 @@ global dtasuffix
 **
 
 clear
-infile using ~/final_datasets/TX02.dct, using(/projects/reap.proj/raw_data/Texas/July2015/02_TexasClean.txt)
+infile using /NOBACKUP/scratch/share_scp/scp_private/final_datasets/TX02.dct, using(/NOBACKUP/scratch/share_scp/raw_data/Texas/2018/CM000219_01.txt)
+
 drop if filing_number == ""
 save TX.pre.dta, replace
 
 clear
-infile using ~/final_datasets/TX03.dct, using(/projects/reap.proj/raw_data/Texas/July2015/03_TexasClean.txt)
+infile using /NOBACKUP/scratch/share_scp/scp_private/final_datasets/TX02.dct, using(/NOBACKUP/scratch/share_scp/raw_data/Texas/July2015/03_TexasClean.txt)
 drop if filing_number == ""
 merge 1:1 filing_number using TX.pre.dta
 drop if _merge == 1

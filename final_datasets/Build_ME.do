@@ -1,11 +1,11 @@
-cd /projects/reap.proj/reapindex/Maine
+cd /NOBACKUP/scratch/share_scp/scp_private/scp2018
 
 global mergetempsuffix Maine
-global ME_file ME.dta
+global ME_file ME2.dta
 global only_DE 0
 
 clear
-import delimited using  ~/projects/reap_proj/raw_data/Maine/corp_all_new_20160607.csv , delim(",")
+import delimited using  /NOBACKUP/scratch/share_scp/raw_data/Maine/corp_all_new_20160607.csv , delim(",")
 
 save $ME_file, replace
 
@@ -89,15 +89,15 @@ di _N
 	//corp_add_eponymy, dtapath($ME_file) directorpath(ME.directors.dta)
 
 
-       corp_add_industry_dummies , ind(~/ado/industry_words.dta) dta($ME_file)
-	corp_add_industry_dummies , ind(~/ado/VC_industry_words.dta) dta($ME_file)
+       corp_add_industry_dummies , ind(/NOBACKUP/scratch/share_scp/ext_data/industry_words.dta) dta($ME_file)
+	corp_add_industry_dummies , ind(/NOBACKUP/scratch/share_scp/ext_data/VC_industry_words.dta) dta($ME_file)
 	
 	
 	# delimit ;
 	corp_add_trademarks ME , 
 		dta($ME_file) 
-		trademarkfile(~/projects/reap_proj/data/trademarks.dta) 
-		ownerfile(~/projects/reap_proj/data/trademark_owner.dta)
+		trademarkfile(/NOBACKUP/scratch/share_scp/ext_data/trademarks.dta) 
+		ownerfile(/NOBACKUP/scratch/share_scp/ext_data/trademark_owner.dta)
 		var(trademark) 
 		frommonths(-12)
 		tomonths(12)
@@ -107,7 +107,7 @@ di _N
 	# delimit ;
 	corp_add_patent_applications ME MAINE , 
 		dta($ME_file) 
-		pat(~/projects/reap_proj/data_share/patent_applications.dta) 
+		pat(/NOBACKUP/scratch/share_scp/ext_data/patent_applications.dta) 
 		var(patent_application) 
 		frommonths(-12)
 		tomonths(12)
@@ -120,7 +120,7 @@ di _N
 	
 	corp_add_patent_assignments  ME MAINE , 
 		dta($ME_file)
-		pat("~/projects/reap_proj/data_share/patent_assignments.dta" "~/projects/reap_proj/data_share/patent_assignments2.dta"  "~/projects/reap_proj/data_share/patent_assignments3.dta")
+		pat("/NOBACKUP/scratch/share_scp/ext_data/patent_assignments.dta" "/NOBACKUP/scratch/share_scp/ext_data/patent_assignments2.dta")
 		frommonths(-12)
 		tomonths(12)
 		var(patent_assignment)
@@ -129,7 +129,7 @@ di _N
 
 	
 
-	corp_add_ipos	 ME  ,dta($ME_file) ipo(~/projects/reap_proj/data/ipoallUS.dta)  longstate(MAINE) 
-	corp_add_mergers ME  ,dta($ME_file) merger(~/projects/reap_proj/data/mergers.dta)  longstate(MAINE) 
+	corp_add_ipos	 ME  ,dta($ME_file) ipo(/NOBACKUP/scratch/share_scp/ext_data/ipoallUS.dta)  longstate(MAINE) 
+	corp_add_mergers ME  ,dta($ME_file) merger(/NOBACKUP/scratch/share_scp/ext_data/mergers.dta)  longstate(MAINE) 
 
-      corp_add_vc        ME ,dta($ME_file) vc(~/final_datasets/VX.dta) longstate(MAINE)
+      corp_add_vc        ME ,dta($ME_file) vc(/NOBACKUP/scratch/share_scp/ext_data/VX.dta) longstate(MAINE)

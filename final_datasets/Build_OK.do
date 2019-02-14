@@ -172,12 +172,12 @@ save OK.dta, replace
 corp_has_last_name, dtafile(OK.dta) lastnamedta(~/ado/names/lastnames.dta) num(5000) //don't have this dta
 corp_has_first_name, dtafile(OK.dta) num(1000)
 corp_name_uniqueness, dtafile(OK.dta)
-*/
+
 clear
 u OK.dta
 gen has_unique_name = uniquename <= 5
 save OK.dta, replace
-
+*/
 
 
 
