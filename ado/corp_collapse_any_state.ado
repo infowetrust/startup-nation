@@ -51,8 +51,26 @@ foreach state in `params' {
 		}
 	}
 	
-	gen is_merger = !missing(mergerdate) 
+	capture confirm variable mergerdate_new
+	if _rc ==0 {
+	safedrop is_merger_new
+	gen is_merger_new = !missing(mergerdate_new)
+	}
 	
+	capture confirm variable mergerdate_Z
+	if _rc == 0 {
+	safedrop is_merger_Z
+	gen is_merger_Z = !missing(mergerdate_Z)
+	}
+	
+	
+	capture confirm variable mergerdate_old
+	if _rc == 0{
+	gen mergerdate = mergerdate_old
+	}
+
+	gen is_merger = !missing(mergerdate) 
+
 	replace region = state if missing(region)
 	gen patent_count = patent_assignment + patent_application
 	
@@ -64,7 +82,7 @@ foreach state in `params' {
 	collapse (min) incyear incdate firstvc_vx=firstvc firstvc_preqin firstvc_capitaliq firstvc_crunchbase
 		(max) female  male deathdate deathyear  tradeclass*
 		trademark patent_assignment patent_application hasnews
-		is_merger   is_corp
+		is_merger* is_corp
 		is_nonprofit is_DE shortname  eponymous
 		ipodate mergerdate
 		 is_Agriculture_and_Food is_Auto is_Chemical is_Clothing is_Consuma_Appl is_Distribution 
@@ -72,10 +90,10 @@ foreach state in `params' {
 		is_IT is_biotech is_ecommerce is_medicaldev is_semicond
 		meanvcquality* maxvcquality*
 		haslastname haspropername has_unique_name
-		
+		`extra'
 		(sum) patent_count patent_application_count=patent_application
 		
-		`extra'
+		
 	, by ( city zipcode dataid targetsic `by'); 
 	
 	# delimit cr
