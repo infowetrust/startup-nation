@@ -6,9 +6,9 @@ program define corp_collapse_any_state, rclass
 	syntax anything , [outputsuffix(string)] [workingfolder(string)] [extra(string)] [blankfields(string)] [by(string)] [force_local_firm] [nosave]
 
 
-local params = substr("`0'",1, strpos("`0'", ","))
+local params = substr("`0'",1, strpos("`0'", ",")-1)
 di "collapsing files: `params'"
-
+set more off
 foreach state in `params' {
 
     if trim("`state'") == "," {
