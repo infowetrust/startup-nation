@@ -54,8 +54,11 @@ drop if _merge != 3
 drop _merge
 
 keep if inlist(country,"USA","","United States")
+
 replace local_firm = 0 if ! inlist(state,"GA","")
 
+keep if inlist(jurisdiction, "DE", "GA")
+replace local_firm = 1  if state == "GA" | state =="" 
 save GA.dta, replace
 
 

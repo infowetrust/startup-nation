@@ -31,9 +31,10 @@ gen jurisdiction = incstate
 replace jurisdiction = "SC" if missing(jurisdiction) 
 gen is_DE = 1 if regexm(jurisdiction,"DE")
 
-gen local_firm= regexm(jurisdiction,"CAROLINA") | regexm(jurisdiction,"SC")| regexm(jurisdiction,"DE")
-replace local_firm = 0 if regexm(jurisdiction,"WIS") | regexm(jurisdiction,"RHODE") | regexm(jurisdiction,"SCOT") 
+replace local_firm= regexm(jurisdiction,"CAROLINA") | regexm(jurisdiction,"SC")| regexm(jurisdiction,"DE") & inlist(state, "SC", "")
+replace local_firm = 0 if regexm(jurisdiction,"WIS") | regexm(jurisdiction,"RHODE") | regexm(jurisdiction,"SCOT") | !inlist(state, "SC", "")
 replace local_firm = 0 if regexm(jurisdiction,"NOR")
+
 
 /* Generating Variables */
 
