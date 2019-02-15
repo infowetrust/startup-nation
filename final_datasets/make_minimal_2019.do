@@ -13,7 +13,7 @@ global yuting 0
 set more off
 if $prepare_mergerfile == 1{
 use  /NOBACKUP/scratch/share_scp/ext_data/mergers.dta , clear
-keep if year(dateannounced)  <= 2014
+keep if year(dateannounced)  < 2015
 destring equityvalue, replace force
 drop if strpos( upper(targetname), "UNDISCLOSE")
 drop if strpos( upper(targetname), "CERTAIN ASSET")

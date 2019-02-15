@@ -174,7 +174,7 @@ if $collapse_states == 1{
 	        gen eponymous = 0
          }
 	save `state'.dta, replace
-	corp_collapse_any_state_3merge `state' , workingfolder(/NOBACKUP/scratch/share_scp/scp_private/final_datasets/) outputsuffix("new")
+	corp_collapse_any_state_3merge `state', workingfolder(/NOBACKUP/scratch/share_scp/scp_private/final_datasets/) outputsuffix("new")
 	gen datastate = "`state'" 
 	save `state'.collapsed.new.dta, replace
 	}

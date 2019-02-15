@@ -3,7 +3,7 @@ cd ~/final_datasets/
 
 global mergetempsuffix "GA_Official"
 
-/*    
+
 clear
 import delimited using /projects/reap.proj/raw_data/Georgia/bizEntityData.txt, delim(tab) varnames(1)
 
@@ -97,7 +97,7 @@ corp_add_industry_dummies , ind(~/ado/industry_words.dta) dta(~/final_datasets/G
 **        corp_add_gender, dta(~/final_datasets/GA.dta) directors(~/final_datasets/GA.directors.dta) names(~/ado/names/GA.TXT)
 
 
-*/
+
         corp_add_eponymy, dtapath(~/final_datasets/GA.dta) directorpath(~/final_datasets/GA.directors.dta)
         
         # delimit ;

@@ -35,7 +35,6 @@ gen shortname = wordcount(entityname) < 4
 gen jurisdiction = incorpstate
 gen is_DE = jurisdiction == "DE"
 
-gen potentiallylocal=  inlist(jurisdiction,"VA","DE")
 
 /* Generating Variables */
 tostring(incorpdate), replace
@@ -52,6 +51,8 @@ replace state = trim(itrim(state))
 replace city = upper(trim(itrim(city)))
 replace zipcode = trim(itrim(zipcode))
 replace address = upper(trim(itrim(address)))
+
+replace local_firm=  inlist(jurisdiction,"VA","DE") & state == "VA" | state ==""
 
 gen stateaddress = state
 compress

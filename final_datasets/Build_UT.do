@@ -21,7 +21,7 @@ save UT.dta, replace
 
 gen is_corp = 1 if type == "Corporation"
 replace is_corp = 0 if missing(is_corp)
-replace address = address + address2
+replace address = trim(itrim(address + " "+address2))
 
 duplicates drop dataid, force
 gen shortname = wordcount(entityname) < 4
@@ -30,7 +30,7 @@ gen jurisdiction = homestate
 replace jurisdiction = "UT" if missing(jurisdiction) 
 gen is_DE = jurisdiction == "DE"
 
-gen local_firm = inlist(jurisdiction,"UT","DE")
+replace local_firm = inlist(jurisdiction,"UT","DE") & state == "UT" | state == ""
 
 /* Generating Variables */
 
