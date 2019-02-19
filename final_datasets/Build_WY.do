@@ -23,8 +23,9 @@ ge incyear = year(incdate)
 
 
 gen shortname = wordcount(entityname) <= 3
-keep dataid entityname incdate incyear   is_corp  is_nonprofit address city state zipcode is_DE shortname potentiallylocal
-gen local_firm = potentiallylocal
+keep dataid entityname incdate incyear is_corp is_nonprofit address city state zipcode is_DE shortname jurisdiction potentiallylocal
+replace state = trim(itrim(state))
+gen local_firm = potentiallylocal & inlist(state, "WY", "")
 
 replace state = upper(trim(itrim(state)))
 

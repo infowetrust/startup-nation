@@ -40,6 +40,7 @@ gen city = locality
 gen incyear = year(incdate)
 
 drop if missing(incyear)
+keep dataid entityname address zipcode city state jurisdiction is_DE incdate incyear is_corp is_nonprofit stateaddress local_firm shortname
 
 save MI.dta, replace
 

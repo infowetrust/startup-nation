@@ -45,6 +45,7 @@ gen incyear = year(incdate)
 drop if missing(incdate)
 drop if missing(entityname)
 rename zip zipcode
+replace zipcode = substr(zipcode,1,5)
 keep dataid entityname incdate incyear is_DE jurisdiction zipcode state city address is_corp shortname potentiallylocal
 replace state = "NM" if missing(state)
 gen stateaddress = state

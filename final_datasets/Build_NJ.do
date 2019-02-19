@@ -25,7 +25,7 @@ gen is_corp = inlist(type,"DP","FR")
 
 
 gen jurisdiction = substr(data,125,2)
-gen potentiallylocal = inlist(jurisdiction,"DE","NJ")
+gen potentiallylocal = inlist(jurisdiction,"DE","NJ") & (state == "NJ" | state == "")
 
 gen address = trim(substr(data,288,70))
 gen city = trim(substr(data,358,30))

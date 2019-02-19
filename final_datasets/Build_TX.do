@@ -10,8 +10,9 @@ global dtasuffix
 ** STEP 1: Load the data dump from TX Corporations 
 **
 **
-
 clear
+import delimited using /NOBACKUP/scratch/share_scp/raw_data/Texas/2018/CM000219_01.txt
+replace v1 = v1 + v2+v3+v4+v5+v6+v7
 infile using /NOBACKUP/scratch/share_scp/scp_private/final_datasets/TX02.dct, using(/NOBACKUP/scratch/share_scp/raw_data/Texas/2018/CM000219_01.txt)
 
 drop if filing_number == ""

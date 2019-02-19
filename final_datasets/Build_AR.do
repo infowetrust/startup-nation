@@ -18,7 +18,7 @@ drop if type > 25
 duplicates drop dataid , force
 gen is_corp = inlist(type,1,2,5,6,13)
 replace jurisdiction = trim(jurisdiction)
-gen potentiallylocal= inlist(jurisdiction,"DE","AR")
+replace potentiallylocal= inlist(jurisdiction,"DE","AR") & inlist(state, "AR", "")
 
 save AR.dta, replace
 
@@ -54,6 +54,8 @@ drop if missing(entityname)
 
 
 keep dataid entityname incdate incyear is_DE jurisdiction zipcode state city address is_corp shortname potentiallylocal stateaddress
+gen local_firm = potentiallylocal
+
 
 compress
 
