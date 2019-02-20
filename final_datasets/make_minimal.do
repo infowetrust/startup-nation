@@ -1,81 +1,36 @@
-cd /NOBACKUP/scratch/share_scp/scp_private/final_datasets
+cd /NOBACKUP/scratch/share_scp/scp_private/final_datasets/
 clear
 global mergetempsuffix = "_"
 global statelist AK AR AZ CA CO FL GA IA ID IL KY LA MA ME MI MN MO NC ND NJ NM NY OH OK OR RI SC TN TX UT VA VT WA WI WY
 global longstatelist ALASKA ARKANSAS ARIZONA CALIFORNIA COLORADO FLORIDA GEORGIA IOWA IDAHO ILLINOIS KENTUCKY LOUISIANA MASSACHUSETTS MAINE MICHIGAN MINNESOTA MISSOURI NORTH_CAROLINA NORTH_DAKOTA NEW_JERSEY NEW_MEXICO NEW_YORK OHIO OKLAHOMA OREGON RHODE_ISLAND SOUTH_CAROLINA TENNESSEE TEXAS UTAH VIRGINIA VERMONT WASHINGTON WISCONSIN WYOMING
-global prepare_mergerfile 0
 global prepare_states 1
 global fix_local_firm 0
-global collapse_states 1
-global make_minimal 1
-global audit_table 1
+global collapse_states 0
+global make_minimal 0
+global audit_table 0
 global audit_compare 0
-global yuting 0
+
 
 set more off
-if $prepare_mergerfile == 1{
-use  /NOBACKUP/scratch/share_scp/ext_data/mergers.dta , clear
-keep if year(dateannounced)  <= 2014
-destring equityvalue, replace force
-drop if strpos( upper(targetname), "UNDISCLOSE")
-drop if strpos( upper(targetname), "CERTAIN ASSET")
-drop if strpos( upper(targetname), "CERT ASSET")
-drop if strpos( upper(targetname), "CERTAIN AST")
-drop if regexm( upper(targetname), "\-AST(S)*$")
-drop if regexm( upper(targetname), "\-PPTY$")
-collapse (min) dateannounced (max) equityvalue , by(targetname targetstate targetsic)
-tomname targetname , commasplit parendrop
-save /NOBACKUP/scratch/share_scp/ext_data/mergers.pre2014.dta , replace
-
-
-use  /NOBACKUP/scratch/share_scp/ext_data/2018dta/mergers/mergers.dta , clear
-rename targetprimarysiccode targetsic
-keep if year(dateannounced)  <= 2018
-save /NOBACKUP/scratch/share_scp/ext_data/2018dta/mergers/mergers.pre2014.dta , replace
-
-
-use  /user/user1/yl4180/save/Z_mergers.dta , clear
-keep if year(dateannounced)  <= 2014
-replace dealvalue = subinstr(dealvalue,",","",.)
-replace dealvalue = subinstr(dealvalue,"*","",.)
-destring dealvalue, replace force
-rename equityvalue __equityvalue 
-rename dealvalue equityvalue
-drop if strpos( upper(targetname), "UNDISCLOSE")
-drop if strpos( upper(targetname), "CERTAIN ASSET")
-drop if strpos( upper(targetname), "CERT ASSET")
-drop if strpos( upper(targetname), "CERTAIN AST")
-drop if regexm( upper(targetname), "\-AST(S)*$")
-drop if regexm( upper(targetname), "\-PPTY$")
-collapse (min) dateannounced (max) equityvalue , by(targetname targetstate targetsic)
-tomname targetname , commasplit parendrop
-save /NOBACKUP/scratch/share_scp/ext_data/2018dta/mergers/Z_mergers.pre2014.dta , replace
-}
 
 if $prepare_states == 1{
-
 local n: word count $statelist
 forvalues i = 1/`n'{
 	local state: word `i' of $statelist
 	local longstate: word `i' of $longstatelist
 	local longstate= subinstr("`longstate'","_"," ",.)
-	
-	u /NOBACKUP/scratch/share_scp/scp_private/final_datasets/`state'.dta, clear
-	
-	safedrop dateannounced* targetname enterprisevalue equityvalue equityvalue_old equityvalue_new equityvalue_Z x mergeryear mergeryear_old mergeryear_new mergeryear_Z mergerdate mergerdate_old mergerdate_new mergerdate_Z ipo growthz_old growthz_new growthz_Z acq acq_old acq_new acq_Z
+	u `state'.dta, clear
 		
-	gen ipo = !missing(ipodate) & inrange(ipodate-incdate,0,365*6)
-	save `state'.dta, replace
-	
-	
-	corp_add_mergers `state' ,dta(`state'.dta) merger(/NOBACKUP/scratch/share_scp/ext_data/2018dta/mergers/mergers_2018.dta) longstate(`longstate') 
-	replace targetsic = trim(targetsic)
-	
 	foreach var of varlist equityvalue mergeryear mergerdate{
 	rename `var' `var'_new
 	}
+	
+	safedrop dateannounced* targetname enterprisevalue equityvalue_old equityvalue_Z x  mergeryear_old mergeryear_Z  mergerdate_old mergerdate_Z ipo growthz_old growthz_new growthz_Z acq acq_old acq_new acq_Z
+
+	gen ipo = !missing(ipodate) & inrange(ipodate-incdate,0,365*6)
 	compress
 	duplicates drop
+	
 	save `state'.dta, replace
 	
 	corp_add_mergers `state' ,dta(`state'.dta) merger(/NOBACKUP/scratch/share_scp/ext_data/2018dta/mergers/Z_mergers.pre2014.dta) longstate(`longstate') 
@@ -101,8 +56,6 @@ forvalues i = 1/`n'{
 	 }
 
 if $fix_local_firm == 1{
-global statelist AK AR AZ CA CO FL GA IA ID IL KY LA MA ME MI MN MO NC ND NJ NM NY OH OK OR RI SC TN TX UT VA VT WA WI WY
-
 	clear
 	foreach state in $statelist{
 	u `state'.dta, clear
@@ -124,8 +77,6 @@ global statelist AK AR AZ CA CO FL GA IA ID IL KY LA MA ME MI MN MO NC ND NJ NM 
 	}
 if $collapse_states == 1{
 	clear
-	global statelist
-	global statelist AK AR AZ CA CO FL GA IA ID IL KY LA MA ME MI MN MO NC ND NJ NM NY OH OK OR RI SC TN TX UT VA VT WA WI WY
 	foreach state in $statelist{
 	u `state'.dta,clear
 	capture confirm variable eponymous
@@ -139,7 +90,6 @@ if $collapse_states == 1{
 	}
 
 	clear
-	global statelist AK AR AZ CA CO FL GA IA ID IL KY LA MA ME MI MN MO NC ND NJ NM NY OH OK OR RI SC TN TX UT VA VT WA WI WY
 	gen a = .
 	foreach state in $statelist{
 		di "Adding state `state'"
@@ -153,41 +103,7 @@ if $collapse_states == 1{
 	save allstates.minimal.dta, replace
 	
 }
-if $audit_table == 1{
 
-****** Bystate*****
-clear
-cd /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg
-
-
-u analysis34.minimal.dta,clear
-safedrop obs
-gen obs  =1
-drop if incyear > 2014 | incyear<1988
-collapse (sum) obs, by(datastate)
-gen file = "old"
-save bystate.dta , replace
-
-u /NOBACKUP/scratch/share_scp/scp_private/final_datasets/allstates.minimal.dta, clear
-safedrop obs
-gen obs  =1
-drop if incyear > 2014 | incyear<1988
-collapse (sum) obs, by(datastate)
-gen file = "new"
-append using bystate.dta 
-save bystate.dta , replace
-
-
-use bystate.dta , replace
-reshape wide obs , i(datastate) j(file) string
-gen diff_new = obsnew - obsold
-gen ratio = abs(diff_new/obsold)
-sort ratio 
-
-save minimal_state.dta, replace
-
-export delimited using /user/user1/yl4180/save/minimal_state.csv, replace
-}
 if $make_minimal == 1 {	
 cd /NOBACKUP/scratch/share_scp/scp_private/final_datasets
 
@@ -223,15 +139,47 @@ cd /NOBACKUP/scratch/share_scp/scp_private/final_datasets
 	save allstates.minimal.dta, replace
 }
 
-if $yuting == 1{
-	do Yu-ting_minimal.do
-	}
+if $audit_table == 1{
+
+****** Bystate*****
+clear
+cd /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg
+
+
+u analysis34.minimal.dta,clear
+safedrop obs
+gen obs  =1
+drop if incyear > 2014 | incyear<1988
+collapse (sum) obs, by(datastate)
+gen file = "old"
+save bystate.dta , replace
+
+u /NOBACKUP/scratch/share_scp/scp_private/final_datasets/allstates.minimal.dta, clear
+safedrop obs
+gen obs  =1
+drop if incyear > 2014 | incyear<1988
+collapse (sum) obs, by(datastate)
+gen file = "new"
+append using bystate.dta 
+save bystate.dta , replace
+
+
+use bystate.dta , replace
+reshape wide obs , i(datastate) j(file) string
+gen diff_new = obsnew - obsold
+gen ratio = abs(diff_new/obsold)
+sort ratio 
+
+save minimal_state.dta, replace
+
+export delimited using /user/user1/yl4180/save/minimal_state.csv, replace
+}
 
 
 if $audit_compare == 1{
 ************** audit **************
 cd /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg
-global statelist NJ
+global statelist 
 //OR,NY,RI, VT, WA, IA, UT, VA, TN, SC. CO, NJ has other states
 //NY states name contain longstate
 //WI jurisdiction crappy, GA, SC has other juris

@@ -159,9 +159,5 @@ save AR.directors.dta, replace
 
      corp_add_ipos	 AR  ,dta(AR.dta) ipo(/NOBACKUP/scratch/share_scp/ext_data/ipoallUS.dta)  longstate(ARKANSAS)
 	corp_add_mergers AR  ,dta(AR.dta) merger(/NOBACKUP/scratch/share_scp/ext_data/2018dta/mergers/mergers_2018.dta)  longstate(ARKANSAS) 
-	replace targetsic = trim(targetsic)
-	foreach var of varlist equityvalue mergeryear mergerdate{
-	rename `var' `var'_new
-	}
 	
        corp_add_vc        AR ,dta(AR.dta) vc(/NOBACKUP/scratch/share_scp/ext_data/VX.dta) longstate(ARKANSAS)

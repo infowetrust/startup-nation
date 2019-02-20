@@ -87,6 +87,8 @@ replace address = trim(itrim(address))
 drop address1 address2
 gen shortname = wordcount(entityname) <= 3
 drop if incyear > 2019
+keep if inlist(country, "UNITED STATES", "")
+keep dataid entityname incdate incyear jurisdiction is_corp is_DE is_nonprofit address city state zipcode stateaddress local_firm
 save AK.dta, replace
 
 
@@ -164,13 +166,9 @@ save AK.directors.dta, replace
 		statefileexists;
 	
 	# delimit cr	
-	corp_add_ipos	 AK ,dta(AK.dta) ipo(/projects/reap.proj/data/ipoallUS.dta) longstate(ALASKA)
+	corp_add_ipos	 AK ,dta(AK.dta) ipo(/NOBACKUP/scratch/share_scp/ext_data/ipoallUS.dta) longstate(ALASKA)
 	corp_add_mergers AK  ,dta(AK.dta) merger(/NOBACKUP/scratch/share_scp/ext_data/2018dta/mergers/mergers_2018.dta)  longstate(ALASKA) 
-	replace targetsic = trim(targetsic)
-	foreach var of varlist equityvalue mergeryear mergerdate{
-	rename `var' `var'_new
-	}
-        corp_add_vc 	 AK ,dta(AK.dta) vc(~/final_datasets/VX.dta) longstate(ALASKA)
+        corp_add_vc 	 AK ,dta(AK.dta) vc(/NOBACKUP/scratch/share_scp/ext_data/VX.dta) longstate(ALASKA)
 
 
  
