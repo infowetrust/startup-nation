@@ -31,7 +31,8 @@ save minimal_state.dta, replace
 
 export delimited using /user/user1/yl4180/save/minimal_state.csv, replace
 ************** audit **************
-global statelist WI OR NY RI KY TX VT WA ME IA UT GA VA TN CA SC CO NJ
+cd /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg
+global statelist MO AZ NM AR 
 //OR,NY,RI, VT, WA, IA, UT, VA, TN, SC. CO, NJ has other states
 //NY states name contain longstate
 //WI jurisdiction crappy, GA, SC has other juris
@@ -49,3 +50,14 @@ keep if _merge == 3
 drop _merge
 save `state'.merge.dta, replace
 }
+
+
+
+
+cd /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg
+u IA.m.dta, clear
+merge m:m dataid using /NOBACKUP/scratch/share_scp/scp_private/final_datasets/IA2.dta
+keep if _merge == 3
+drop _merge
+save IA.merge.dta, replace
+
