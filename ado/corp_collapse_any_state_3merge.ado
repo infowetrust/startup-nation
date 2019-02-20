@@ -17,7 +17,7 @@ program define corp_collapse_any_state_3merge, rclass
     gen diffmerger_new = month(mergerdate_new) - month(incdate) + 12*(year(mergerdate_new) - year(incdate))
     gen diffmerger_Z = month(mergerdate_Z) - month(incdate) + 12*(year(mergerdate_Z) - year(incdate))
 
-
+    drop growthz diffmerger
     gen growthz_old = inrange(diffmerger_old,6,12*6) & !missing(diffmerger_old) | inrange(diffipo,6,12*6) & !missing(diffipo)  & substr(targetsic, 1,1) != "6" & !missing(targetsic) 
     gen growthz_new = inrange(diffmerger_new,6,12*6) & !missing(diffmerger_new) | inrange(diffipo,6,12*6) & !missing(diffipo)  & substr(targetsic, 1,1) != "6" & !missing(targetsic) 
     gen growthz_Z = inrange(diffmerger_Z,6,12*6) & !missing(diffmerger_Z) | inrange(diffipo,6,12*6) & !missing(diffipo)  & substr(targetsic, 1,1) != "6" & !missing(targetsic) 

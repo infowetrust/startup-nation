@@ -33,7 +33,11 @@ foreach state in `params' {
                keep if local_firm == 1 //change to equals to 1
            }
        }
-	
+	capture confirm variable is_nonprofit
+	if _rc == 0{
+		drop if is_nonprofit == 1
+		}
+	safedrop dateannouncedstr
 	foreach v in hasnews tradeclass female male deathdate deathyear firstvc meanvcquality maxvcquality eponymous `blankfields' haslastname haspropername has_unique_name is_nonprofit firstvc_preqin firstvc_capitaliq firstvc_crunchbase { 
 		capture confirm variable `v'
 		if _rc {
