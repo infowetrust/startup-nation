@@ -11,18 +11,18 @@ global dtasuffix
 **
 **
 clear
-import delimited using /NOBACKUP/scratch/share_scp/raw_data/Texas/2018/CM000219_01.txt
-replace v1 = v1 + v2+v3+v4+v5+v6+v7
-infile using /NOBACKUP/scratch/share_scp/scp_private/final_datasets/TX02.dct, using(/NOBACKUP/scratch/share_scp/raw_data/Texas/2018/CM000219_01.txt)
 
-drop if filing_number == ""
+infile using /NOBACKUP/scratch/share_scp/raw_data/Texas/2018/TX02.dct, using(/NOBACKUP/scratch/share_scp/raw_data/Texas/2018/02_TexasClean.txt)
+
+drop if filing_number == "" |filing_number == "0000000000"
 save TX.pre.dta, replace
 
 clear
-infile using /NOBACKUP/scratch/share_scp/scp_private/final_datasets/TX02.dct, using(/NOBACKUP/scratch/share_scp/raw_data/Texas/July2015/03_TexasClean.txt)
-drop if filing_number == ""
+infile using /NOBACKUP/scratch/share_scp/raw_data/Texas/2018/TX03.dct, using(/NOBACKUP/scratch/share_scp/raw_data/Texas/2018/03_TexasClean.txt)
+drop if filing_number == "" |filing_number == "0000000000"
 merge 1:1 filing_number using TX.pre.dta
 drop if _merge == 1
+drop _merge 
 save TX.pre.dta, replace 
 
 
@@ -33,10 +33,9 @@ clear
 
 	replace foreign_state = "TX" if missing(foreign_state)
 
-        gen address = address1 + " " + address2
+        gen address = trim(itrim(upper(address1 + " " + address2)))
 
         replace state = "TX" if state == "" & foreign_state == "TX"
-        gen stateaddress = state
 
 	gen is_nonprofit= inlist(corp_type_id,"08","09")
 
@@ -48,6 +47,12 @@ clear
 	rename (name filing_number) (entityname dataid)
 	rename (foreign_state zip_code   ) (jurisdiction zipcode   )
 	gen corpnumber = dataid
+	foreach var of varlist state city country jurisdiction{
+	replace `var' = trim(itrim(upper(`var')))
+	}
+	keep if inlist(country, "USA", "")
+	gen stateaddress = state
+	//missing state maybe companies from other countries !!
         gen local_firm = state == "TX" & inlist(jurisdiction,"TX","DE")
 
 
@@ -57,9 +62,10 @@ keep dataid corpnumber entityname incdate incyear  is_corp jurisdiction is_nonpr
 
 
 	clear
-	infile using ~/final_datasets/TX08.dct, using(/projects/reap.proj/raw_data/Texas/July2015/08_TexasClean.txt)
+	infile using /NOBACKUP/scratch/share_scp/raw_data/Texas/2018/TX08.dct, using(/NOBACKUP/scratch/share_scp/raw_data/Texas/2018/08_TexasClean.txt)
 	rename filingnumber dataid
-	gen fullname = trim(itrim(firstname + " " + middlename + " " +lastname))
+	drop if dataid == "0000000000"
+	gen fullname = trim(itrim(upper(firstname + " " + middlename + " " +lastname)))
 	replace officertitle = upper(trim(itrim(officertitle)))
 	replace officertitle = "MANAGER" if officertitle == "MANAGING MEMBER" | officertitle == "MEMBER" | officertitle == "MANAGING DIRECTOR"
 	replace officertitle = "CEO" if officertitle == "CHIEF EXECUTIVE OFFICER" | officertitle == "CHAIRMAN" 
@@ -71,9 +77,9 @@ keep dataid corpnumber entityname incdate incyear  is_corp jurisdiction is_nonpr
 
 	** Names
 	clear
-	infile using ~/final_datasets/TX09.dct, using(/projects/reap.proj/raw_data/Texas/July2015/09_TexasClean.txt)
-
+	infile using /NOBACKUP/scratch/share_scp/raw_data/Texas/2018/TX09.dct, using(/NOBACKUP/scratch/share_scp/raw_data/Texas/2018/09_TexasClean.txt)
 	rename filingnumber dataid
+	drop if dataid == "0000000000"
 	destring nametypeid ,replace
 	destring namestatusid ,replace
 	drop if namestatusid ==1
@@ -98,8 +104,8 @@ keep dataid corpnumber entityname incdate incyear  is_corp jurisdiction is_nonpr
 	u TX$dtasuffix.dta , replace
 	tomname entityname
 	save TX$dtasuffix.dta, replace
-	corp_add_industry_dummies , ind(~/ado/industry_words.dta) dta(TX$dtasuffix.dta)
-	corp_add_industry_dummies , ind(~/ado/VC_industry_words.dta) dta(TX$dtasuffix.dta)
+	corp_add_industry_dummies , ind(/NOBACKUP/scratch/share_scp/ext_data/industry_words.dta) dta(TX$dtasuffix.dta)
+	corp_add_industry_dummies , ind(/NOBACKUP/scratch/share_scp/ext_data/VC_industry_words.dta) dta(TX$dtasuffix.dta)
 	corp_add_gender, dta(TX$dtasuffix.dta) directors(TX.directors.dta) names(~/ado/names/NATIONAL.TXT)
 
 	corp_add_eponymy, dtapath(TX$dtasuffix.dta) directorpath(TX.directors.dta)
@@ -107,8 +113,8 @@ keep dataid corpnumber entityname incdate incyear  is_corp jurisdiction is_nonpr
 	# delimit ;
 	corp_add_trademarks TX , 
 		dta(TX$dtasuffix.dta) 
-		trademarkfile(/projects/reap.proj/data/trademarks.dta) 
-		ownerfile(/projects/reap.proj/data/trademark_owner.dta)
+		trademarkfile(/NOBACKUP/scratch/share_scp/ext_data/2018dta/trademarks/trademarks.dta) 
+		ownerfile(/NOBACKUP/scratch/share_scp/ext_data/2018dta/trademarks/trademark_owner.dta)
 		var(trademark) 
 		frommonths(-12)
 		tomonths(12)
@@ -118,7 +124,7 @@ keep dataid corpnumber entityname incdate incyear  is_corp jurisdiction is_nonpr
 	# delimit ;
 	corp_add_patent_applications TX TEXAS , 
 		dta(TX$dtasuffix.dta) 
-		pat(/projects/reap.proj/data_share/patent_applications.dta) 
+		pat(/NOBACKUP/scratch/share_scp/ext_data/2018dta/patent_applications/patent_applications.dta) 
 		var(patent_application) 
 		frommonths(-12)
 		tomonths(12)
@@ -128,28 +134,32 @@ keep dataid corpnumber entityname incdate incyear  is_corp jurisdiction is_nonpr
 	
 	corp_add_patent_assignments  TX TEXAS , 
 		dta(TX$dtasuffix.dta)
-		pat("/projects/reap.proj/data_share/patent_assignments.dta" "/projects/reap.proj/data_share/patent_assignments2.dta"  "/projects/reap.proj/data_share/patent_assignments3.dta")
+		pat("/NOBACKUP/scratch/share_scp/ext_data/2018dta/patent_assignments/patent_assignments.dta")
 		frommonths(-12)
 		tomonths(12)
 		var(patent_assignment)
 		statefileexists;
 	# delimit cr	
-	corp_add_ipos	 TX ,dta(TX$dtasuffix.dta) ipo(/projects/reap.proj/data/ipoallUS.dta) longstate(TEXAS)
-	corp_add_mergers TX ,dta(TX$dtasuffix.dta) merger(/projects/reap.proj/data/mergers.dta) longstate(TEXAS)
+	corp_add_ipos	 TX ,dta(TX$dtasuffix.dta) ipo(NOBACKUP/scratch/share_scp/ext_data/ipoallUS.dta) longstate(TEXAS)
+	corp_add_mergers TX ,dta(TX$dtasuffix.dta) merger(/NOBACKUP/scratch/share_scp/ext_data/2018dta/mergers/mergers_2018.dta) longstate(TEXAS)
+	replace targetsic = trim(targetsic)
+	foreach var of varlist equityvalue mergeryear mergerdate{
+	rename `var' `var'_new
+	}
+
+      corp_add_vc        TX ,dta(TX.dta) vc(/NOBACKUP/scratch/share_scp/ext_data/VX.dta) longstate(TEXAS)
 
 
-      corp_add_vc        TX ,dta(TX.dta) vc(~/final_datasets/VX.dta) longstate(TEXAS)
+//corp_has_last_name, dtafile(TX$dtasuffix.dta) lastnamedta(~/ado/names/lastnames.dta) num(5000)
+//corp_has_first_name, dtafile(TX$dtasuffix.dta) num(1000)
+//corp_name_uniqueness, dtafile(TX$dtasuffix.dta)
 
-
-corp_has_last_name, dtafile(TX$dtasuffix.dta) lastnamedta(~/ado/names/lastnames.dta) num(5000)
-corp_has_first_name, dtafile(TX$dtasuffix.dta) num(1000)
-corp_name_uniqueness, dtafile(TX$dtasuffix.dta)
-
+/*
 clear
 u TX$dtasuffix.dta
 gen has_unique_name = uniquename <= 5
 save TX$dtasuffix.dta, replace
-
+*/
 
 clear
 u TX$dtasuffix.dta

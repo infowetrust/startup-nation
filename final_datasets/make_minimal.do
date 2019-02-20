@@ -1,12 +1,10 @@
 cd /NOBACKUP/scratch/share_scp/scp_private/final_datasets
 clear
 global mergetempsuffix = "_"
-//global statelist AK AR AZ CA CO FL GA IA ID IL KY LA MA ME MI MN MO NC ND NJ NM NY OH OK OR RI SC TN TX UT VA VT WA WI WY
-global statelist WA
-//global longstatelist ALASKA ARKANSAS ARIZONA CALIFORNIA COLORADO FLORIDA GEORGIA IOWA IDAHO ILLINOIS KENTUCKY LOUISIANA MASSACHUSETTS MAINE MICHIGAN MINNESOTA MISSOURI NORTH_CAROLINA NORTH_DAKOTA NEW_JERSEY NEW_MEXICO NEW_YORK OHIO OKLAHOMA OREGON RHODE_ISLAND SOUTH_CAROLINA TENNESSEE TEXAS UTAH VIRGINIA VERMONT WASHINGTON WISCONSIN WYOMING
-global longstatelist WASHINGTON
+global statelist AK AR AZ CA CO FL GA IA ID IL KY LA MA ME MI MN MO NC ND NJ NM NY OH OK OR RI SC TN TX UT VA VT WA WI WY
+global longstatelist ALASKA ARKANSAS ARIZONA CALIFORNIA COLORADO FLORIDA GEORGIA IOWA IDAHO ILLINOIS KENTUCKY LOUISIANA MASSACHUSETTS MAINE MICHIGAN MINNESOTA MISSOURI NORTH_CAROLINA NORTH_DAKOTA NEW_JERSEY NEW_MEXICO NEW_YORK OHIO OKLAHOMA OREGON RHODE_ISLAND SOUTH_CAROLINA TENNESSEE TEXAS UTAH VIRGINIA VERMONT WASHINGTON WISCONSIN WYOMING
 global prepare_mergerfile 0
-global prepare_states 0
+global prepare_states 1
 global fix_local_firm 0
 global collapse_states 1
 global make_minimal 1
@@ -191,6 +189,8 @@ save minimal_state.dta, replace
 export delimited using /user/user1/yl4180/save/minimal_state.csv, replace
 }
 if $make_minimal == 1 {	
+cd /NOBACKUP/scratch/share_scp/scp_private/final_datasets
+
 	u allstates.minimal.dta, clear
 	
 	
