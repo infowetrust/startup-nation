@@ -163,11 +163,7 @@ global mergetempsuffix="WA_Official"
 	corp_add_ipos	 WA  ,dta(WA.dta) ipo(/NOBACKUP/scratch/share_scp/ext_data/ipoallUS.dta) longstate(WASHINGTON)
 	
 	corp_add_mergers WA  ,dta(WA.dta) merger(/NOBACKUP/scratch/share_scp/ext_data/2018dta/mergers/mergers_2018.dta)  longstate(WASHINGTON) 
-	replace targetsic = trim(targetsic)
-	foreach var of varlist equityvalue mergeryear mergerdate{
-	rename `var' `var'_new
-	}
-	save WA.dta, replace
+
 	corp_add_vc 	 WA  ,dta(WA.dta) vc(/NOBACKUP/scratch/share_scp/ext_data/VX.dta) longstate(WASHINGTON)
 
  

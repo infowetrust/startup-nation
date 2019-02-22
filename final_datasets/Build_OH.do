@@ -1,5 +1,5 @@
  clear
- cd /NOBACKUP/scratch/share_scp/scp_private/final_datasets
+ cd /NOBACKUP/scratch/share_scp/scp_private/scp2018
  
  
  local keepraw = 0
@@ -12,7 +12,7 @@ global only_DE 0
  
  
  clear
- import delimited dataid articlesfilingdoc entityname firmtype x3 x4 filingdate x5  active x6 x7 x8 x9 x10 city state  v1 v v3 v4 v5 v6 v7 v8 v9 z1 z2 z3 z4  using /NOBACKUP/scratch/share_scp/raw_data/Ohio/CORPDATA.BUS, delim("|")
+ import delimited dataid articlesfilingdoc entityname firmtype x3 x4 filingdate x5  active x6 x7 x8 x9 x10 city state  v1 v v3 v4 v5 v6 v7 v8 v9 z1 z2 z3 z4  using /NOBACKUP/scratch/share_scp/raw_data/Ohio/2018/CORPDATA.BUS, delim("|")
  
  gen is_corp = inlist(firmtype,"CP","CF")
 gen is_foreign = inlist(firmtype,"CF","LF")
@@ -20,6 +20,7 @@ gen is_foreign = inlist(firmtype,"CF","LF")
  drop if inlist(firmtype,"CN","FN","MO","NR","RN") | inlist(firmtype,"RT","SM","BT","00","CV","UN")
 
 gen zipcode = ""
+
 gen stateaddress = state
 
 
@@ -60,7 +61,7 @@ save $OH_dta_file,replace
  *** DIRECTORS *** 
  
 clear 
-import delimited dataid numdirector fullname  using /NOBACKUP/scratch/share_scp/raw_data/Ohio/CORPDATA.ASS, delim("|")
+import delimited dataid numdirector fullname  using /NOBACKUP/scratch/share_scp/raw_data/Ohio/2018/CORPDATA.ASS, delim("|")
 
 /*assume that only the first three directors are important*/
 keep if numdirector <= 3
@@ -78,7 +79,7 @@ save OH.directors.dta,replace
 	
 	
  clear 
- import delimited dataid namechangeddate oldname using /NOBACKUP/scratch/share_scp/raw_data/Ohio/CORPDATA.NAM, delim("|")
+ import delimited dataid namechangeddate oldname using /NOBACKUP/scratch/share_scp/raw_data/Ohio/2018/CORPDATA.NAM, delim("|")
  
 duplicates drop
 save OH.names.dta,replace
@@ -113,7 +114,7 @@ save OH.names.dta,replace
 	# delimit ;
 	corp_add_patent_applications OH OHIO , 
 		dta($OH_dta_file) 
-		pat(/NOBACKUP/scratch/share_scp/ext_data/patent_applications.dta) 
+		pat(/NOBACKUP/scratch/share_scp/ext_data/2018dta/patent_applications/patent_applications.dta) 
 		var(patent_application) 
 		frommonths(-12)
 		tomonths(12)
@@ -121,7 +122,7 @@ save OH.names.dta,replace
 	
 	corp_add_patent_assignments  OH OHIO , 
 		dta($OH_dta_file)
-		pat("/NOBACKUP/scratch/share_scp/ext_data/patent_assignments.dta" "/NOBACKUP/scratch/share_scp/ext_data/patent_assignments2.dta")
+		pat("/NOBACKUP/scratch/share_scp/ext_data/2018dta/patent_assignments/patent_assignments.dta")
 		frommonths(-12)
 		tomonths(12)
 		var(patent_assignment)
@@ -131,21 +132,20 @@ save OH.names.dta,replace
 	# delimit ;
 	corp_add_trademarks OH , 
 		dta($OH_dta_file) 
-		trademarkfile(/NOBACKUP/scratch/share_scp/ext_data/trademarks.dta) 
-		ownerfile(/NOBACKUP/scratch/share_scp/ext_data/trademark_owner.dta)
+		trademarkfile(/NOBACKUP/scratch/share_scp/ext_data/2018dta/trademarks/trademarks.dta) 
+		ownerfile(/NOBACKUP/scratch/share_scp/ext_data/2018dta/trademarks/trademark_owner.dta)
 		var(trademark) 
 		frommonths(-12)
-		classificationfile(/NOBACKUP/scratch/share_scp/ext_data/classification.dta)
 		tomonths(12)
-		;
-	
+		statefileexists;
+		
 	# delimit cr	
 
 	corp_add_vc 	 OH  ,dta($OH_dta_file) vc(/NOBACKUP/scratch/share_scp/ext_data/VX.dta) longstate(OHIO) 
 
 
 	corp_add_ipos	 OH  ,dta($OH_dta_file) ipo(/NOBACKUP/scratch/share_scp/ext_data/ipoallUS.dta)  longstate(OHIO) 
-	corp_add_mergers OH  ,dta($OH_dta_file) merger(/NOBACKUP/scratch/share_scp/ext_data/mergers.dta)  longstate(OHIO) 
+	corp_add_mergers OH  ,dta($OH_dta_file) merger(/NOBACKUP/scratch/share_scp/ext_data/2018dta/mergers/mergers_2018.dta)  longstate(OHIO) 
 
 
 *		set trace on
@@ -162,7 +162,7 @@ gen  shortname = wordcount(entityname) <= 3
  
 ***** address *********
 clear
-import delimited dataid using /NOBACKUP/scratch/share_scp/raw_data/Ohio/CORPDATA.ADR, delim("|")
+import delimited dataid using /NOBACKUP/scratch/share_scp/raw_data/Ohio/2018/CORPDATA.ADR, delim("|")
 replace  v7 = substr(v7, 1, 5)
 
 *keep if v6 == "OH"
@@ -194,7 +194,7 @@ save OH.address.dta, replace
 
 *************** AGN address **********
 clear
-import delimited dataid using /NOBACKUP/scratch/share_scp/raw_data/Ohio/CORPDATA.AGN, delim("|")
+import delimited dataid using /NOBACKUP/scratch/share_scp/raw_data/Ohio/2018/CORPDATA.AGN, delim("|")
 replace  v9 = substr(v9, 1, 5)
 
 replace v4 =trim(itrim(v4))
@@ -267,11 +267,10 @@ replace stateaddress  = state
 
 
 
-
+duplicates drop
 compress
 
-replace local_firm = state == "OH"
+replace local_firm = inlist(state,"OH","") & inlist(jurisdiction, "OH", "DE")
 save OH.dta, replace
-save /NOBACKUP/scratch/share_scp/migration/datafiles/OH.dta, replace
 
 
