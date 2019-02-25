@@ -5,8 +5,8 @@ global statelist AK AR AZ CA CO FL GA IA ID IL KY LA MA ME MI MN MO NC ND NJ NM 
 global longstatelist ALASKA ARKANSAS ARIZONA CALIFORNIA COLORADO FLORIDA GEORGIA IOWA IDAHO ILLINOIS KENTUCKY LOUISIANA MASSACHUSETTS MAINE MICHIGAN MINNESOTA MISSOURI NORTH_CAROLINA NORTH_DAKOTA NEW_JERSEY NEW_MEXICO NEW_YORK OHIO OKLAHOMA OREGON RHODE_ISLAND SOUTH_CAROLINA TENNESSEE TEXAS UTAH VIRGINIA VERMONT WASHINGTON WISCONSIN WYOMING
 global prepare_states 1
 global fix_local_firm 0
-global collapse_states 0
-global make_minimal 0
+global collapse_states 1
+global make_minimal 1
 global audit_table 0
 global audit_compare 0
 
@@ -20,33 +20,34 @@ forvalues i = 1/`n'{
 	local longstate: word `i' of $longstatelist
 	local longstate= subinstr("`longstate'","_"," ",.)
 	u `state'.dta, clear
-		
+	
+	safedrop dateannounced* targetname enterprisevalue ipo
+	safedrop mergerdate_Z mergeryear_Z equityvalue_Z targetsic_Z
+
+	foreach var of varlist equityvalue mergeryear mergerdate{
+	rename `var' `var'_old
+	}
+	safedrop targetsic 
+	save `state'.dta, replace
+	
+
+	corp_add_mergers `state' ,dta(`state'.dta) merger(/NOBACKUP/scratch/share_scp/ext_data/2018dta/mergers/Z_mergers.pre2014.dta) longstate(`longstate') 
+	foreach var of varlist equityvalue mergeryear mergerdate targetsic{
+	rename `var' `var'_Z
+	}
+	safedrop mergerdate_new mergeryear_new equityvalue_new
+	compress
+	duplicates drop
+	save `state'.dta, replace
+	
+	corp_add_mergers `state' ,dta(`state'.dta) merger(/NOBACKUP/scratch/share_scp/ext_data/2018dta/mergers/mergers_2018.dta) longstate(`longstate') 
+	compress
+	duplicates drop
+	
 	foreach var of varlist equityvalue mergeryear mergerdate{
 	rename `var' `var'_new
 	}
-	
-	safedrop dateannounced* targetname enterprisevalue equityvalue_old equityvalue_Z x  mergeryear_old mergeryear_Z  mergerdate_old mergerdate_Z ipo growthz_old growthz_new growthz_Z acq acq_old acq_new acq_Z
-
-	gen ipo = !missing(ipodate) & inrange(ipodate-incdate,0,365*6)
-	compress
-	duplicates drop
-	
-	save `state'.dta, replace
-	
-	corp_add_mergers `state' ,dta(`state'.dta) merger(/NOBACKUP/scratch/share_scp/ext_data/2018dta/mergers/Z_mergers.pre2014.dta) longstate(`longstate') 
-	replace targetsic = trim(targetsic)
-
-	foreach var of varlist equityvalue mergeryear mergerdate {
-	rename `var' `var'_Z
-	}
-	compress
-	duplicates drop
-	save `state'.dta, replace
-	
-	corp_add_mergers `state' ,dta(`state'.dta) merger(/NOBACKUP/scratch/share_scp/ext_data/mergers.pre2014.dta) longstate(`longstate')
-	replace targetsic = trim(targetsic)
-	compress
-	duplicates drop
+	rename (equityvalue_old mergeryear_old mergerdate_old) (equityvalue mergeryear mergerdate)
 	save `state'.dta, replace
 	
 

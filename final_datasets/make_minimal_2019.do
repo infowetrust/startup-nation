@@ -1,10 +1,8 @@
 cd /NOBACKUP/scratch/share_scp/scp_private/final_datasets
 clear
 global mergetempsuffix = "_"
-//global statelist AK AR AZ CA CO FL GA IA ID IL KY LA MA ME MI MN MO NC ND NJ NM NY OH OK OR RI SC TN TX UT VA VT WA WI WY
-global statelist IA ID IL KY LA MA ME MI MN MO NC ND NJ NM NY OH OK OR RI SC TN TX UT VA VT WA WI WY
-//global longstatelist ALASKA ARKANSAS ARIZONA CALIFORNIA COLORADO FLORIDA GEORGIA IOWA IDAHO ILLINOIS KENTUCKY LOUISIANA MASSACHUSETTS MAINE MICHIGAN MINNESOTA MISSOURI NORTH_CAROLINA NORTH_DAKOTA NEW_JERSEY NEW_MEXICO NEW_YORK OHIO OKLAHOMA OREGON RHODE_ISLAND SOUTH_CAROLINA TENNESSEE TEXAS UTAH VIRGINIA VERMONT WASHINGTON WISCONSIN WYOMING
-global longstatelist IOWA IDAHO ILLINOIS KENTUCKY LOUISIANA MASSACHUSETTS MAINE MICHIGAN MINNESOTA MISSOURI NORTH_CAROLINA NORTH_DAKOTA NEW_JERSEY NEW_MEXICO NEW_YORK OHIO OKLAHOMA OREGON RHODE_ISLAND SOUTH_CAROLINA TENNESSEE TEXAS UTAH VIRGINIA VERMONT WASHINGTON WISCONSIN WYOMING
+global statelist AK AR AZ CA CO FL GA IA ID IL KY LA MA ME MI MN MO NC ND NJ NM NY OH OK OR RI SC TN TX UT VA VT WA WI WY
+global longstatelist ALASKA ARKANSAS ARIZONA CALIFORNIA COLORADO FLORIDA GEORGIA IOWA IDAHO ILLINOIS KENTUCKY LOUISIANA MASSACHUSETTS MAINE MICHIGAN MINNESOTA MISSOURI NORTH_CAROLINA NORTH_DAKOTA NEW_JERSEY NEW_MEXICO NEW_YORK OHIO OKLAHOMA OREGON RHODE_ISLAND SOUTH_CAROLINA TENNESSEE TEXAS UTAH VIRGINIA VERMONT WASHINGTON WISCONSIN WYOMING
 global prepare_mergerfile 0
 global prepare_states 1
 global fix_local_firm 0
@@ -64,7 +62,7 @@ forvalues i = 1/`n'{
 	
 	u /NOBACKUP/scratch/share_scp/scp_private/final_datasets/`state'.dta, clear
 	//safedrop dateannounced* targetname enterprisevalue equityvalue equityvalue_old equityvalue_new equityvalue_Z x mergeryear mergeryear_old mergeryear_new mergeryear_Z mergerdate mergerdate_old mergerdate_new mergerdate_Z ipo growthz_old growthz_new growthz_Z acq acq_old acq_new acq_Z
-	safedrop dateannounced* targetname enterprisevalue equityvalue_new mergeryear_new mergerdate_new x growthz_new
+	safedrop dateannounced* targetname enterprisevalue 
 	rename (equityvalue mergerdate mergeryear) (equityvalue_old mergerdate_old mergeryear_old)
 	//gen ipo = !missing(ipodate) & inrange(ipodate-incdate,0,365*6)
 	compress
