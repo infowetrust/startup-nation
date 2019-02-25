@@ -119,7 +119,7 @@ foreach state in `params' {
 	
 	gen diffmerger = month(mergerdate) - month(incdate) + 12*(year(mergerdate) - year(incdate))
 	gen diffipo = month(ipodate) - month(incdate) + 12*(year(ipodate) - year(incdate))
-	gen growthz = inrange(diffmerger,0,12*6) & !missing(diffmerger) | inrange(diffipo,0,12*6) & !missing(diffipo)  & substr(targetsic, 1,1) != "6" & !missing(targetsic) 
+	gen growthz = (inrange(diffmerger,6,12*6) & !missing(diffmerger) & substr(targetsic, 1,1) != "6" & targetsic != "1041" & targetsic != "1311" ) | inrange(diffipo,6,12*6) & !missing(diffipo)  
 	
 	gen diffdeath = month(deathdate) - month(incdate) + 12*(year(deathdate) - year(incdate))
 	gen is_dead = inrange(diffdeath,0,12*6) & !missing(diffdeath)
