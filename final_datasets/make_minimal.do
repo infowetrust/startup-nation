@@ -3,9 +3,10 @@ clear
 global mergetempsuffix = "_"
 global statelist AK AR AZ CA CO FL GA IA ID IL KY LA MA ME MI MN MO NC ND NJ NM NY OH OK OR RI SC TN TX UT VA VT WA WI WY
 global longstatelist ALASKA ARKANSAS ARIZONA CALIFORNIA COLORADO FLORIDA GEORGIA IOWA IDAHO ILLINOIS KENTUCKY LOUISIANA MASSACHUSETTS MAINE MICHIGAN MINNESOTA MISSOURI NORTH_CAROLINA NORTH_DAKOTA NEW_JERSEY NEW_MEXICO NEW_YORK OHIO OKLAHOMA OREGON RHODE_ISLAND SOUTH_CAROLINA TENNESSEE TEXAS UTAH VIRGINIA VERMONT WASHINGTON WISCONSIN WYOMING
-global prepare_states 1
+global prepare_states 0
 global fix_local_firm 0
-global collapse_states 1
+global collapse_states 0
+global append_states 0
 global make_minimal 1
 global audit_table 0
 global audit_compare 0
@@ -84,11 +85,19 @@ if $collapse_states == 1{
     	if _rc != 0 {
 	        gen eponymous = 0
          }
+	 destring equityvalue_new, replace force
+	 replace equityvalue_new = 0 if missing(equityvalue_new)
+	 
+	 destring equityvalue_Z, replace force
+	 replace equityvalue_Z = 0 if missing(equityvalue_Z)
+
 	save `state'.dta, replace
 	corp_collapse_any_state_3merge `state', workingfolder(/NOBACKUP/scratch/share_scp/scp_private/final_datasets/) 
 	gen datastate = "`state'" 
 	save `state'.collapsed.dta, replace
 	}
+}
+if $append_states == 1{
 
 	clear
 	gen a = .
