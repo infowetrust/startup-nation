@@ -3,7 +3,7 @@ global mergetempsuffix KY
 
 clear
 
-import delimited /NOBACKUP/scratch/share_scp/raw_data/Kentucky/2018/2018_12/AllCompanies20181231.txt,delim(tab)
+import delimited /NOBACKUP/scratch/share_scp/raw_data/Kentucky/2018/AllCompanies20180831.txt,delim(tab)
 
 rename v1 dataid
 rename v4 entityname
@@ -36,7 +36,7 @@ replace jurisdiction = trim(itrim(upper(jurisdiction)))
 keep if inlist(jurisdiction, "DE", "KY")
 gen is_DE = 1 if jurisdiction == "DE"
 
-gen local_firm= inlist(jurisdiction,"KY","DE") & state == "KY" | state == ""
+gen local_firm= inlist(jurisdiction,"KY","DE") & inlist(state, "", "KY")
 
 /* Generating Variables */
 
@@ -49,7 +49,7 @@ drop if missing(entityname)
 tostring dataid, replace
 tostring v2, replace
 replace dataid = dataid + v2+ substr(v3,4,2)
-keep if incyear < 2019 & incyear > 1987
+//keep if incyear < 2019 & incyear > 1987
 keep dataid entityname incdate incyear type is_DE jurisdiction zipcode state city address is_corp shortname local_firm
 
 duplicates drop
@@ -60,7 +60,7 @@ save KY.dta,replace
 * Build Director File *
 clear
 
-import delimited /NOBACKUP/scratch/share_scp/raw_data/Kentucky/2018/2018_12/AllOfficers20181231.txt , delim(tab)
+import delimited /NOBACKUP/scratch/share_scp/raw_data/Kentucky/2018/AllOfficers20180831.txt , delim(tab)
 save KY.directors.dta,replace
 
 rename v4 role
@@ -151,7 +151,7 @@ save KY.directors.dta, replace
 	
 
 	corp_add_ipos	 KY  ,dta(KY.dta) ipo(/NOBACKUP/scratch/share_scp/ext_data/ipoallUS.dta)  longstate(KENTUCKY) 
-	corp_add_mergers KY  ,dta(KY.dta) merger(/NOBACKUP/scratch/share_scp/ext_data/2018dta/mergers/mergers_2018.dta)  longstate(KENTUCKY) 
+	corp_add_mergers KY  ,dta(KY.dta) merger(/NOBACKUP/scratch/share_scp/ext_data/mergers.dta)  longstate(KENTUCKY) 
 	corp_add_vc 	 KY  ,dta(KY.dta) vc(/NOBACKUP/scratch/share_scp/ext_data/VX.dta) longstate(KENTUCKY)
 	compress
 	duplicates drop

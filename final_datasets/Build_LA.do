@@ -11,7 +11,7 @@ import delimited using /NOBACKUP/scratch/share_scp/raw_data/Louisiana/Entities.c
 split startdate, parse(T)
 drop startdate startdate2
 gen incdate = date(startdate1, "YMD")
-drop if incdate < td(01jan1988)
+//drop if incdate < td(01jan1988)
 gen incyear =year(incdate)
 
 rename (chartercategory id name address1) (firmtype dataid entityname address)

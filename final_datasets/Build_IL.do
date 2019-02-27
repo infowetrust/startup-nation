@@ -1,10 +1,10 @@
- cd /projects/reap.proj/final_datasets/
+ cd /NOBACKUP/scratch/share_scp/scp_private/final_datasets/
  global mergetempsuffix="IL_Official"
 
 
 *** Step 1: Load the data.
 clear
-infile using IL.corp.dct , using(/projects/reap.proj/raw_data/Illinois/cdmaster1.txt)
+infile using IL.corp.dct , using(/NOBACKUP/scratch/share_scp/raw_data/Illinois/cdmaster1.txt)
 
 rename FileNumber dataid
 rename CorpName entityname
@@ -66,9 +66,9 @@ replace jurisdiction = "WY" if StateCode == 56
 
 
 gen is_nonprofit = CorpIntent > 45
-drop if is_nonprofit
+//drop if is_nonprofit
 
-keep if incyear >= 1988
+//keep if incyear >= 1988
 
 gen zipcode = substr(PresNameADDR,-5,.)
 replace zipcode = substr(PresNameADDR,-10,.) if substr(zipcode,1,1) == "-"
