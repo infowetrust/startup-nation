@@ -2,7 +2,7 @@ cd /NOBACKUP/scratch/share_scp/scp_private/scp2018
 
 global mergetempsuffix "GA_Official"
 
-/*
+
 clear
 import delimited using /NOBACKUP/scratch/share_scp/raw_data/Georgia/2018/BizEntity.txt, delim(tab) varnames(1)
 
@@ -88,7 +88,7 @@ tomname entityname
 duplicates drop
 compress
 save GA.dta, replace
-*/
+
 
 corp_add_industry_dummies , ind(/NOBACKUP/scratch/share_scp/ext_data/industry_words.dta) dta(GA.dta)
         corp_add_industry_dummies , ind(/NOBACKUP/scratch/share_scp/ext_data/VC_industry_words.dta) dta(GA.dta)
@@ -97,8 +97,8 @@ corp_add_industry_dummies , ind(/NOBACKUP/scratch/share_scp/ext_data/industry_wo
 
 
 
-        corp_add_eponymy, dtapath(GA.dta) directorpath(GA.directors.dta)
-        
+        corp_add_eponymy, dtapath(GA.dta) directorpath(GA.directors.dta) //not finish
+
         # delimit ;
         corp_add_trademarks GA , 
                 dta(GA.dta) 
@@ -142,7 +142,6 @@ corp_add_industry_dummies , ind(/NOBACKUP/scratch/share_scp/ext_data/industry_wo
 
 clear
 u GA.dta
-gen  shortname = wordcount(entityname) <= 3
 duplicates drop
 compress
 //gen has_unique_name = uniquename <= 5
