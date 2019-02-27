@@ -13,12 +13,9 @@ collapse (min) dateannounced (max) equityvalue , by(targetname targetstate targe
 tomname targetname
 save /NOBACKUP/scratch/share_scp/ext_data/2018dta/mergers/Z_mergers.pre2014.dta, replace
 
-u /NOBACKUP/scratch/share_scp/ext_data/2018dta/mergers/mergers_2018.dta,clear
+u /NOBACKUP/scratch/share_scp/ext_data/2018dta/mergers/mergers.dta,clear
 keep if year(dateannounced)  < 2015 & year(dateannounced)  > 1987
 drop if financial_merger==1 | oil_mining_merger == 1
-destring equityvalue, replace force
-collapse (min) dateannounced (max) equityvalue , by(targetname targetstate targetsic)
-tomname targetname
 save /NOBACKUP/scratch/share_scp/ext_data/2018dta/mergers/mergers.pre2014.dta, replace
 
 */
@@ -26,15 +23,22 @@ save /NOBACKUP/scratch/share_scp/ext_data/2018dta/mergers/mergers.pre2014.dta, r
 
 
 
+capture postclose stats
+
 postfile stats str20 state str20 dataset share eshare share_equity cnt_all cnt_w_equity sum_equity using allstates.dta, replace every(1)
 
 
 local n: word count $statelist
 forvalues i = 1/`n'{
-	local state: word `i' of $statelist
-	local longstate: word `i' of $longstatelist
-	local longstate= subinstr("`longstate'","_"," ",.)
-	
+
+    local state: word `i' of $statelist
+    local longstate: word `i' of $longstatelist
+    local longstate= subinstr("`longstate'","_"," ",.)
+    
+    di ""
+    di ""
+    di " ************** `longstate' *************** "
+
 	u /NOBACKUP/scratch/share_scp/scp_private/final_datasets/`state'.dta	
 	tostring dataid , replace 
 	rename state datastate 
@@ -43,7 +47,6 @@ forvalues i = 1/`n'{
 	keep dataid datastate incyear incdate entityname 
 	capture drop match_* mfull_name
 	tomname entityname
-	keep if incyear <= 2014 & incyear >= 1988 
 	compress
 	save `state'.only.dta, replace
 	save `state'.only.orig.dta, replace
@@ -82,9 +85,10 @@ forvalues i = 1/`n'{
 
 	post stats ("`state'") ("orig_thomson") (`share_matched') (`eshare_matched') (`share') (`count_all') (`count_w_equity') (`tot')
 	
-	use `state'.only.orig.dta, replace
-	save `state'.only.dta, replace
 	*/
+        use `state'.only.orig.dta, replace
+	save `state'.only.dta, replace
+
 	corp_add_mergers `state' ,dta(`state'.only.dta) merger(/NOBACKUP/scratch/share_scp/ext_data/2018dta/mergers/mergers.pre2014.dta) storenomatched(`state'.nomatch_new.dta) longstate(`longstate') 
 	
 	u `state'.only.dta , replace

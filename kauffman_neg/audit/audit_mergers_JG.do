@@ -3,13 +3,13 @@ cd /NOBACKUP/scratch/share_scp/scp_private/kauffman_neg
 set more off
 global prepare_minimal 0
 global prepare_state 0
-global makefile 0
+global makefile 1
 global makeresult 1
 global audit_extfile 1
-global statelist AK AR AZ CA CO FL GA IA ID IL KY MA ME // MI MN MO NC ND NJ NM NY OH OK OR RI SC TN TX UT VA VT WA WI WY
-global longstatelist ALASKA ARKANSAS ARIZONA CALIFORNIA COLORADO FLORIDA GEORGIA IOWA IDAHO ILLINOIS KENTUCKY MASSACHUSETTS MAINE // MICHIGAN MINNESOTA MISSOURI NORTH_CAROLINA NORTH_DAKOTA NEW_JERSEY NEW_MEXICO NEW_YORK OHIO OKLAHOMA OREGON RHODE_ISLAND SOUTH_CAROLINA TENNESSEE TEXAS UTAH VIRGINIA VERMONT WASHINGTON WISCONSIN WYOMING
+global statelist AK AR AZ CA CO FL GA IA ID IL KY MA ME MI MN MO NC ND NJ NM NY OH OK OR RI SC TN TX UT VA VT WA WI WY
+global longstatelist ALASKA ARKANSAS ARIZONA CALIFORNIA COLORADO FLORIDA GEORGIA IOWA IDAHO ILLINOIS KENTUCKY MASSACHUSETTS MAINE MICHIGAN MINNESOTA MISSOURI NORTH_CAROLINA NORTH_DAKOTA NEW_JERSEY NEW_MEXICO NEW_YORK OHIO OKLAHOMA OREGON RHODE_ISLAND SOUTH_CAROLINA TENNESSEE TEXAS UTAH VIRGINIA VERMONT WASHINGTON WISCONSIN WYOMING
 
-
+/*
 use /NOBACKUP/scratch/share_scp/ext_data/mergers.dta , clear
 
 
@@ -52,7 +52,7 @@ tab is_match if equityvalue !=.
 use /user/user1/yl4180/save/Z_mergers.dta , clear
 
 
-
+*/
 
 if $prepare_minimal == 1{
 
@@ -105,11 +105,12 @@ local n: word count $statelist
 	tostring dataid , replace 
 	rename state datastate 
 	gen obs = 1
-	capture drop match_* mfull_name
-	tomname entityname
-	keep if incyear <= 2014
-	safedrop mergerdate mergeryear targetname equityvalue
+	keep if incyear <= 2014 & incyear >= 1988 
+	keep dataid datastate incyear incdate entityname obs
+	tomname entityname 
+	compress
 	save `state'.only.dta, replace
+	save `state'.only.orig.dta, replace
 	
 	clear
 	corp_add_mergers `state' ,dta(`state'.only.dta) merger(/NOBACKUP/scratch/share_scp/ext_data/mergers.dta) storenomatched(`state'.nomatch_old.dta)  longstate(`longstate')
@@ -117,10 +118,8 @@ local n: word count $statelist
 	gen nonmergers_old = missing(mergerdate)
 	drop if year(mergerdate) > 2013 & mergerdate !=. // we can keep this
 	rename mergerdate mergerdate_old
-	
-	replace equityvalue = "0" if equityvalue == "np" | missing(equityvalue)
-	replace equityvalue = subinstr(equityvalue, ",","",.)
-	destring equityvalue, replace
+
+	destring equityvalue, force replace
 	
 	rename equityvalue equityvalue_old
 	keep dataid datastate merger_old nonmergers_old mergerdate_old obs match_name entityname equityvalue_old
@@ -128,8 +127,7 @@ local n: word count $statelist
 	save `state'.mergers.dta, replace
 	
 	clear
-	u `state'.only.dta
-	keep dataid datastate obs entityname match_* mfull_name
+	use `state'.only.orig.dta, replace
 	save `state'.only.dta, replace
 	
 	clear
@@ -137,31 +135,25 @@ local n: word count $statelist
 	gen merger_new = !missing(mergerdate)
 	gen nonmergers_new = missing(mergerdate)
 	rename mergerdate mergerdate_new
+	destring equityvalue, replace force
 	
-	replace equityvalue = "0" if equityvalue == "np" | missing(equityvalue)
-	replace equityvalue = subinstr(equityvalue, ",","",.)
-	destring equityvalue, replace
-	
-	rename equityvalue equityxvalue_new
+	rename equityvalue equityvalue_new
 	keep dataid merger_new nonmergers_new mergerdate_new match_name entityname equityvalue_new
 	// DROP: duplicates drop dataid, force
 	save `state'.mergers_new.dta, replace
 	
 	clear
-	u `state'.only.dta
-	keep dataid datastate obs entityname match_* mfull_name
+	use `state'.only.orig.dta, replace
 	save `state'.only.dta, replace
 	
 	clear
-	corp_add_mergers `state' ,dta(`state'.only.dta) merger(/user/user1/yl4180/save/Z_mergers.dta) storenomatched(`state'.nomatch_Z.dta) longstate(`longstate')
+	corp_add_mergers `state' ,dta(`state'.only.dta) merger(/NOBACKUP/scratch/share_scp/ext_data/2018dta/mergers/Z_mergers.pre2014.dta) storenomatched(`state'.nomatch_Z.dta) longstate(`longstate')
 	gen merger_Z = !missing(mergerdate)
 	gen nonmergers_Z =missing(mergerdate)
 	drop if year(mergerdate) > 2013 & mergerdate !=.
 	rename mergerdate mergerdate_Z
-	
-	replace equityvalue = "0" if equityvalue == "n.a." | missing(equityvalue)
-	replace equityvalue = subinstr(equityvalue, ",","",.)
-	destring equityvalue, replace
+
+	destring equityvalue, replace force
 	replace equityvalue = equityvalue / (0.784 * 1000)
 	
 	rename equityvalue equityvalue_Z
@@ -219,7 +211,7 @@ if $audit_extfile == 1{
 	drop _merge targetstate 
 	save ext_old.dta, replace
 
-	u /NOBACKUP/scratch/share_scp/ext_data/2018dta/mergers/mergers.dta, clear // 1980 - 2018
+	u /NOBACKUP/scratch/share_scp/ext_data/2018dta/mergers/mergers.pre2014.dta, clear // 1980 - 2018
 	gen obs_new = 1
 	drop if missing(targetname)
 	gen year = year(dateannounced)
@@ -241,7 +233,7 @@ if $audit_extfile == 1{
 	drop _merge targetstate 
 	save ext_new.dta, replace
 	
-	u /user/user1/yl4180/save/Z_mergers.dta, clear //1996 - 2019
+	u /NOBACKUP/scratch/share_scp/ext_data/2018dta/mergers/Z_mergers.pre2014.dta, clear //1996 - 2019
 	gen obs_Z = 1
 	drop if missing(targetname)
 	gen year = year(dateannounced)
