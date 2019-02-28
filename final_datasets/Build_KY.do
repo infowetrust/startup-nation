@@ -1,4 +1,4 @@
-cd /NOBACKUP/scratch/share_scp/scp_private/scp2018
+cd /NOBACKUP/scratch/share_scp/scp_private/final_datasets/
 global mergetempsuffix KY
 
 clear
@@ -151,7 +151,7 @@ save KY.directors.dta, replace
 	
 
 	corp_add_ipos	 KY  ,dta(KY.dta) ipo(/NOBACKUP/scratch/share_scp/ext_data/ipoallUS.dta)  longstate(KENTUCKY) 
-	corp_add_mergers KY  ,dta(KY.dta) merger(/NOBACKUP/scratch/share_scp/ext_data/mergers.dta)  longstate(KENTUCKY) 
+	corp_add_mergers KY  ,dta(KY.dta) merger(/NOBACKUP/scratch/share_scp/ext_data/2018dta/mergers/mergers_2018.dta)  longstate(KENTUCKY) 
 	corp_add_vc 	 KY  ,dta(KY.dta) vc(/NOBACKUP/scratch/share_scp/ext_data/VX.dta) longstate(KENTUCKY)
 	compress
 	duplicates drop

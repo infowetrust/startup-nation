@@ -48,6 +48,7 @@ drop _merge
 keep if inlist(corporationtype, "Limited Liability Company","","LLP","Limited Partnership","Professional Corporation","Close Corporation","Gen. Business - For Profit")
 
 gen is_corp = strpos(corporationtype,"Corporation") > 0
+replace is_corp = 1 if strpos(corporationtype, "Gen. Business - For Profit")
 save MO.dta, replace
 
 
@@ -231,5 +232,6 @@ u MO.dta
 // gen is_DE = jurisdiction == "DE"
 safedrop shortname
 gen  shortname = wordcount(entityname) <= 3
+duplicates drop
 compress
 save MO.dta, replace

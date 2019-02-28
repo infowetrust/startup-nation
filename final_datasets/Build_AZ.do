@@ -36,7 +36,8 @@ gen is_DE = jurisdiction == "DE"
 gen potentiallylocal =  inlist(jurisdiction,"AZ","DE")
 drop if type == "N"
 drop if type == "I"
-gen is_corp = inlist(type,"A","F","G","P")
+drop if type == "S"
+gen is_corp = inlist(type,"A","F","B","P","R")
 /* Generating Variables */
 
 gen incdate = date(idate,"YMD")
@@ -53,7 +54,7 @@ replace state = substr(v1,857,2) if is_DE == 1
 replace zipcode = substr(v1,859,5) if is_DE == 1
 
 
-keep dataid entityname incdate incyear is_DE jurisdiction zipcode state city address is_corp shortname potentiallylocal
+keep dataid entityname type incdate incyear is_DE jurisdiction zipcode state city address is_corp shortname potentiallylocal
 replace state = "AZ" if missing(state) & jurisdiction == "AZ"
 gen local_firm = potentiallylocal
 replace state = trim(itrim(state))
@@ -65,7 +66,8 @@ if $only_DE == 1 {
     di "Using only Delaware firms.  Only DE flag turned on. `N' firms remaining"
 }
 
-
+duplicates drop
+compress
 save AZ.dta,replace
 
 

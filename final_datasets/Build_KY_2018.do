@@ -49,7 +49,7 @@ drop if missing(entityname)
 tostring dataid, replace
 tostring v2, replace
 replace dataid = dataid + v2+ substr(v3,4,2)
-keep if incyear < 2019 & incyear > 1987
+//keep if incyear < 2019 & incyear > 1987
 keep dataid entityname incdate incyear type is_DE jurisdiction zipcode state city address is_corp shortname local_firm
 
 duplicates drop
