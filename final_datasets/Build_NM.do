@@ -1,10 +1,10 @@
-cd /projects/reap.proj/reapindex/NewMexico
+cd /NOBACKUP/scratch/share_scp/scp_private/final_datasets
 global mergetempsuffix BuildNM
 
 global NM_dta_file NM.dta
 
 clear 
-import delimited using ~/projects/reap_proj/raw_data/NewMexico/DataSales_06012016/BusinessSP.txt, delim(tab) varname(1)
+import delimited using /NOBACKUP/scratch/share_scp/raw_data/NewMexico/DataSales_06012016/BusinessSP.txt, delim(tab) varname(1)
 
 rename businessname entityname
 rename placeofformation jurisdiction
@@ -17,19 +17,17 @@ duplicates drop businessno, force
 save $NM_dta_file, replace
 
 clear
-import delimited using ~/projects/reap_proj/raw_data/NewMexico/DataSales_06012016/BusinessAddressSP.txt, delim(tab) varname(1)
+import delimited using /NOBACKUP/scratch/share_scp/raw_data/NewMexico/DataSales_06012016/BusinessAddressSP.txt, delim(tab) varname(1)
 
 gen princ_address = .
 replace princ_address = 1 if addresstypedesc == "PrincipalPlaceMailingAddress"
-replace princ_address = 2 if addresstypedesc == "PrincipalPlacePhysicalAddress"
-replace princ_address = 3 if addresstypedesc == "CorpForeignPhysicalAddress"
+replace princ_address = 2 if addresstypedesc == "CorpForeignPhysicalAddress"
+replace princ_address = 3 if addresstypedesc == "PrincipalPlacePhysicalAddress"
 replace princ_address = 4 if addresstypedesc == "DomesticStateRegisteredAddress"
 
 bysort businessno (princ_address): gen top = _n == 1
-keep if top == 1
-
-gen address = addressline1 + addressline2
-replace address = trim(address)
+keep if top == 1 | princ == 2
+gen address = trim(addressline1 +" "+ addressline2)
 rename statecode state
 tostring businessno , replace
 merge m:1 businessno using $NM_dta_file
@@ -41,6 +39,12 @@ gen shortname = wordcount(entityname) < 4
 gen is_DE  = jurisdiction == "Delaware"
 gen incdate = date(dateofi,"MDY")
 gen incyear = year(incdate)
+duplicates tag dataid, gen(tag)
+drop if state == "NM" & tag == 1
+drop tag
+duplicates tag dataid, gen(tag) 
+drop if top == 0 & tag == 1
+drop tag 
 
 drop if missing(incdate)
 drop if missing(entityname)
@@ -87,25 +91,24 @@ save NM.directors.dta, replace
 	corp_add_eponymy, dtapath($NM_dta_file) directorpath(NM.directors.dta)
 
 
-       corp_add_industry_dummies , ind(~/ado/industry_words.dta) dta($NM_dta_file)
-	corp_add_industry_dummies , ind(~/ado/VC_industry_words.dta) dta($NM_dta_file)
+       corp_add_industry_dummies , ind(/NOBACKUP/scratch/share_scp/ext_data/industry_words.dta) dta($NM_dta_file)
+	corp_add_industry_dummies , ind(/NOBACKUP/scratch/share_scp/ext_data/VC_industry_words.dta) dta($NM_dta_file)
 	
 	
 	# delimit ;
 	corp_add_trademarks NM , 
 		dta($NM_dta_file) 
-		trademarkfile(~/projects/reap_proj/data/trademarks.dta) 
-		ownerfile(~/projects/reap_proj/data/trademark_owner.dta)
+		trademarkfile(/NOBACKUP/scratch/share_scp/ext_data/trademarks.dta) 
+		ownerfile(/NOBACKUP/scratch/share_scp/ext_data/trademark_owner.dta)
 		var(trademark) 
 		frommonths(-12)
 		tomonths(12)
 		statefileexists;
 	
-	
 	# delimit ;
 	corp_add_patent_applications NM NEW MEXICO , 
 		dta($NM_dta_file) 
-		pat(~/projects/reap_proj/data_share/patent_applications.dta) 
+		pat(/NOBACKUP/scratch/share_scp/ext_data/patent_applications.dta) 
 		var(patent_application) 
 		frommonths(-12)
 		tomonths(12)
@@ -118,16 +121,15 @@ save NM.directors.dta, replace
 	
 	corp_add_patent_assignments  NM NEW MEXICO , 
 		dta($NM_dta_file)
-		pat("~/projects/reap_proj/data_share/patent_assignments.dta" "~/projects/reap_proj/data_share/patent_assignments2.dta"  "~/projects/reap_proj/data_share/patent_assignments3.dta")
+		pat("/NOBACKUP/scratch/share_scp/ext_data/patent_assignments_all.dta")
 		frommonths(-12)
 		tomonths(12)
 		var(patent_assignment)
 		;
 	# delimit cr	
-
 	
 
-	corp_add_ipos	 NM  ,dta($NM_dta_file) ipo(~/projects/reap_proj/data/ipoallUS.dta)  longstate(NEW MEXICO)
-	corp_add_mergers NM  ,dta($NM_dta_file) merger(~/projects/reap_proj/data/mergers.dta)  longstate(NEW MEXICO) 
+	corp_add_ipos	 NM  ,dta($NM_dta_file) ipo(/NOBACKUP/scratch/share_scp/ext_data/ipoallUS.dta)  longstate(NEW MEXICO)
+	corp_add_mergers NM  ,dta($NM_dta_file) merger(/NOBACKUP/scratch/share_scp/ext_data/mergers.dta)  longstate(NEW MEXICO) 
 
-      corp_add_vc        NM ,dta($NM_dta_file) vc(~/final_datasets/VX.dta) longstate(NEW MEXICO)
+      corp_add_vc        NM ,dta($NM_dta_file) vc(/NOBACKUP/scratch/share_scp/ext_data/VX.dta) longstate(NEW MEXICO)

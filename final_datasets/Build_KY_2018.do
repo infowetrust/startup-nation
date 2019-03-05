@@ -11,7 +11,7 @@ rename v4 entityname
 /* Non Profit */
 drop if v41=="N"
 
-save KY.dta, replace
+//save KY.dta, replace
 
 rename v9 type
 gen is_corp = 1 if regexm(type,"CO")
@@ -48,6 +48,7 @@ drop if missing(entityname)
 
 tostring dataid, replace
 tostring v2, replace
+drop if inlist(v2, "01", "02", "03", "04", "10") | inlist(v2, "11", "12", "13", "14", "15") | inlist(v2, "17", "18", "20", "21", "22")
 replace dataid = dataid + v2+ substr(v3,4,2)
 //keep if incyear < 2019 & incyear > 1987
 keep dataid entityname incdate incyear type is_DE jurisdiction zipcode state city address is_corp shortname local_firm
@@ -58,18 +59,61 @@ save KY.dta,replace
 
 
 * Build Director File *
+/*
+P = President
+V = Vice President
+S = Secretary
+T = Treasurer
+D = Director
+M = Member
+N = Manager
+L = Sole Officer
+C = Chairman
+H = Shareholder
+E = Chief Executive Officer
+@ = Officer
+U = Unknown
+I = Incorporator
+O = Organizer
+G = General Partner
+X = ARP Signature
+A = Accountant
+R = Assistant Secretary
+B = Assistant Treasurer
+F = CFO
+Y = Certified Public Accountant
+J = Chief Operations Officer
+K = Clerk
+Q = Chief Information Officer
+W = Executive
+Z = General Manager
+1 = Limited Partner
+2 = Managing Member
+3 = Managing Partner
+4 = Managing Agent
+5 = Partner
+6 = No Title
+7 = Initial Director
+8 = Registered Agent
+*/
 clear
 
 import delimited /NOBACKUP/scratch/share_scp/raw_data/Kentucky/2018/2018_12/AllOfficers20181231.txt , delim(tab)
 save KY.directors.dta,replace
 
 rename v4 role
-keep if regexm(role,"P")
+replace role = upper(trim(role))
+keep if inlist(role,"P","V","N","L","C","E","Z","3")
+tostring v1, format(%12.0f) replace
+forvalues i = 1/7{
+replace v1 = "0"+v1 if strlen(v1) < 7
+}
 
+tostring v2,format(%12.0f) replace
+replace v2 = "0"+v2 if strlen(v2) < 2
+drop if inlist(v2, "01", "02", "03", "04", "10") | inlist(v2, "11", "12", "13", "14", "15") | inlist(v2, "17", "18", "20", "21", "22")
 
-tostring v1,replace
-tostring v2,replace
-tostring v3,replace
+tostring v3,format(%12.0f) replace
 gen dataid = v1 + v2 + substr(v3,4,2)
 rename (v5 v6 v7) (firstname middlename lastname)
 

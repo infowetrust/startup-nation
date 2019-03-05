@@ -1,7 +1,7 @@
 set more off
 cd /NOBACKUP/scratch/share_scp/scp_private/scp2018/
 global mergetempsuffix="TX_Official"
-/*
+
 /* Change this to create test samples */
 global dtasuffix 
 
@@ -140,7 +140,7 @@ keep dataid corpnumber entityname incdate incyear  is_corp jurisdiction is_nonpr
 		var(patent_assignment)
 		statefileexists;
 	# delimit cr	
-*/
+
 	corp_add_ipos	 TX ,dta(TX$dtasuffix.dta) ipo(/NOBACKUP/scratch/share_scp/ext_data/ipoallUS.dta) longstate(TEXAS)
 	corp_add_mergers TX ,dta(TX$dtasuffix.dta) merger(/NOBACKUP/scratch/share_scp/ext_data/2018dta/mergers/mergers_2018.dta) longstate(TEXAS)
       corp_add_vc        TX ,dta(TX.dta) vc(/NOBACKUP/scratch/share_scp/ext_data/VX.dta) longstate(TEXAS)

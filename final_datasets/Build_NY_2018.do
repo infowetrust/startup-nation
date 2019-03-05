@@ -1,8 +1,8 @@
-cd /NOBACKUP/scratch/share_scp/scp_private/final_datasets
+cd /NOBACKUP/scratch/share_scp/scp_private/scp2018
 global mergetempsuffix NYmerge
 
 clear
-import delimited using /NOBACKUP/scratch/share_scp/raw_data/New_York/Active_Corporations_Online/Active_Corporations__Beginning_1800_06_26_2018.csv
+import delimited using /NOBACKUP/scratch/share_scp/raw_data/New_York/2018/Active_Corporations___Beginning_1800.csv
 
 
 gen incdate = date(initialdosfilingdate,"MDY")
@@ -47,8 +47,8 @@ replace state = longstate if state  == "" & longstate != ""
 /**only 5 digit zipcodes **/
 replace zipcode = substr(itrim(trim(zipcode)), 1,5)
 
-rename (ïdosid currententityname) (dataid entityname)
-gen is_corp = strpos(entitytype, "CORPORATION")>0
+rename (dosid currententityname) (dataid entityname)
+gen is_corp = strpos(entitytype, "CORPORATION") > 0
 keep entityname incdate incyear is_DE address zipcode state city dataid is_corp
 
 
@@ -56,7 +56,7 @@ save NY.dta , replace
 
 
 
-
+// Don't have this file now 
 clear
 import delimited using "/NOBACKUP/scratch/share_scp/raw_data/New_York/Aug2015/us_ny_export_for_mit_2015-08-24.csv", delim(",") varnames(1) bindquote(loose)
 
@@ -111,7 +111,7 @@ foreach v of varlist zipcode state city address {
 
 gen incdate = date(incorporation_date, "YMD")
 gen incyear = year(incdate)
-gen is_corp = strpos(company_type,"CORPORATION") 
+gen is_corp = strpos(company_type,"CORPORATION") > 0
 gen is_nonprofit = strpos(company_type,"NOT-FOR-PROFIT") > 0
 
 rename home_jurisdiction jurisdiction
@@ -127,8 +127,8 @@ replace state = "NY" if state == "" & jurisdiction == "NY"
 replace zipcode = substr(itrim(trim(zipcode)), 1,5)
 
 
-/** these are only the inactive  ones **/
-//drop if current_status == "Active"
+/** these are only the inactive ones **/
+drop if current_status == "Active"
 
 keep dataid entityname incdate incyear is_corp address city state zipcode is_DE current_status
 
@@ -142,15 +142,33 @@ drop keepme second_file
 save NY.dta,replace
 
 
+replace city = itrim(trim(upper(city)))
+replace state = itrim(trim(upper(state)))
+replace zipcode = itrim(trim(zipcode))
 
+replace shortname = wordcount(entityname) <= 3
+replace corpnumber = dataid
 
-gen shortname = wordcount(entityname) <= 3
-gen corpnumber = dataid
-
-gen local_firm= state == "NY"
-gen stateaddress = state
+replace state = "NY" if missing(state)
+replace local_firm= state == "NY"
+replace stateaddress = state
 
 save NY.dta , replace
+
+// keep old ones
+append using ../final_datasets/NY.dta, keep(entityname dataid zipcode state city address incdate incyear is_corp is_DE current_status corpnumber local_firm stateaddress shortname)
+
+replace entityname = trim(itrim(entityname))
+shortstate state, gen(name) replace
+replace state = trim(itrim(state))
+replace city = trim(itrim(city))
+replace zipcode = trim(itrim(zipcode))
+replace address = trim(itrim(address))
+replace stateaddress = state
+drop local_firm
+gen local_firm=state=="NY"
+
+duplicates drop 
 
 
 **
@@ -170,8 +188,8 @@ save NY.dta , replace
 	# delimit ;
 	corp_add_trademarks NY , 
 		dta(NY.dta) 
-		trademarkfile(/NOBACKUP/scratch/share_scp/ext_data/trademarks.dta) 
-		ownerfile(/NOBACKUP/scratch/share_scp/ext_data/trademark_owner.dta)
+		trademarkfile(/NOBACKUP/scratch/share_scp/ext_data/2018dta/trademarks.dta) 
+		ownerfile(/NOBACKUP/scratch/share_scp/ext_data/2018dta/trademark_owner.dta)
 		var(trademark) 
 		frommonths(-12)
 		tomonths(12)
@@ -181,15 +199,16 @@ save NY.dta , replace
 	# delimit ;
 	corp_add_patent_applications NY NEW YORK , 
 		dta(NY.dta) 
-		pat(/NOBACKUP/scratch/share_scp/ext_data/patent_applications.dta) 
+		pat(/NOBACKUP/scratch/share_scp/ext_data/2018dta/patent_applications.dta) 
 		var(patent_application) 
 		frommonths(-12)
 		tomonths(12)
 		statefileexists;
 		
+	# delimit ;	
 	corp_add_patent_assignments  NY NEW YORK , 
 		dta(NY.dta)
-		pat("/NOBACKUP/scratch/share_scp/ext_data/patent_assignments.dta" "/NOBACKUP/scratch/share_scp/ext_data/patent_assignments2.dta" "/NOBACKUP/scratch/share_scp/ext_data/patent_assignments3.dta")
+		pat("/NOBACKUP/scratch/share_scp/ext_data/2018dta/patent_assignments.dta")
 		frommonths(-12)
 		tomonths(12)
 		var(patent_assignment)
@@ -197,7 +216,11 @@ save NY.dta , replace
 	
 	# delimit cr	
 	corp_add_ipos	 NY ,dta(NY.dta) ipo(/NOBACKUP/scratch/share_scp/ext_data/ipoallUS.dta) longstate(NEW YORK)
-	corp_add_mergers NY ,dta(NY.dta) merger(/NOBACKUP/scratch/share_scp/ext_data/mergers.dta)  longstate(NEW YORK)
+	corp_add_mergers NY  ,dta(NY.dta) merger(/NOBACKUP/scratch/share_scp/ext_data/2018dta/mergers/mergers_2018.dta)  longstate(NEW YORK) 
+	replace targetsic = trim(targetsic)
+	foreach var of varlist equityvalue mergeryear mergerdate{
+	rename `var' `var'_new
+	}
 	corp_add_vc 	 NY ,dta(NY.dta) vc(/NOBACKUP/scratch/share_scp/ext_data/VX.dta) longstate(NEW YORK)
 
 
@@ -208,4 +231,3 @@ safedrop shortname
 gen  shortname = wordcount(entityname) <= 3
 compress
  save NY.dta, replace
-save /NOBACKUP/scratch/share_scp/migration/datafiles/NY.dta, replace

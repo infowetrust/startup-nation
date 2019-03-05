@@ -48,10 +48,13 @@ drop if missing(entityname)
 //type
 
 /** Address for foreign entities is stored somewhere else **/
-replace address = trim(substr(v1,747,90)) if is_DE == 1
-replace city = trim(substr(v1,837,20)) if is_DE == 1
-replace state = substr(v1,857,2) if is_DE == 1
-replace zipcode = substr(v1,859,5) if is_DE == 1
+gen state2 = substr(v1,857,2)
+replace state2 = trim(state2)
+
+replace address = trim(substr(v1,747,90)) if is_DE == 1 & state == "AZ" & !inlist(state2, "AZ", "")
+replace city = trim(substr(v1,837,20)) if is_DE == 1 & state == "AZ" & !inlist(state2, "AZ", "")
+replace state = substr(v1,857,2) if is_DE == 1 & state == "AZ" & !inlist(state2, "AZ", "")
+replace zipcode = substr(v1,859,5) if is_DE == 1 & state == "AZ" & !inlist(state2, "AZ", "")
 
 
 keep dataid entityname type incdate incyear is_DE jurisdiction zipcode state city address is_corp shortname potentiallylocal
@@ -68,6 +71,7 @@ if $only_DE == 1 {
 
 duplicates drop
 compress
+
 save AZ.dta,replace
 
 
@@ -81,7 +85,7 @@ gen role = substr(v1,10,2)
 replace role = upper(trim(itrim(role)))
 gen fullname = trim(substr(v1,12,30))
 
-// keep if inlist(role,"PR","P") for legislator task
+keep if inlist(role,"PR","P")
 keep dataid fullname role 
 drop if missing(fullname)
 save /NOBACKUP/scratch/share_scp/scp_private/final_datasets/AZ.directors.dta, replace
@@ -132,7 +136,7 @@ save /NOBACKUP/scratch/share_scp/scp_private/final_datasets/AZ.directors.dta, re
 	
 	corp_add_patent_assignments  AZ ARIZONA , 
 		dta(AZ.dta)
-		pat("/NOBACKUP/scratch/share_scp/ext_data/patent_assignments.dta" "/NOBACKUP/scratch/share_scp/ext_data/patent_assignments2.dta"  "/NOBACKUP/scratch/share_scp/ext_data/patent_assignments3.dta")
+		pat("/NOBACKUP/scratch/share_scp/ext_data/patent_assignments_all.dta")
 		frommonths(-12)
 		tomonths(12)
 		var(patent_assignment)
@@ -147,4 +151,3 @@ save /NOBACKUP/scratch/share_scp/scp_private/final_datasets/AZ.directors.dta, re
 
 
       corp_add_vc        AZ ,dta(AZ.dta) vc(/NOBACKUP/scratch/share_scp/ext_data/VX.dta) longstate(ARIZONA)
-      save /NOBACKUP/scratch/share_scp/migration/datafiles/AZ.dta, replace // for now

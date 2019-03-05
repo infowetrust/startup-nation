@@ -1,5 +1,5 @@
 cd /NOBACKUP/scratch/share_scp/scp_private/final_datasets/
-global mergetempsuffix KY
+global mergetempsuffix KYmaster
 
 clear
 
@@ -48,6 +48,8 @@ drop if missing(entityname)
 
 tostring dataid, replace
 tostring v2, replace
+drop if inlist(v2, "01", "02", "03", "04", "10") | inlist(v2, "11", "12", "13", "14", "15") | inlist(v2, "17", "18", "20", "21", "22")
+
 replace dataid = dataid + v2+ substr(v3,4,2)
 //keep if incyear < 2019 & incyear > 1987
 keep dataid entityname incdate incyear type is_DE jurisdiction zipcode state city address is_corp shortname local_firm
@@ -63,14 +65,21 @@ clear
 import delimited /NOBACKUP/scratch/share_scp/raw_data/Kentucky/2018/AllOfficers20180831.txt , delim(tab)
 save KY.directors.dta,replace
 
-rename v4 role
-keep if regexm(role,"P")
+rrename v4 role
+replace role = upper(trim(role))
+keep if inlist(role,"P","V","N","L","C","E","Z","3")
+tostring v1, format(%12.0f) replace
+forvalues i = 1/7{
+replace v1 = "0"+v1 if strlen(v1) < 7
+}
 
+tostring v2,format(%12.0f) replace
+replace v2 = "0"+v2 if strlen(v2) < 2
+drop if inlist(v2, "01", "02", "03", "04", "10") | inlist(v2, "11", "12", "13", "14", "15") | inlist(v2, "17", "18", "20", "21", "22")
 
-tostring v1,replace
-tostring v2,replace
-tostring v3,replace
+tostring v3,format(%12.0f) replace
 gen dataid = v1 + v2 + substr(v3,4,2)
+
 rename (v5 v6 v7) (firstname middlename lastname)
 
 	replace lastname = subinstr(lastname,"."," ",.)
