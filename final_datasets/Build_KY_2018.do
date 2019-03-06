@@ -52,6 +52,7 @@ drop if inlist(v2, "01", "02", "03", "04", "10") | inlist(v2, "11", "12", "13", 
 replace dataid = dataid + v2+ substr(v3,4,2)
 //keep if incyear < 2019 & incyear > 1987
 keep dataid entityname incdate incyear type is_DE jurisdiction zipcode state city address is_corp shortname local_firm
+gen stateaddress = state
 
 duplicates drop
 compress

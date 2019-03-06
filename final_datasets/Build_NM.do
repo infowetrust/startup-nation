@@ -53,7 +53,7 @@ replace zipcode = substr(zipcode,1,5)
 keep dataid entityname incdate incyear is_DE jurisdiction zipcode state city address is_corp shortname potentiallylocal
 replace state = "NM" if missing(state)
 gen stateaddress = state
-
+gen local_firm = inlist(jurisdiction, "New Mexico", "Delaware") & inlist(state, "","NM")
 if "$NM_dta_file" == "NM.DE.dta" {
     keep if is_DE == 1
 }

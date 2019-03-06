@@ -1,7 +1,7 @@
-cd /NOBACKUP/scratch/share_scp/scp_private/scp2018
+cd /NOBACKUP/scratch/share_scp/scp_private/final_datasets/
 
 global mergetempsuffix Maine
-global ME_file ME2.dta
+global ME_file ME.dta
 global only_DE 0
 
 clear
@@ -28,6 +28,7 @@ gen is_DE = jurisdiction == "DE"
 
 gen potentiallylocal =  inlist(jurisdiction,"ME","DE")
 
+
 /* Generating Variables */
 
 /**
@@ -36,17 +37,17 @@ gen potentiallylocal =  inlist(jurisdiction,"ME","DE")
 **/
 
 gen address_value = .
+replace address_value = 0 if record_category == "H"
 replace address_value = 1 if record_category == "M"
-replace address_value = 2 if record_category == "C"
-replace address_value = 3 if record_category == "O"
-replace address_value = 4 if record_category == "H"
-replace address_value = 5 if record_category == "X"
+replace address_value = 2 if record_category == "O"
+replace address_value = 3 if record_category == "C"
+replace address_value = 4 if record_category == "X"
 
 bysort dataid (address_value): gen top_record = _n == 1
 keep if top_record
 
-gen incdate = date(v3,"YMD")
-replace incdate = date(v4,"YMD") if incdate == .
+gen incdate = date(v4,"YMD")
+replace incdate = date(v3,"YMD") if incdate == .
 format incdate %d
 
 gen incyear = year(incdate)
@@ -120,7 +121,7 @@ di _N
 	
 	corp_add_patent_assignments  ME MAINE , 
 		dta($ME_file)
-		pat("/NOBACKUP/scratch/share_scp/ext_data/patent_assignments.dta" "/NOBACKUP/scratch/share_scp/ext_data/patent_assignments2.dta")
+		pat("/NOBACKUP/scratch/share_scp/ext_data/patent_assignments_all.dta")
 		frommonths(-12)
 		tomonths(12)
 		var(patent_assignment)

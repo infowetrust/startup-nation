@@ -56,6 +56,7 @@ keep dataid entityname incdate incyear type is_DE jurisdiction zipcode state cit
 
 duplicates drop
 compress
+gen stateaddress = state
 save KY.dta,replace
 
 
@@ -65,7 +66,7 @@ clear
 import delimited /NOBACKUP/scratch/share_scp/raw_data/Kentucky/2018/AllOfficers20180831.txt , delim(tab)
 save KY.directors.dta,replace
 
-rrename v4 role
+rename v4 role
 replace role = upper(trim(role))
 keep if inlist(role,"P","V","N","L","C","E","Z","3")
 tostring v1, format(%12.0f) replace
@@ -160,7 +161,7 @@ save KY.directors.dta, replace
 	
 
 	corp_add_ipos	 KY  ,dta(KY.dta) ipo(/NOBACKUP/scratch/share_scp/ext_data/ipoallUS.dta)  longstate(KENTUCKY) 
-	corp_add_mergers KY  ,dta(KY.dta) merger(/NOBACKUP/scratch/share_scp/ext_data/2018dta/mergers/mergers_2018.dta)  longstate(KENTUCKY) 
+	corp_add_mergers KY  ,dta(KY.dta) merger(/NOBACKUP/scratch/share_scp/ext_data/mergers.dta)  longstate(KENTUCKY) 
 	corp_add_vc 	 KY  ,dta(KY.dta) vc(/NOBACKUP/scratch/share_scp/ext_data/VX.dta) longstate(KENTUCKY)
 	compress
 	duplicates drop

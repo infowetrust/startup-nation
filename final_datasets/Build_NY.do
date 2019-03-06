@@ -130,7 +130,7 @@ replace zipcode = substr(itrim(trim(zipcode)), 1,5)
 /** these are only the inactive  ones **/
 //drop if current_status == "Active"
 
-keep dataid entityname incdate incyear is_corp address city state zipcode is_DE current_status
+keep dataid entityname incdate incyear is_corp jurisdiction address city state zipcode is_DE current_status
 
 gen second_file = 1
 append using NY.dta 
@@ -189,7 +189,7 @@ save NY.dta , replace
 		
 	corp_add_patent_assignments  NY NEW YORK , 
 		dta(NY.dta)
-		pat("/NOBACKUP/scratch/share_scp/ext_data/patent_assignments.dta" "/NOBACKUP/scratch/share_scp/ext_data/patent_assignments2.dta" "/NOBACKUP/scratch/share_scp/ext_data/patent_assignments3.dta")
+		pat("/NOBACKUP/scratch/share_scp/ext_data/patent_assignments_all.dta")
 		frommonths(-12)
 		tomonths(12)
 		var(patent_assignment)
@@ -208,4 +208,3 @@ safedrop shortname
 gen  shortname = wordcount(entityname) <= 3
 compress
  save NY.dta, replace
-save /NOBACKUP/scratch/share_scp/migration/datafiles/NY.dta, replace

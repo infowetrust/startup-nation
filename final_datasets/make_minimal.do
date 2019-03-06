@@ -1,12 +1,14 @@
 cd /NOBACKUP/scratch/share_scp/scp_private/final_datasets/
 clear
-global mergetempsuffix = "_"
+global mergetempsuffix = "mini"
 global statelist AK AR AZ CA CO FL GA IA ID IL KY LA MA ME MI MN MO NC ND NJ NM NY OH OK OR RI SC TN TX UT VA VT WA WI WY
 global longstatelist ALASKA ARKANSAS ARIZONA CALIFORNIA COLORADO FLORIDA GEORGIA IOWA IDAHO ILLINOIS KENTUCKY LOUISIANA MASSACHUSETTS MAINE MICHIGAN MINNESOTA MISSOURI NORTH_CAROLINA NORTH_DAKOTA NEW_JERSEY NEW_MEXICO NEW_YORK OHIO OKLAHOMA OREGON RHODE_ISLAND SOUTH_CAROLINA TENNESSEE TEXAS UTAH VIRGINIA VERMONT WASHINGTON WISCONSIN WYOMING
+global mergelist ME
+global longmergelist MAINE
 global prepare_states 0
 global fix_local_firm 0
-global collapse_states 0
-global append_states 0
+global collapse_states 1
+global append_states 1
 global make_minimal 1
 global audit_table 0
 global audit_compare 0
@@ -15,10 +17,10 @@ global audit_compare 0
 set more off
 
 if $prepare_states == 1{
-local n: word count $statelist
+local n: word count $mergelist
 forvalues i = 1/`n'{
-	local state: word `i' of $statelist
-	local longstate: word `i' of $longstatelist
+	local state: word `i' of $mergelist
+	local longstate: word `i' of $longmergelist
 	local longstate= subinstr("`longstate'","_"," ",.)
 	u `state'.dta, clear
 	

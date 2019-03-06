@@ -30,7 +30,7 @@ gen is_DE = jurisdiction == "DE"
 
 gen local_firm = is_domestic | !is_domestic & is_DE
 keep if !is_nonprofit
-keep dataid corp_number is_nonprofit is_corp incdate incyear entityname jurisdiction is_domestic local_firm incdateDE incyearDE
+keep dataid corp_number is_nonprofit is_corp is_DE incdate incyear entityname jurisdiction is_domestic local_firm incdateDE incyearDE
 
 save GA.dta, replace
 
@@ -61,7 +61,8 @@ replace local_firm = 0 if ! inlist(state,"GA","")
 foreach var of varlist city state address jurisdiction {
 replace `var' = trim(itrim(upper(`var')))
 }
-keep dataid entityname city state zipcode address is_corp is_nonprofit incdate incyear local_firm jurisdiction incdateDE incyearDE
+keep dataid entityname city state zipcode address is_corp is_DE is_nonprofit incdate incyear local_firm jurisdiction incdateDE incyearDE
+gen stateaddress = state
 save GA.dta, replace
 
 
