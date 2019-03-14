@@ -104,7 +104,7 @@ map.on('load', function () {
     type: 'vector',
 
     //tileset keys from startupcarto's Mapbox account
-    url: 'mapbox://startupcarto.90t7up0t,startupcarto.bbphij92,startupcarto.8r1dzrwh' //city, address, county
+    url: 'mapbox://startupcarto.citkw4fu,startupcarto.bbphij92,startupcarto.8r1dzrwh' //city, address, county
   });
 
   // COUNTY SHADING (1st because it is bottom layer)
@@ -139,7 +139,7 @@ map.on('load', function () {
     'id': 'cityCircle',
     'type': 'circle',
     'source': 'composite_data',
-    'source-layer': 'ky_citygeojson',
+    'source-layer': 'ky_city',
     'symbol-z-layer': 'source',
     'paint': {
       //Add data-driven styles for circle-color
