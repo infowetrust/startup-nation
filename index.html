@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset='utf-8' />
+  <title>Startup Cartography Project</title>
+  <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+
+  <!-- Mapbox GL -->
+  <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.51.0/mapbox-gl.js'></script>
+  <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.51.0/mapbox-gl.css' rel='stylesheet' />
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+  <style>
+    #map {
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      width: 100%;
+    }
+
+    /*following two stylings keep Mapbox logo in lower left even with small screens*/
+
+    .mapboxgl-ctrl-bottom-left {
+    	left:21%;
+    }
+
+    @media all and (max-width: 1500px) {
+    .mapboxgl-ctrl-bottom-left{
+        margin-left: 0px;
+        left: 330px;
+    }}
+
+    #console {
+      position: absolute;
+      width: 20%; /* 230px */
+      min-width: 300px;   
+      height: 100%;
+      margin: -8px 0px;
+      /*padding: 10px 10px;*/
+      padding-left: 10px;
+      padding-right: 10px;
+      padding-top: 10px;
+      padding-bottom: 0px;
+      background-color: white;
+      border-radius: 0px;
+      box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.10);
+      font: 18px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+    }
+
+	/* The slider itself */
+	.slider {
+	  -webkit-appearance: none;   /*Override default CSS styles */
+	  appearance: none;
+	  display:block;
+	  position:relative;
+	  z-index: 12;
+	  width: 100%; /* Full-width */
+	  height: 0px; /* Specified height */
+	  /*margin: 0 auto;*/
+	  margin-top: 15px;
+	  background: rgba(0,0,0,0); /*transparent track color*/
+	  /*background: black; TESTING track color*/
+	  outline: none; /* Remove outline */
+	  opacity: 1; /* Set transparency (for mouse-over effects on hover) */
+	  -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+	  transition: opacity .2s;
+	}
+
+
+	/* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */ 
+	.slider::-webkit-slider-thumb {
+	  -webkit-appearance: none; /* Override default look */
+	  appearance: none;
+	  width: 4%; /* Set a specific slider handle width */
+	  /*padding-top:100%;*/
+	  height: 15px; /* Slider handle height*/
+	  border-radius: 50%; /* Makes circle*/
+	  background: #2F6BC7; /* thumb color */
+	  cursor: pointer; /* Cursor on hover */
+	}
+
+	/* Mouse-over effects */
+	.slider::-webkit-slider-thumb:hover {
+	  background: #E77367;
+	  opacity: 1; /* Fully shown on mouse-over */
+	}
+
+	.slider::-moz-range-thumb {
+	  width: 4%; /* Set a specific slider handle width */
+	  height: 4; /* Slider handle height */
+	  border-radius: 50%;
+	  background: #2F6BC7; /* background */
+	  cursor: pointer; /* Cursor on hover */
+	}
+
+	.ticks {
+		position: absolute;
+		z-index: 11;
+		display: block;
+		left:12px;
+		width: calc(100% - 20px);
+		margin-top: 3px;		
+		height: 25px;
+	}
+
+    .mapboxgl-popup {
+      max-width: 400px;
+      font: 12px/12px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+    }
+
+    .session {
+      text-align: left;
+      margin-bottom: 8px;
+      font-size: 95%;
+    }
+
+    a.imageLink{
+    text-decoration:none;
+    }
+
+    .label {
+      width: 31%;
+      display: inline-block;
+      text-align: center;
+    }
+
+    .blue-label {
+      color:#2F6BC7; /*blue from color ramp*/
+    }
+
+    .gray-label {
+      color:Gainsboro;
+    }
+
+    .purple-label {
+      color:#452D95; /*purple from color ramp*/
+    }
+
+    .quality-scale ul {
+      margin: 0;
+      padding: 0;
+      float: left;
+      list-style: none;
+    }
+
+    .quality-scale ul li {
+      display: block;
+      float: left;
+      width: 13%;
+      /*legend circle spacing */
+      margin-bottom: 6px;
+      text-align: center;
+      font-size: 80%;
+      list-style: none;
+    }
+
+    ul
+
+    /*removes bullets & indentations from all tooltips */
+      {
+      list-style-type: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    ul.quality-labels li span {
+      display: block;
+      float: center;
+      height: 10px;
+      width: 50px;
+    }
+
+    #svg2 {
+      margin-left: auto;
+      margin-right: auto;
+      display: block;
+    }
+  </style>
+
+</head>
+
+<body>
+  <script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v2.1.0/mapbox-gl-geocoder.min.js'></script>
+
+  <link rel='stylesheet' href='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v2.1.0/mapbox-gl-geocoder.css'
+    type='text/css' />
+
+  <div id='map'>
+    <div class="mapboxgl-ctrl-bottom-right">
+      <div class="mapboxgl-ctrl mapboxgl-ctrl-attrib">
+        <a href="https://www.startupmaps.us/" target="_blank">© SCP | </a>
+        <a href="https://www.mapbox.com/about/maps/" target="_blank">© Mapbox</a>
+        <a href="http://www.openstreetmap.org/about/" target="_blank">© OpenStreetMap</a>
+        <a class="mapbox-improve-map" href="https://www.mapbox.com/map-feedback/#/-98.88301727848066/39.38358539296533/5"
+          target="_blank">Improve this map</a>
+      </div>
+    </div>
+  </div>
+
+
+  <nav id="menu"></nav>
+
+  <div id='console'>
+    <a class="imageLink" href="https://www.startupmaps.us/" target='_blank'>
+      <img src="https://infowetrust.com/wp-content/uploads/2018/12/startupCartoLogo4.png" alt:"innovation.mit.edu" style="width:80%;">
+    </a>
+    
+    <br>
+    <b><font class='purple-label'> New businesses since 1988</b>
+    <!--  defines break line used throughout-->
+    
+    <svg width="100%" height="20">
+       <line id="break-line" x1="0%" y1="10" x2="100%" y2="10" style="stroke:Gainsboro;stroke-width:2"/>
+    </svg>
+
+    <b><font color="black">YEAR: <label id='Year' class='blue-label'>2005</label></b>
+    
+    <svg class='ticks'>
+      <style type="text/css" >
+        <![CDATA[
+            line.white {
+                stroke: rgba(0,0,0,0);
+                stroke-width:2;
+            }
+            line.all-years {
+                stroke: gray;
+                stroke-width:1;
+            }
+            line.five-years {
+                stroke: gray;
+                stroke-width:2;
+            }
+        ]]>
+      </style>
+		<line class="white" x1="0%" x2="0%" y1="0"  y2="100%"/>
+		<line class="white" x1="2%" x2="2%" y1="0"  y2="100%"/>
+		<line class="all-years" x1="5%" x2="5%" y1="0"  y2="100%"/>
+		<line class="all-years" x1="8%" x2="8%" y1="0"  y2="100%"/>
+		<line class="five-years" x1="11%" x2="11%" y1="0"  y2="100%"/>
+		<line class="all-years" x1="14%" x2="14%" y1="0"  y2="100%"/>
+		<line class="all-years" x1="17%" x2="17%" y1="0"  y2="100%"/>
+		<line class="all-years" x1="20%" x2="20%" y1="0"  y2="100%"/>
+		<line class="all-years" x1="23%" x2="23%" y1="0"  y2="100%"/>
+		<line class="five-years" x1="26%" x2="26%" y1="0"  y2="100%"/>
+		<line class="all-years" x1="29%" x2="29%" y1="0"  y2="100%"/>
+		<line class="all-years" x1="32%" x2="32%" y1="0"  y2="100%"/>
+		<line class="all-years" x1="35%" x2="35%" y1="0"  y2="100%"/>
+		<line class="all-years" x1="38%" x2="38%" y1="0"  y2="100%"/>
+		<line class="five-years" x1="41%" x2="41%" y1="0"  y2="100%"/>
+		<line class="all-years" x1="44%" x2="44%" y1="0"  y2="100%"/>
+		<line class="all-years" x1="47%" x2="47%" y1="0"  y2="100%"/>
+		<line class="all-years" x1="50%" x2="50%" y1="0"  y2="100%"/>
+		<line class="all-years" x1="53%" x2="53%" y1="0"  y2="100%"/>
+		<line class="five-years" x1="56%" x2="56%" y1="0"  y2="100%"/>
+		<line class="all-years" x1="59%" x2="59%" y1="0"  y2="100%"/>
+		<line class="all-years" x1="62%" x2="62%" y1="0"  y2="100%"/>
+		<line class="all-years" x1="65%" x2="65%" y1="0"  y2="100%"/>
+		<line class="all-years" x1="68%" x2="68%" y1="0"  y2="100%"/>
+		<line class="five-years" x1="71%" x2="71%" y1="0"  y2="100%"/>
+		<line class="all-years" x1="74%" x2="74%" y1="0"  y2="100%"/>
+		<line class="all-years" x1="77%" x2="77%" y1="0"  y2="100%"/>
+		<line class="all-years" x1="80%" x2="80%" y1="0"  y2="100%"/>
+		<line class="all-years" x1="83%" x2="83%" y1="0"  y2="100%"/>
+		<line class="five-years" x1="86%" x2="86%" y1="0"  y2="100%"/>
+		<line class="all-years" x1="89%" x2="89%" y1="0"  y2="100%"/>
+		<line class="all-years" x1="92%" x2="92%" y1="0"  y2="100%"/>
+		<line class="all-years" x1="95%" x2="95%" y1="0"  y2="100%"/>
+		<line class="white" x1="98%" x2="98%" y1="0"  y2="100%"/>
+		<line class="white" x1="100%" x2="100%" y1="0"  y2="100%"/>
+    </svg>
+
+    <div class='session' id='sliderbar'>
+      <input id='slider' class='slider' type='range' min='1987' max='2019' step='1' value='2005'/>    
+    </div>
+
+    <svg width="100%" height="10" font-size="14px">
+	    <text text-anchor="middle" x="11%" y="100%" fill="gray">1990</text>
+		<text text-anchor="middle" x="41%" y="100%" fill="gray">2000</text>
+		<text text-anchor="middle" x="71%" y="100%" fill="gray">2010</text>
+    </svg>
+
+    <svg width="100%" height="20">
+      <use xlink:href="#break-line"/>
+    </svg>
+    
+    <div class='session'>
+      <b><font color="black">QUALITY</b><br>
+      <small>Entrepreneurial Quality Percentile</small>
+      <br>
+      <svg width="100%" height="25" style="display: block;">
+        <rect x=0% width="50%" height="100%" style="fill:#FBF2CD;" />
+        <rect x="50%" width="25%" height="100%" style="fill:#F3BF83;" />
+        <rect x="75%" width="15%" height="100%" style="fill:#E97262;" />
+        <rect x="90%" width="5%" height="100%" style="fill:#CF2870;" />
+        <rect x="95%" width="3%" height="100%" style="fill:#9F26A6;" />
+        <rect x="98%" width="1%" height="100%" style="fill:#5A5BC4;" />
+        <rect x="99%" width="1%" height="100%" style="fill:#452D95;" />
+      </svg>
+        
+      <svg width="100%" height="35" font-size="14px" style="display: block;">
+        <line x1="0%" y1="0" x2="0%" y2="3" style="stroke:black;stroke-width:2" />
+        <text text-anchor="start" x="0" y="40%" fill="black">0%</text>
+        
+        <line x1="50%" y1="0" x2="50%" y2="3" style="stroke:black;stroke-width:1" />
+        <text text-anchor="middle" x="50%" y="40%" fill="black">50</text>
+        
+        <line x1="75%" y1="0" x2="75%" y2="3" style="stroke:black;stroke-width:1" />
+        <text text-anchor="middle" x="75%" y="40%" fill="black">75</text>
+        
+        <line x1="90%" y1="0" x2="90%" y2="3" style="stroke:black;stroke-width:1" />
+        <text text-anchor="middle" x="90%" y="40%" fill="black">90</text>
+
+        <line x1="100%" y1="0" x2="100%" y2="15" style="stroke:black;stroke-width:2" />
+        <text text-anchor="end" x="100%" y="90%" font-style="italic" fill="Gray">circle color emphasizes top 10%</text>                
+      </svg>
+    </div>
+
+      <svg width="100%" height="20">
+        <use xlink:href="#break-line"/>
+      </svg>
+    
+      <b>QUANTITY by
+        <label id='stateLabel' class='gray-label'>State </label>
+        <label id='cityLabel' class='blue-label'>City  </label>
+        <label id='addressLabel' class='gray-label'>Address</label></b><br>
+      <font color="black"><small>Circle size is new registrations<br>
+      
+      <i><svg width="100%" height="42" fill="grey">
+          
+          <circle cx="37%" cy="50%" r="4%" />
+          <circle cx="45%" cy="50%" r="5.5%" />
+          <circle cx="55%" cy="50%" r="7%" />
+          
+          <text text-anchor="start" x="24%" y="60%" fill="black">few</text>
+          <text text-anchor="start" x="62%" y="60%" fill="black">many</text>
+      </svg></small></i>
+
+      <svg width="100%" height="20">
+        <use xlink:href="#break-line"/>
+      </svg>
+      
+      <b>ADD CONTEXT</b><br>
+      <small>
+        <font color="black"> Select to shade counties
+      </small>
+
+      <form action="">
+        <small>&emsp;<input type="radio" name="shading" value="none" checked="checked"><b> NONE</b><br>
+          &emsp;<input type="radio" name="shading" value="population"><b> POPULATION</b> 2010 Census<br>
+          &emsp;<input type="radio" name="shading" value="income"><b> INCOME</b> 2010 Census<br>
+          &emsp;<input type="radio" name="shading" value="reai"><b> REAI</b> available through 2008
+      </form>
+      <br>
+      <!-- we should really create these swatches using D3 or JQuery using the colors defined for the map below -->
+      <svg id="svg2" width="230" height="20" font-size="10px">
+        <rect y="5" x=0% width="100%" height="15" style="fill:#F6F6F4;fill-opacity:1" />
+        <rect y="5" x=0% width="20%" height="15" style="fill:#0C64A5;fill-opacity:0.5" />
+        <rect y="5" x=20% width="20%" height="15" style="fill:#A0CFD9;fill-opacity:0.5" />
+        <rect y="5" x=40% width="20%" height="15" style="fill:#DFEFE7;fill-opacity:0.5" />
+        <rect y="5" x=60% width="20%" height="15" style="fill:#A8E2AB;fill-opacity:0.5" />
+        <rect y="5" x=80% width="20%" height="15" style="fill:#50B899;fill-opacity:0.5" />
+        <text text-anchor="start" x="0" y="15" fill="white">&emsp;below</text>
+        <text text-anchor="middle" x="50%" y="15" fill="black">average</text>
+        <text text-anchor="end" x="100%" y="15" fill="white">above&emsp;</text>
+      </svg>
+     
+      <svg width="100%" height="20">
+        <use xlink:href="#break-line"/>
+      </svg>
+
+      <center><i>See <a href='https://www.startupmaps.us/' target='_blank'>methodology</a> | Take a <a href='https://www.take-a-screenshot.org/' target='_blank'>screenshot</a></i></small>
+  </div>
+
+  <script>
+    //Mapbox Studio Public Access tokens:
+    
+    //infowetrust
+    //mapboxgl.accessToken = 'pk.eyJ1IjoicmphbmRyZXdzIiwiYSI6ImNpeW5wMWUzbjAwMW8zM3BucWVremoxNjQifQ.NdFCDsj_fjlIzfTUh8JmoQ';
+    
+    //startupcarto
+    mapboxgl.accessToken =
+      'pk.eyJ1Ijoic3RhcnR1cGNhcnRvIiwiYSI6ImNqN204cHllbDE1c3czNGxhdndpcGI5NjMifQ.zUztT384kQartYPh21LWxQ';
+
+    // Set bounds to USA (with a big buffer)
+    var bounds = [
+      [-175, 0], // Southwest coordinates X,Y
+      [-35, 70] // Northeast coordinates X,Y
+    ];
+    var centerPoint = [-101, 33]
+
+    //Load a new map in the 'map' HTML div
+    var map = new mapboxgl.Map({
+      container: 'map',
+      //custom style id for style that removes black dots for city centers
+      
+      //infowetrust
+      //style: 'mapbox://styles/rjandrews/cj1z8se9i00122rqznzg893co',
+      
+      //startupcarto
+      style: 'mapbox://styles/startupcarto/cj7mb40yp96l52rnvh1e3b6j2',
+      attributionControl: false,
+      hash: true,
+      center: centerPoint,
+      zoom: 3.65,
+      minZoom: 3,
+      maxZoom: 15,
+      maxBounds: bounds // Sets var bounds as max
+
+    });
+
+    //define quality (state & city & address) colors
+    var colorList = [
+      [0, "#FBF2CD"],
+      [1, '#FBF2CD'],
+      [501, '#F3BF83'],
+      [751, '#E97262'],
+      [901, '#CF2870'],
+      [951, '#9F26A6'],
+      [981, '#5A3BC4'],
+      [991, '#452D95']
+    ];
+
+    //sets all circle strokes to Black
+    var strokeBlack = [
+      [0, "rgba(0,0,0,0)"],
+      [1, '#000'],
+      [999, '#000']
+    ];
+
+    /*
+    // Old context color scheme: Blue Green Yellow
+    var colorBuckets = [
+      "rgba(0,0,0,0)",
+      '#0C64A5',
+      '#5BB9CD',
+      '#8ED2BE',
+      '#BEE6C0',
+      '#DCF1D7'
+    ]
+    */
+
+    // New Diverging color scheme: Blue White Green
+    var colorBuckets = [
+      "rgba(0,0,0,0)",
+      '#0C64A5',
+      '#A0CFD9',
+      '#DFEFE7',
+      '#A8E2AB',
+      '#50B899'
+    ]
+
+    //define REAI (county) colors
+    var colorReai = [
+      [0, colorBuckets[0]],
+      [1, colorBuckets[1]],
+      [25, colorBuckets[2]],
+      [50, colorBuckets[3]],
+      [75, colorBuckets[4]],
+      [100, colorBuckets[5]]
+    ];
+
+    //define Census colors
+    var colorCensus = [
+      [0, colorBuckets[0]],
+      [1, colorBuckets[1]],
+      [201, colorBuckets[2]],
+      [401, colorBuckets[3]],
+      [601, colorBuckets[4]],
+      [801, colorBuckets[5]]
+    ];
+
+    //tileset variables
+
+    map.on('load', function () {
+
+      var Year = 2005; //global so radio button can use it
+
+      //Tilesets from Mapbox
+
+      //composite data: {{state,}} county, city, address
+      map.addSource('composite_data', { //name
+        type: 'vector',
+        //infowetrust
+        //url: 'mapbox://rjandrews.6yqumwnl,rjandrews.dru9lbxc,rjandrews.6204a9mh,rjandrews.d5u6km4c'
+        //startupcarto TK add STATE!
+        url: 'mapbox://startupcarto.d6ocer6d,startupcarto.8r1dzrwh,startupcarto.4rhl0dub,startupcarto.6o9q2fch' //update these
+      });
+
+      //Add STATE BUBBLES
+      map.addLayer({
+        'id': 'stateCircle',
+        'type': 'circle',
+        'source': 'composite_data',
+        'source-layer': 'allstates_state-6k4mkj',
+        //Add data-driven styles for circle-color
+        'paint': {
+          'circle-color': {
+            property: 'qy' + Year, //the prefix qy has been changed from original qp
+            type: 'interval',
+            default: 'rgba(0,0,0,0)',
+            stops: colorList
+          },
+
+          'circle-radius': [ //Adds data-driven styles for circle radius
+            'interpolate', ['linear'], ['zoom'],
+            2, [ '+', ['/', ['number', ['get','o' + Year]], 20000], 10],
+            4, [ '+', ['/', ['number', ['get','o' + Year]], 10000], 10]
+          ],
+
+          'circle-opacity': [ //creates smooth transition when zooming
+            'interpolate', ['linear'], ['zoom'],
+            3.6, ['number', 0.9],
+            3.7, ['number', 0.0]
+          ],
+
+          'circle-stroke-width': 1, //circle-stroke creates border
+
+          'circle-stroke-color': {
+            property: 'qy' + Year,
+            type: 'interval',
+            default: 'rgba(0,0,0,0)',
+            stops: strokeBlack
+          },
+
+          'circle-stroke-opacity': [
+            'interpolate', ['linear'], ['zoom'],
+            3.6, ['number', 0.15], //[zoom level, opacity]
+            3.7, ['number', 0.0]
+          ],
+        },
+        //filter: ['==', 'year', Year]
+      }, 'waterway-label');
+
+      // COUNTY SHADING (1st because it is bottom layer)
+      map.addLayer({
+        'id': 'Shading',
+        'type': 'fill',
+        'source': 'composite_data', //name of tileset
+        'source-layer': '2000census2-ast166', //name of layer
+        'layout': {
+          'visibility': 'none' //allows visible-none of layer
+        },
+        'paint': {
+          'fill-color': {
+            property: 'reai_' + Year,
+            type: 'interval',
+            default: 'rgba(0,0,0,0)',
+            stops: colorReai
+          },
+          'fill-opacity': {
+            property: 'reai_' + Year,
+            type: 'interval',
+            default: 0.5,
+            stops: [
+              [0, 0.5]
+            ]
+          },
+        }
+      }, 'waterway-label');
+
+      // CITY BUBBLES
+      map.addLayer({
+        'id': 'cityCircle',
+        'type': 'circle',
+        'source': 'composite_data',
+        'source-layer': 'allstates_citiesgeojson',
+        'paint': {
+          //Add data-driven styles for circle-color
+          'circle-color': {
+            property: 'qy' + Year,
+            type: 'interval',
+            default: 'rgba(0,0,0,0)',
+            stops: colorList
+          },
+          //Adds data-driven styles for circle radius
+          'circle-radius': [
+            'interpolate', ['linear'], ['zoom'],
+            3, [ '+', ['/', ['number', ['get','o' + Year]], 8000], 2],
+            11, [ '+', ['/', ['number', ['get','o' + Year]], 500], 2]
+          ],
+          //creates smooth transition when zooming
+          'circle-opacity': [
+            'interpolate', ['linear'], ['zoom'],
+            3.6, ['number', 0.0],
+            3.7, ['number', 0.9],
+            10, ['number', 0.9],
+            10.1, ['number', 0.0],
+          ],
+          //circle-stroke creates border
+          'circle-stroke-width': 1,
+
+          'circle-stroke-color': {
+            property: 'qy' + Year,
+            type: 'interval',
+            default: 'rgba(0,0,0,0)',
+            stops: strokeBlack
+          },
+
+          'circle-stroke-opacity': [
+            'interpolate', ['linear'], ['zoom'],
+            3.6, ['number', 0.0],
+            3.7, ['number', 0.15],
+            10, ['number', 0.15],
+            10.1, ['number', 0.0],
+          ],
+        },
+        //filter: ['==', 'year', Year]
+      }, 'waterway-label');
+
+      // ADDRESS BUBBLES
+      map.addLayer({
+        'id': 'addressCircle',
+        'type': 'circle',
+        'source': 'composite_data',
+        'source-layer': 'allstates_addressgeojson',
+
+        'paint': {
+          //Add data-driven styles for circle-color
+          'circle-color': {
+            property: 'qy' + Year,
+            type: 'interval',
+            default: 'rgba(0,0,0,0)',
+            stops: colorList
+          },
+          //Adds data-driven styles for circle radius
+          'circle-radius': [
+            'interpolate', ['linear'], ['zoom'],
+            9, [ '+', ['/', ['number', ['get','o' + Year]], 3], 3],
+            15, [ '+', ['/', ['number', ['get','o' + Year]], 2], 3]
+          ],
+
+          'circle-opacity': [
+            'interpolate', ['linear'], ['zoom'],
+            10, ['number', 0.0],
+            10.1, ['number', 0.9]
+          ],
+
+          //circle-stroke creates border
+          'circle-stroke-width': 1,
+
+          'circle-stroke-color': {
+            property: 'qy' + Year,
+            type: 'interval',
+            default: 'rgba(0,0,0,0)',
+            stops: strokeBlack
+          },
+
+          'circle-stroke-opacity': [
+            'interpolate', ['linear'], ['zoom'],
+            10, ['number', 0.0],
+            10.1, ['number', 0.15]
+          ],
+        },
+        //filter: ['==', 'Year', Year]
+      }, 'waterway-label')
+
+      //listens for radio selection changes
+      $(document).ready(function () {
+        $('input[type=radio]').click(function () {
+          console.log(this.value);
+          var shadingID = $('input[name="shading"]:checked').val();
+          console.log('shadingID', shadingID);
+
+          if (shadingID == 'population') {
+            map.setPaintProperty('Shading', 'fill-color', {
+              property: 'PopPerc',
+              type: 'interval',
+              //default: 'black',
+              default: 'rgba(0,0,0,0)',
+              stops: colorCensus
+            }).setLayoutProperty('Shading', 'visibility', 'visible')
+          } else if (shadingID == 'income') {
+            map.setPaintProperty('Shading', 'fill-color', {
+              property: 'IncomePerc',
+              type: 'interval',
+              default: 'rgba(0,0,0,0)',
+              stops: colorCensus
+            }).setLayoutProperty('Shading', 'visibility', 'visible')
+          } else if (shadingID == 'reai') {
+            map.setPaintProperty('Shading', 'fill-color', {
+              property: 'reai_' + Year,
+              type: 'interval',
+              default: 'rgba(0,0,0,0)',
+              stops: colorReai
+            }).setLayoutProperty('Shading', 'visibility', 'visible')
+          } else {
+            map.setLayoutProperty('Shading', 'visibility', 'none')
+          }
+
+
+        });
+      });
+
+
+      //change console text color with zoom level
+      var zoomThresholdLow = 3.65;
+      var zoomThresholdHigh = 10.05;
+
+
+      map.on('zoom', function() {
+        if (map.getZoom() > zoomThresholdHigh) {
+            stateLabel.className = 'gray-label';
+            cityLabel.className = 'gray-label';
+            addressLabel.className = 'blue-label';
+        } else if (map.getZoom() < zoomThresholdLow){
+            stateLabel.className = 'blue-label';
+            cityLabel.className = 'gray-label';
+            addressLabel.className = 'gray-label';
+        } else {
+            stateLabel.className = 'gray-label';
+            cityLabel.className = 'blue-label';
+            addressLabel.className = 'gray-label';
+        }
+      });
+
+      //get the current year as an integer
+      document.getElementById('slider').addEventListener('change', function (e) {
+        Year = parseInt(e.target.value);
+
+        //use current year
+        document.getElementById('Year').innerText = Year;
+        //TK add state updates here
+        map.setPaintProperty('stateCircle', 'circle-color', {
+          property: 'qy' + Year,
+          type: 'interval',
+          default: 'rgba(0,0,0,0)',
+          stops: colorList
+        })
+
+        map.setPaintProperty('stateCircle', 'circle-stroke-color', {
+          property: 'qy' + Year,
+          type: 'interval',
+          default: 'rgba(0,0,0,0)',
+          stops: strokeBlack
+        })
+
+        map.setPaintProperty('stateCircle', 'circle-radius', [
+          'interpolate', ['linear'], ['zoom'],
+          2, [ '+', ['/', ['number', ['get','o' + Year]], 20000], 10],
+          4, [ '+', ['/', ['number', ['get','o' + Year]], 10000], 10]
+        ])
+
+        //city updates
+        map.setPaintProperty('cityCircle', 'circle-color', {
+          property: 'qy' + Year,
+          type: 'interval',
+          default: 'rgba(0,0,0,0)',
+          stops: colorList
+        })
+
+        map.setPaintProperty('cityCircle', 'circle-stroke-color', {
+          property: 'qy' + Year,
+          type: 'interval',
+          default: 'rgba(0,0,0,0)',
+          stops: strokeBlack
+        })
+
+        map.setPaintProperty('cityCircle', 'circle-radius', [
+          'interpolate', ['linear'], ['zoom'],
+          3, [ '+', ['/', ['number', ['get','o' + Year]], 8000], 2],
+          11, [ '+', ['/', ['number', ['get','o' + Year]], 500], 2]
+        ])
+        //address updates
+        map.setPaintProperty('addressCircle', 'circle-color', {
+          property: 'qy' + Year,
+          type: 'interval',
+          default: 'rgba(0,0,0,0)',
+          stops: colorList
+        })
+
+        map.setPaintProperty('addressCircle', 'circle-radius', [
+          'interpolate', ['linear'], ['zoom'],
+          9, [ '+', ['/', ['number', ['get','o' + Year]], 3], 3],
+          15, [ '+', ['/', ['number', ['get','o' + Year]], 2], 3]
+        ])
+
+        map.setPaintProperty('addressCircle', 'circle-stroke-color', {
+          property: 'qy' + Year,
+          type: 'interval',
+          default: 'rgba(0,0,0,0)',
+          stops: strokeBlack
+        })
+        //Shading
+        var shadingID = $('input[name="shading"]:checked').val();
+        console.log("check shading in yr function:", shadingID);
+
+        if (shadingID == 'reai') {
+          map.setPaintProperty('Shading', 'fill-color', {
+            property: 'reai_' + Year,
+            type: 'interval',
+            stops: colorReai
+          })
+        }
+      });
+
+      //TOOLTIPS: TK add zoom layering filtering + city names
+
+      // When a click event occurs near a place, open a popup tooltip at the
+      // location of the feature, with description HTML from its properties.
+      
+	      map.on('click', function (e) {
+	        var features = map.queryRenderedFeatures(e.point, {
+	          layers: ['cityCircle']
+	        });
+
+	        if (!features.length) {
+	          return;
+	        }
+
+	        var feature = features[0];
+
+	        var popup = new mapboxgl.Popup()
+	          .setLngLat(feature.geometry.coordinates)
+	          .setHTML('<div id="popup" class="popup" style="z-index: 10;"> ' +
+	            '<ul class="list-group">' +
+	            '<li class="list-group-item"> City: ' + feature.properties['city'] + " </li>" +
+	            '<li class="list-group-item"> State: ' + feature.properties['state'] +" </li>" +
+	            '<li class="list-group-item"> Quality %: ' + feature.properties['qy' + Year]/10 +
+	            '<li class="list-group-item"> Quantity %: ' + feature.properties['o' + Year]/10 +
+	            '<li class="list-group-item"> Year: ' + [Year] +
+	            '</ul> </div>')
+	          .addTo(map);
+	      });
+	  
+
+      // Use the same approach as above to indicate that the symbols are clickable
+      // by changing the cursor style to 'pointer'.
+      map.on('mousemove', function (e) {
+        var features = map.queryRenderedFeatures(e.point, {
+          layers: ['cityCircle']
+        });
+        map.getCanvas().style.cursor = (features.length) ? 'pointer' : '';
+      });
+
+    });
+
+    // ADD things
+    //search bar
+    map.addControl(new MapboxGeocoder({
+      accessToken: mapboxgl.accessToken
+    }));
+    
+    //search bar custom position
+    //var geocoder = new MapboxGeocoder({
+    //  accessToken: mapboxgl.accessToken
+    //});
+
+    //document.getElementById('geocoder').appendChild(geocoder.onAdd(map));
+
+    //zoom and rotation controls to the map.
+    map.addControl(new mapboxgl.NavigationControl({
+      'position': 'top-right'
+    }));
+
+    //HIDE THINGS
+    
+    // disable map rotation using right click + drag
+    map.dragRotate.disable();
+    // disable map rotation using touch rotation gesture
+    map.touchZoomRotate.disableRotation();
+
+
+    //hides Alaska beyond specified zoom level
+    //map.on('zoomend', function () {
+      //if (map.getZoom() > 3.75) {
+        //document.getElementById('minimap1').style.visibility = 'hidden'
+     // } else {
+     //   document.getElementById('minimap1').style.visibility = 'visible'
+     // }    });
+  </script>
+</body>
+
+</html>
