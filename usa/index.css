@@ -154,6 +154,7 @@ text-decoration:none;
 .purple-header {
   color: #452D95;
   font-weight: bold;
+  text-align: left;
   font-size: medium;
 }
 

@@ -4,12 +4,12 @@
 mapboxgl.accessToken =
   'pk.eyJ1Ijoic3RhcnR1cGNhcnRvIiwiYSI6ImNqN204cHllbDE1c3czNGxhdndpcGI5NjMifQ.zUztT384kQartYPh21LWxQ';
 
-// Set bounds to Kentucky (with a big buffer)
+// Set bounds to USA (with a big buffer)
 var bounds = [
-  [-100, 30], // Southwest coordinates X,Y
-  [-75, 45] // Northeast coordinates X,Y
+  [-175, 0], // Southwest coordinates X,Y
+  [-35, 70] // Northeast coordinates X,Y
 ];
-var centerPoint = [-87.2, 37.5]
+var centerPoint = [-105, 38]
 
 //Load a new map in the 'map' HTML div
 var map = new mapboxgl.Map({
@@ -18,12 +18,12 @@ var map = new mapboxgl.Map({
   //startupcarto
   //state fills created using tutorial https://docs.mapbox.com/help/tutorials/style-single-country/
   //with data from http://www.naturalearthdata.com/downloads/10m-cultural-vectors/
-  
-  style: 'mapbox://styles/startupcarto/cjrdwob723lhr2tmqwm09a3mk',
+
+  style: 'mapbox://styles/startupcarto/cjv8kuz6675w21ft6k8zc1j5r',
   attributionControl: false,
   hash: true, //populates URL with zoom level and coordinates of current view
   center: centerPoint,
-  zoom: 7,
+  zoom: 3.5,
   minZoom: 3,
   maxZoom: 15,
   maxBounds: bounds // Sets var bounds as max
