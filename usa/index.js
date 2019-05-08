@@ -104,7 +104,7 @@ map.on('load', function () {
     type: 'vector',
 
     //tileset keys from startupcarto's Mapbox account
-    url: 'mapbox://startupcarto.citkw4fu,startupcarto.120d6yi2,startupcarto.8r1dzrwh' //city, address, county
+    url: 'mapbox://startupcarto.3aiaye1g,startupcarto.120d6yi2,startupcarto.8r1dzrwh' //city, address, county
   });
 
   // COUNTY SHADING (1st because it is bottom layer)
@@ -139,7 +139,7 @@ map.on('load', function () {
     'id': 'cityCircle',
     'type': 'circle',
     'source': 'composite_data',
-    'source-layer': 'ky_city',
+    'source-layer': 'usa_city',
     'symbol-z-layer': 'source',
     'paint': {
       //Add data-driven styles for circle-color
@@ -154,6 +154,10 @@ map.on('load', function () {
         'interpolate', ['linear'], ['zoom'],
         6, [ '+', ['/', ['number', ['get','so' + Year]], 5], 2],
         10, [ '+', ['/', ['number', ['get','so' + Year]], 0.5], 2]
+        // zoom level, obs value / #divisor + floor_#
+        // Kentucky values are:
+        // 6, [ '+', ['/', ['number', ['get','so' + Year]], 5], 2],
+        // 10, [ '+', ['/', ['number', ['get','so' + Year]], 0.5], 2]
       ],
       //quickly transition between city and address layers
       'circle-opacity': [
