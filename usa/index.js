@@ -104,7 +104,7 @@ map.on('load', function () {
     type: 'vector',
 
     //tileset keys from startupcarto's Mapbox account
-    url: 'mapbox://startupcarto.3aiaye1g,startupcarto.120d6yi2,startupcarto.8r1dzrwh' //city, address, county
+    url: 'mapbox://startupcarto.7npi23tb,startupcarto.120d6yi2,startupcarto.8r1dzrwh' //city, address, county
   });
 
   // COUNTY SHADING (1st because it is bottom layer)
