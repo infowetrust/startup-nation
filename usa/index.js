@@ -95,7 +95,7 @@ var colorCensus = [
 
 map.on('load', function () {
 
-  var Year = 2005; //global so radio button can use it
+  var Year = 2015; //global so radio button can use it
 
   //Tilesets from Mapbox
 
@@ -104,7 +104,7 @@ map.on('load', function () {
     type: 'vector',
 
     //tileset keys from startupcarto's Mapbox account
-    url: 'mapbox://startupcarto.7npi23tb,startupcarto.120d6yi2,startupcarto.8r1dzrwh' //city, address, county
+    url: 'mapbox://startupcarto.bniw6jgj,startupcarto.72dcxdb2,startupcarto.8r1dzrwh' //city, address, county
   });
 
   // COUNTY SHADING (1st because it is bottom layer)
@@ -152,10 +152,10 @@ map.on('load', function () {
       //Adds data-driven styles for circle size
       'circle-radius': [
         'interpolate', ['linear'], ['zoom'],
-        6, [ '+', ['/', ['number', ['get','so' + Year]], 5], 2],
-        10, [ '+', ['/', ['number', ['get','so' + Year]], 0.5], 2]
-        // zoom level, obs value / #divisor + floor_#
-        // Kentucky values are:
+        6, [ '+', ['/', ['number', ['get','so' + Year]], 8], 1.5],
+        10, [ '+', ['/', ['number', ['get','so' + Year]], 1], 2]
+        // zoom level, obs value / divisor + floor_#
+        // Original Kentucky values are:
         // 6, [ '+', ['/', ['number', ['get','so' + Year]], 5], 2],
         // 10, [ '+', ['/', ['number', ['get','so' + Year]], 0.5], 2]
       ],
@@ -191,7 +191,7 @@ map.on('load', function () {
     'id': 'addressCircle',
     'type': 'circle',
     'source': 'composite_data',
-    'source-layer': 'ky_address',
+    'source-layer': 'usa_address',
 
     'paint': {
       //Add data-driven styles for circle-color
