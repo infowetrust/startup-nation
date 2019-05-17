@@ -23,7 +23,7 @@
   <div id='map'>
     <div class="mapboxgl-ctrl-bottom-right">
       <div class="mapboxgl-ctrl mapboxgl-ctrl-attrib">
-        <a href="https://www.startupmaps.us/" target="_blank">© SCP | </a>
+        <a href="http://www.startupcartography.com" title="Andrews, RJ, C Fazio, J Guzman, and S Stern. 2019." target="_blank">© SCP | </a>
         <a href="https://www.mapbox.com/about/maps/" target="_blank">© Mapbox</a>
         <a href="http://www.openstreetmap.org/about/" target="_blank">© OpenStreetMap</a>
         <a class="mapbox-improve-map" href="https://www.mapbox.com/map-feedback/#/-98.88301727848066/39.38358539296533/5"
@@ -35,19 +35,20 @@
   <nav id="menu"></nav>
 
   <div id='console'>
+      <svg width="100%" height="0"></svg>
     <a class="imageLink" href="https://www.startupmaps.us/" target='_blank'>
       <img src="https://infowetrust.com/wp-content/uploads/2018/12/startupCartoLogo4.png" style="width:80%;">
     </a>
     
     <br>
-    <span class='purple-header'>New U.S.A. businesses since 1988</span>
+    <span class='purple-header'>New USA business registrations <br>since 1988. See <a class="dynamic" href='http://www.startupcartography.com' target='_blank'>methodology</a>.</span>
     <!--  defines break line used throughout-->
     
     <svg width="100%" height="20">
        <line id="break-line" x1="0%" y1="10" x2="100%" y2="10" style="stroke:Gainsboro;stroke-width:2"/>
     </svg>
 
-    <span class='black-header'>YEAR: <label id='Year' class='blue-label'>2018</label></span>
+    <span class='black-header'>YEAR: <label id='Year' class='blue-label'>2014</label></span>
     
     <svg class='ticks'>
       <line class="white" x1="0%" x2="0%" y1="0"  y2="100%"/>
@@ -88,13 +89,13 @@
     </svg>
 
     <div class='session' id='sliderbar'>
-      <input id='slider' class='slider' type='range' min='1987' max='2019' step='1' value='2018'/>    
+      <input id='slider' class='slider' type='range' min='1987' max='2019' step='1' value='2014'/>    
     </div>
 
     <svg class='black-small' width="100%" height="10">
 	  <text text-anchor="middle" x="11%" y="100%" fill="gray">1990</text>
 		<text text-anchor="middle" x="41%" y="100%" fill="gray">2000</text>
-		<text text-anchor="middle" x="71%" y="100%" fill="gray">2010</text>
+    <text text-anchor="middle" x="71%" y="100%" fill="gray">2010</text>
     </svg>
 
     <svg width="100%" height="20">
@@ -138,6 +139,7 @@
       </svg>
     
       <span class='black-header'>QUANTITY by</span>
+        <label id='stateLabel' class='gray-label'>State  </label>  
         <label id='cityLabel' class='blue-label'>City  </label>
         <label id='addressLabel' class='gray-label'>Address</label><br>
       <span class='black-small'>Circle size is new registrations</span>
@@ -157,35 +159,40 @@
       </svg>
       
       <span class="black-header">ADD CONTEXT</span><br>
-      <span class="black-small"> Select to shade counties</span>
-
-      <form action="">
-        <small>&emsp;<input type="radio" name="shading" value="none" checked="checked"><span class="black-small"><b> NONE</b><br></span>
-          &emsp;<input type="radio" name="shading" value="population"><span class="black-small"><b> POPULATION</b> 2010 Census</span><br>
-          &emsp;<input type="radio" name="shading" value="income"><span class="black-small"><b> INCOME</b> 2010 Census</span>
-          <!-- <br>&emsp;<input type="radio" name="shading" value="reai"><span class="black-small"><b> REAI</b> available through 2008</span> -->
-      </form>
-      <br>
+            <!-- Custom radio buttons -->
+            <label class="container">NONE<input type="radio" checked="checked" name="shading" value="none"><span class="checkmark"></span>&emsp;&emsp;</label>
+            <label class="container">POPULATION<input type="radio" name="shading" value="population"><span class="checkmark"></span>&emsp;&emsp;</label>
+            <label class="container">INCOME<input type="radio" name="shading" value="income"><span class="checkmark"></span></label><br>
+      <span class="black-small"> Select to shade counties with 2010 Census data</span><br>
 
       <!-- we should really create these swatches using D3 or JQuery using the colors defined for the map below -->
-      <svg id="svg2" width="230" height="30" font-size="12px">
-        <rect y="5" x=0% width="100%" height="100%" style="fill:#F6F6F4;fill-opacity:1" />
-        <rect y="5" x=0% width="20%" height="100%" style="fill:#50B899;fill-opacity:0.5" />
-        <rect y="5" x=20% width="20%" height="100%" style="fill:#A8E2AB;fill-opacity:0.5" />
-        <rect y="5" x=40% width="20%" height="100%" style="fill:#DFEFE7;fill-opacity:0.5" />
-        <rect y="5" x=60% width="20%" height="100%" style="fill:#A0CFD9;fill-opacity:0.5" />
-        <rect y="5" x=80% width="20%" height="100%" style="fill:#0C64A5;fill-opacity:0.5" />
-        <text text-anchor="start" x="0" y="22" fill="white">&ensp;LOW</text>
-        <text text-anchor="middle" x="50%" y="22" fill="black">MID</text>
-        <text text-anchor="end" x="100%" y="22" fill="white">HIGH&ensp;</text>
-      </svg>
+      <svg id="svg2" width="100%" height="30" font-size="12px">
+          <rect y="5" x=0% width="100%" height="100%" style="fill:#F6F6F4;fill-opacity:1" />
+          <rect y="5" x=0% width="20%" height="100%" style="fill:#50B899;fill-opacity:0.5" />
+          <rect y="5" x=20% width="20%" height="100%" style="fill:#A8E2AB;fill-opacity:0.5" />
+          <rect y="5" x=40% width="20%" height="100%" style="fill:#DFEFE7;fill-opacity:0.5" />
+          <rect y="5" x=60% width="20%" height="100%" style="fill:#A0CFD9;fill-opacity:0.5" />
+          <rect y="5" x=80% width="20%" height="100%" style="fill:#0C64A5;fill-opacity:0.5" />
+          <text text-anchor="start" x="0" y="22" fill="white">&ensp;LOW</text>
+          <text text-anchor="middle" x="50%" y="22" fill="black">MID</text>
+          <text text-anchor="end" x="100%" y="22" fill="white">HIGH&ensp;</text>
+        </svg>
+
+      <!-- Default radio buttons -->
+      <!-- <form action="">
+        <small><input type="radio" name="shading" value="none" checked="checked"><span class="black-small"><b> NONE
+          &emsp;&ensp;<input type="radio" name="shading" value="population"><span class="black-small"><b> POPULATION
+          &emsp;&ensp;<input type="radio" name="shading" value="income"><span class="black-small"><b> INCOME</span>
+          <br>&emsp;<input type="radio" name="shading" value="reai"><span class="black-small"><b> REAI</b> available through 2008</span>
+      </form>-->
      
       <svg width="100%" height="20">
         <use xlink:href="#break-line"/>
       </svg>
       <div style="text-align: center;">
-        <span class='black-small'><i>See <a href='https://www.startupmaps.us/' target='_blank'>methodology</a> | Download <a href='http://www.startupcartography.com/data' target='_blank'>data</a><br>
-          Learn how to <a href='https://www.take-a-screenshot.org/' target='_blank'>screenshot</a></i></span>
+        <span class='black-small'>Download <a class="dynamic" href='http://www.startupcartography.com/data' target='_blank'>data</a> | Learn how to <a class="dynamic" href='https://www.take-a-screenshot.org/' target='_blank'>screenshot</a><br>
+          <i>Supported by Kauffman Foundation<br>
+          Hosted at Columbia University</i></span>
     </div>
   </div>
 

@@ -20,13 +20,12 @@
 #console {
   position: absolute;
   width: 20%; /* 230px */
-  min-width: 300px;   
+  min-width: 300px;
   height: 100%;
   margin: -8px 0px;
-  /*padding: 10px 10px;*/
   padding-left: 10px;
   padding-right: 10px;
-  padding-top: 10px;
+  padding-top: 0px;
   padding-bottom: 0px;
   background-color: white;
   border-radius: 0px;
@@ -103,6 +102,73 @@ margin-top: 3px;
 height: 25px;
 }
 
+/* CUSTOM RADIO BUTTONS */
+/* Customize the label (the container) */
+.container {
+  float:left;
+  position: relative;
+  padding-left: 18px;
+  margin-bottom: 0px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: small;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Hide the browser's default radio button */
+.container input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+/* Create a custom radio button */
+.checkmark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 15px;
+  width: 15px;
+  background-color: gainsboro;
+  border-radius: 50%;
+  font-weight: bold;
+  font-size: medium;
+}
+
+/* On mouse-over, add a grey background color */
+.container:hover input ~ .checkmark {
+  background-color: #E77367;
+}
+/* When the radio button is checked, add a blue background */
+.container input:checked ~ .checkmark {
+  background-color: #2F6BC7;
+}
+/* Create the indicator (the dot/circle - hidden when not checked) */
+.checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+/* Show the indicator (dot/circle) when checked */
+.container input:checked ~ .checkmark:after {
+  display: block;
+}
+
+/* Style the indicator (dot/circle)*/
+.container .checkmark:after {
+  top: 5px;
+  left: 5px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: white;
+}
 
 line.white {
 stroke: rgba(0,0,0,0);
@@ -140,6 +206,7 @@ text-decoration:none;
 
 .blue-label {
   color:#2F6BC7; /*blue from color ramp*/
+  font-weight: bold; 
 }
 
 .gray-label {
@@ -155,9 +222,22 @@ text-decoration:none;
   color: #452D95;
   font-weight: bold;
   text-align: left;
-  font-size: medium;
+  font-size: calc(16px + 0.20vw);
+  /*font-size: medium;*/
 }
 
+/*console link styling*/
+a.dynamic:link {
+  color: #2F6BC7;
+}
+a.dynamic:visited {
+  color: #2F6BC7;
+}
+a.dynamic:hover {
+  color: #E97261;
+}
+
+/*header styling*/
 .black-header {
   color: black;
   font-weight: bold;
@@ -166,12 +246,6 @@ text-decoration:none;
 
 .black-small {
   color: black;
-  font-weight: normal;
-  font-size: small;
-}
-
-.grey-small {
-  color: blue;
   font-weight: normal;
   font-size: small;
 }
