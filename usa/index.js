@@ -95,7 +95,7 @@ var colorCensus = [
 
 map.on('load', function () {
 
-  var Year = 2015; //global so radio button can use it
+  var Year = 2014; //global so radio button can use it
 
   //Tilesets from Mapbox
 
@@ -134,6 +134,57 @@ map.on('load', function () {
     }
   }, 'waterway-label');
 
+  // STATE BUBBLES
+  map.addLayer({
+    'id': 'stateCircle',
+    'type': 'circle',
+    'source': 'composite_data',
+    'source-layer': 'usa_state',
+    'symbol-z-layer': 'source',
+    'paint': {
+      //Add data-driven styles for circle-color
+      'circle-color': {
+        property: 'qy' + Year,
+        type: 'interval',
+        default: 'rgba(0,0,0,0)',
+        stops: colorList
+      },
+      //Adds data-driven styles for circle size
+      'circle-radius': [
+        // 'zoom level', obs value / divisor + floor_#
+        'interpolate', ['linear'], ['zoom'],
+        3, [ '+', ['/', ['number', ['get','so' + Year]], 8], 1.5],
+        3.5, [ '+', ['/', ['number', ['get','so' + Year]], 1], 2]
+        
+        // Original Kentucky values are:
+        // 6, [ '+', ['/', ['number', ['get','so' + Year]], 5], 2],
+        // 10, [ '+', ['/', ['number', ['get','so' + Year]], 0.5], 2]
+      ],
+      //quickly transition between state and city layers
+      'circle-opacity': [
+        'interpolate', ['linear'], ['zoom'],
+        3.45, ['number', 1.0],
+        3.5, ['number', 0.0],
+      ],
+      //circle-stroke creates border
+      'circle-stroke-width': 1,
+
+      'circle-stroke-color': {
+        property: 'qy' + Year,
+        type: 'interval',
+        default: 'rgba(0,0,0,0)',
+        stops: strokeBlack
+      },
+
+      'circle-stroke-opacity': [
+        'interpolate', ['linear'], ['zoom'],
+        3.45, ['number', 0.15],
+        3.5, ['number', 0.0],
+      ],
+    },
+    //filter: ['==', 'year', Year]
+  }, 'waterway-label');
+  
   // CITY BUBBLES
   map.addLayer({
     'id': 'cityCircle',
@@ -153,7 +204,8 @@ map.on('load', function () {
       'circle-radius': [
         'interpolate', ['linear'], ['zoom'],
         6, [ '+', ['/', ['number', ['get','so' + Year]], 8], 1.5],
-        10, [ '+', ['/', ['number', ['get','so' + Year]], 1], 2]
+        8, [ '+', ['/', ['number', ['get','so' + Year]], 4], 2],
+        10, [ '+', ['/', ['number', ['get','so' + Year]], 1.5], 2]
         // zoom level, obs value / divisor + floor_#
         // Original Kentucky values are:
         // 6, [ '+', ['/', ['number', ['get','so' + Year]], 5], 2],
@@ -162,7 +214,9 @@ map.on('load', function () {
       //quickly transition between city and address layers
       'circle-opacity': [
         'interpolate', ['linear'], ['zoom'],
-        10, ['number', 0.9],
+        3.45, ['number', 0.0],
+        3.5, ['number', 1.0],
+        10, ['number', 1.0],
         10.1, ['number', 0.0],
       ],
       //circle-stroke creates border
@@ -177,8 +231,8 @@ map.on('load', function () {
 
       'circle-stroke-opacity': [
         'interpolate', ['linear'], ['zoom'],
-        3.6, ['number', 0.0],
-        3.7, ['number', 0.15],
+        3.45, ['number', 0.0],
+        3.5, ['number', 0.15],
         10, ['number', 0.15],
         10.1, ['number', 0.0],
       ],
@@ -211,7 +265,7 @@ map.on('load', function () {
       'circle-opacity': [
         'interpolate', ['linear'], ['zoom'],
         10, ['number', 0.0],
-        10.1, ['number', 0.9]
+        10.1, ['number', 1.0]
       ],
 
       //circle-stroke creates border
@@ -268,15 +322,22 @@ map.on('load', function () {
     });
   });
 
-
   //change console text color with zoom level in middle of transition
-  var zoomThreshold = 10.05;
+  var zoomThreshold1 = 3.47;
+  var zoomThreshold2 = 10.05;
+  
 
   map.on('zoom', function() {
-    if (map.getZoom() > zoomThreshold) {
+    if (map.getZoom() > zoomThreshold2) {
+        stateLabel.className = 'gray-label';
         cityLabel.className = 'gray-label';
         addressLabel.className = 'blue-label';
+    } else if (map.getZoom() < zoomThreshold1) {
+        stateLabel.className = 'blue-label';
+        cityLabel.className = 'gray-label';
+        addressLabel.className = 'gray-label';
     } else {
+        stateLabel.className = 'gray-label';
         cityLabel.className = 'blue-label';
         addressLabel.className = 'gray-label';
     }
@@ -289,7 +350,7 @@ map.on('load', function () {
     //use current year
     document.getElementById('Year').innerText = Year;
 
-    //state updates (deleted for Kentucky map)
+    //state updates
 
     //city updates
     map.setPaintProperty('cityCircle', 'circle-color', {
