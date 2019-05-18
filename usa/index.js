@@ -99,12 +99,12 @@ map.on('load', function () {
 
   //Tilesets from Mapbox
 
-  //composite data: {{state,}} county, city, address
-  map.addSource('composite_data', { //name
+  //composite data: state, city, address, county
+  //tileset keys from startupcarto's Mapbox account
+  map.addSource('composite_data', {
     type: 'vector',
 
-    //tileset keys from startupcarto's Mapbox account
-    url: 'mapbox://startupcarto.de5bza2k,startupcarto.72dcxdb2,startupcarto.8r1dzrwh' //city, address, county
+  url: 'mapbox://startupcarto.9qe4mu7p,startupcarto.awmji704,startupcarto.87pdffde,startupcarto.8r1dzrwh'
   });
 
   // COUNTY SHADING (1st because it is bottom layer)
@@ -153,12 +153,8 @@ map.on('load', function () {
       'circle-radius': [
         // 'zoom level', obs value / divisor + floor_#
         'interpolate', ['linear'], ['zoom'],
-        3, [ '+', ['/', ['number', ['get','so' + Year]], 8], 1.5],
-        3.5, [ '+', ['/', ['number', ['get','so' + Year]], 1], 2]
-        
-        // Original Kentucky values are:
-        // 6, [ '+', ['/', ['number', ['get','so' + Year]], 5], 2],
-        // 10, [ '+', ['/', ['number', ['get','so' + Year]], 0.5], 2]
+        3, [ '+', ['/', ['number', ['get','o' + Year]], 10000], 1.5],
+        3.5, [ '+', ['/', ['number', ['get','o' + Year]], 10000], 2]
       ],
       //quickly transition between state and city layers
       'circle-opacity': [
@@ -325,7 +321,6 @@ map.on('load', function () {
   //change console text color with zoom level in middle of transition
   var zoomThreshold1 = 3.47;
   var zoomThreshold2 = 10.05;
-  
 
   map.on('zoom', function() {
     if (map.getZoom() > zoomThreshold2) {
@@ -351,6 +346,25 @@ map.on('load', function () {
     document.getElementById('Year').innerText = Year;
 
     //state updates
+    map.setPaintProperty('stateCircle', 'circle-color', {
+      property: 'qy' + Year,
+      type: 'interval',
+      default: 'rgba(0,0,0,0)',
+      stops: colorList
+    })
+
+    map.setPaintProperty('stateCircle', 'circle-stroke-color', {
+      property: 'qy' + Year,
+      type: 'interval',
+      default: 'rgba(0,0,0,0)',
+      stops: strokeBlack
+    })
+
+    map.setPaintProperty('stateCircle', 'circle-radius', [
+      'interpolate', ['linear'], ['zoom'],
+      3, [ '+', ['/', ['number', ['get','o' + Year]], 5000], 3],
+      3.5, [ '+', ['/', ['number', ['get','o' + Year]], 5000], 3]
+    ])
 
     //city updates
     map.setPaintProperty('cityCircle', 'circle-color', {
@@ -413,37 +427,62 @@ map.on('load', function () {
   // When a click event occurs near a place, open a popup tooltip at the
   // location of the feature, with description HTML from its properties.
   
-    map.on('click', function (e) {
+  map.on('click', function (e) {
+    if (map.getZoom() > zoomThreshold1 && map.getZoom() < zoomThreshold2) {
       var features = map.queryRenderedFeatures(e.point, {
         layers: ['cityCircle']
       });
+    } else if (map.getZoom() < zoomThreshold1) {
+      var features = map.queryRenderedFeatures(e.point, {
+        layers: ['stateCircle']
+      });
+    }
 
-      if (!features.length) {
-        return;
-      }
+    if (!features.length) {
+      return;
+    }
 
-      var feature = features[0];
+    var feature = features[0];
 
+    if (map.getZoom() > zoomThreshold1 && map.getZoom() < zoomThreshold2) {
       var popup = new mapboxgl.Popup()
-        .setLngLat(feature.geometry.coordinates)
-        .setHTML('<div id="popup" class="popup" style="z-index: 10;"> ' +
+      .setLngLat(feature.geometry.coordinates)
+      .setHTML('<div id="popup" class="popup" style="z-index: 10;"> ' +
           '<ul class="list-group">' +
           '<li class="list-group-item"> City: ' + feature.properties['city'] + " </li>" +
           '<li class="list-group-item"> Quality %: ' + Math.round(feature.properties['qy' + Year]/10) +
           '<li class="list-group-item"> Quantity: ' + feature.properties['o' + Year] +
           '<li class="list-group-item"> Year: ' + [Year] +
           '</ul> </div>')
-        .addTo(map);
-    });
-
+          .addTo(map);
+      } else if (map.getZoom() < zoomThreshold1) {
+        var popup = new mapboxgl.Popup()
+        .setLngLat(feature.geometry.coordinates)
+        .setHTML('<div id="popup" class="popup" style="z-index: 10;"> ' +
+          '<ul class="list-group">' +
+          '<li class="list-group-item"> State: ' + feature.properties['datastate'] + " </li>" +
+          '<li class="list-group-item"> Quality %: ' + Math.round(feature.properties['qy' + Year]/10) +
+          '<li class="list-group-item"> Quantity: ' + feature.properties['o' + Year] +
+          '<li class="list-group-item"> Year: ' + [Year] +
+          '</ul> </div>')
+          .addTo(map);
+      }
+  });
 
   // Use the same approach as above to indicate that the symbols are clickable
   // by changing the cursor style to 'pointer'.
   map.on('mousemove', function (e) {
-    var features = map.queryRenderedFeatures(e.point, {
-      layers: ['cityCircle']
-    });
-    map.getCanvas().style.cursor = (features.length) ? 'pointer' : '';
+    if (map.getZoom() > zoomThreshold1 && map.getZoom() < zoomThreshold2) {
+      var features = map.queryRenderedFeatures(e.point, {
+        layers: ['cityCircle']
+      });
+      map.getCanvas().style.cursor = (features.length) ? 'pointer' : '';
+    } else if (map.getZoom() < zoomThreshold1) {
+      var features = map.queryRenderedFeatures(e.point, {
+        layers: ['stateCircle']
+      });
+      map.getCanvas().style.cursor = (features.length) ? 'pointer' : '';
+    }
   });
 
 });

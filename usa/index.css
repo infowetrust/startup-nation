@@ -206,7 +206,7 @@ text-decoration:none;
 
 .blue-label {
   color:#2F6BC7; /*blue from color ramp*/
-  font-weight: bold; 
+  /*font-weight: bold;*/
 }
 
 .gray-label {
