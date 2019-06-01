@@ -19,7 +19,7 @@ var map = new mapboxgl.Map({
   //state fills created using tutorial https://docs.mapbox.com/help/tutorials/style-single-country/
   //with data from http://www.naturalearthdata.com/downloads/10m-cultural-vectors/
 
-  style: 'mapbox://styles/startupcarto/cjv8kuz6675w21ft6k8zc1j5r',
+  style: 'mapbox://styles/startupcarto/cjwe5cbat1ibh1cp9zu9a8ed9',
   attributionControl: false,
   hash: true, //populates URL with zoom level and coordinates of current view
   center: centerPoint,
