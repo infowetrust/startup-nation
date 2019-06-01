@@ -68,14 +68,14 @@ var colorBuckets = [
 ]
 */
 
-// New context colors diverge: Green White Blue
+// New context colors diverge: Green White Purple
 var colorBuckets = [
   "rgba(0,0,0,0)",
-  '#50B899',
-  '#A8E2AB',
-  '#DFEFE7',
-  '#A0CFD9',
-  '#0C64A5',
+  '#5aae61',
+  '#d9f0d3',
+  '#f7f7f7',
+  '#e7d4e8',
+  '#9970ab',
 ]
 
 //define REAI (county) colors
