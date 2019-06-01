@@ -35,11 +35,18 @@ var colorList = [
   [0, "rgba(0,0,0,0)"],
   [1, '#FBF2CD'],
   [501, '#F3BF83'],
+  [951, '#74add1'],
+  [981, '#2F6BC7']
+
+/*mayor's conference colors
+[0, "rgba(0,0,0,0)"],
+  [1, '#FBF2CD'],
+  [501, '#F3BF83'],
   [751, '#E97262'],
   [901, '#CF2870'],
   [951, '#9F26A6'],
   [981, '#5A3BC4'],
-  [991, '#452D95']
+  [991, '#452D95']*/
 ];
 
 //sets all circle strokes to BLACK
