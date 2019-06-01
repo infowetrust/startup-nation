@@ -1,0 +1,291 @@
+#map {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  width: 100%;
+}
+
+/*following two stylings keep Mapbox logo in lower left even with small screens*/
+
+.mapboxgl-ctrl-bottom-left {
+  left:21%;
+}
+
+@media all and (max-width: 1500px) {
+.mapboxgl-ctrl-bottom-left{
+    margin-left: 0px;
+    left: 330px;
+}}
+
+#console {
+  position: absolute;
+  width: 20%; /* 230px */
+  min-width: 300px;
+  height: 100%;
+  margin: -8px 0px;
+  padding-left: 10px;
+  padding-right: 10px;
+  padding-top: 0px;
+  padding-bottom: 0px;
+  background-color: white;
+  border-radius: 0px;
+  box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.10);
+  font: 18px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+}
+
+/* SLIDER */
+.slider {
+-webkit-appearance: none;   /*Override default CSS styles */
+appearance: none;
+display: block;
+position: relative;
+z-index: 12;
+width: 100%; /* Full-width */
+height: 0px; /* Specified height */
+margin-top: 15px;
+background: rgba(0,0,0,0); /*transparent track color*/
+outline: none; /* Remove outline */
+opacity: 1; /* Set transparency (for mouse-over effects on hover) */
+-webkit-transition: .2s; /* 0.2 seconds transition on hover */
+transition: opacity .2s;
+box-sizing:border-box;
+}
+
+/*SLIDER TRACK*/
+.slider::-moz-range-track {
+  margin-right: 15px;
+  height: 0px;
+  background: rgba(0,0,0,0); 
+}
+
+
+/* SLIDER THUMB */
+.slider::-webkit-slider-thumb {
+-webkit-appearance: none; /* Override default look */
+appearance: none;
+width: 4%; /* Set a specific slider handle width */
+/*padding-top:100%;*/
+height: 15px; /* Slider handle height*/
+border: rgba(0, 0, 0, 0);
+border-radius: 50%; /* Makes ellipse*/
+background: #2F6BC7; /* thumb color */
+cursor: pointer; /* Cursor on hover */
+}
+
+.slider::-moz-range-thumb {
+  width: 4%; /* Set a specific slider handle width */
+  height: 15px; /* Slider handle height */
+  border: rgba(0, 0, 0, 0);
+  border-radius: 50%; /* Makes ellipse*/
+  background: #2F6BC7; /* thumb color */
+  cursor: pointer; /* Cursor on hover */
+  }
+
+/* thumb mouse-over effects */
+.slider::-webkit-slider-thumb:hover {
+background: #E77367;
+opacity: 1; /* Fully shown on mouse-over */
+}
+
+.slider::-moz-range-thumb:hover {
+  background: #E77367;
+  opacity: 1; /* Fully shown on mouse-over */
+  }
+
+.ticks {
+position: absolute;
+z-index: 11;
+display: block;
+left:12px;
+width: calc(100% - 20px);
+margin-top: 3px;		
+height: 25px;
+}
+
+/* CUSTOM RADIO BUTTONS */
+/* Customize the label (the container) */
+.container {
+  float:left;
+  position: relative;
+  padding-left: 18px;
+  margin-bottom: 0px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: small;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Hide the browser's default radio button */
+.container input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+/* Create a custom radio button */
+.checkmark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 15px;
+  width: 15px;
+  background-color: gainsboro;
+  border-radius: 50%;
+  font-weight: bold;
+  font-size: medium;
+}
+
+/* On mouse-over, add a grey background color */
+.container:hover input ~ .checkmark {
+  background-color: #E77367;
+}
+/* When the radio button is checked, add a blue background */
+.container input:checked ~ .checkmark {
+  background-color: #2F6BC7;
+}
+/* Create the indicator (the dot/circle - hidden when not checked) */
+.checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+/* Show the indicator (dot/circle) when checked */
+.container input:checked ~ .checkmark:after {
+  display: block;
+}
+
+/* Style the indicator (dot/circle)*/
+.container .checkmark:after {
+  top: 5px;
+  left: 5px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: white;
+}
+
+line.white {
+stroke: rgba(0,0,0,0);
+stroke-width:2;
+}
+line.all-years {
+stroke: gray;
+stroke-width:1;
+}
+line.five-years {
+stroke: gray;
+stroke-width:2;
+}
+
+.mapboxgl-popup {
+  max-width: 400px;
+  font: 12px/12px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+}
+
+.session {
+  text-align: left;
+  margin-bottom: 8px;
+  font-size: 95%;
+}
+
+a.imageLink{
+text-decoration:none;
+}
+
+.label {
+  width: 31%;
+  display: inline-block;
+  text-align: center;
+}
+
+.blue-label {
+  color:#2F6BC7; /*blue from color ramp*/
+  /*font-weight: bold;*/
+}
+
+.gray-label {
+  color:Gainsboro;
+}
+
+.purple-label {
+  color:#452D95; /*purple from color ramp*/
+}
+
+/*text formatting*/
+.purple-header {
+  color: #452D95;
+  font-weight: bold;
+  text-align: left;
+  font-size: calc(16px + 0.20vw);
+  /*font-size: medium;*/
+}
+
+/*console link styling*/
+a.dynamic:link {
+  color: #2F6BC7;
+}
+a.dynamic:visited {
+  color: #2F6BC7;
+}
+a.dynamic:hover {
+  color: #E97261;
+}
+
+/*header styling*/
+.black-header {
+  color: black;
+  font-weight: bold;
+  font-size: medium;
+}
+
+.black-small {
+  color: black;
+  font-weight: normal;
+  font-size: small;
+}
+
+.quality-scale ul {
+  margin: 0;
+  padding: 0;
+  float: left;
+  list-style: none;
+}
+
+.quality-scale ul li {
+  display: block;
+  float: left;
+  width: 13%;
+  /*legend circle spacing */
+  margin-bottom: 6px;
+  text-align: center;
+  font-size: 80%;
+  list-style: none;
+}
+
+ul
+
+/*removes bullets & indentations from all tooltips */
+  {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+ul.quality-labels li span {
+  display: block;
+  float: center;
+  height: 10px;
+  width: 50px;
+}
+
+#svg2 {
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+}
