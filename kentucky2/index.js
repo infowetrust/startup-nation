@@ -6,10 +6,10 @@ mapboxgl.accessToken =
 
 // Set bounds to USA (with a big buffer)
 var bounds = [
-  [-175, 0], // Southwest coordinates X,Y
-  [-35, 70] // Northeast coordinates X,Y
+  [-100, 30], // Southwest coordinates X,Y
+  [-75, 45] // Northeast coordinates X,Y
 ];
-var centerPoint = [-105, 38]
+var centerPoint = [-87.2, 37.5]
 
 //Load a new map in the 'map' HTML div
 var map = new mapboxgl.Map({
@@ -23,7 +23,7 @@ var map = new mapboxgl.Map({
   attributionControl: false,
   hash: true, //populates URL with zoom level and coordinates of current view
   center: centerPoint,
-  zoom: 3.5,
+  zoom: 7,
   minZoom: 3,
   maxZoom: 15,
   maxBounds: bounds // Sets var bounds as max
@@ -56,26 +56,14 @@ var strokeBlack = [
   [999, '#000']
 ];
 
-/*
-// Old context colors: Blue Green Yellow
+//Context colors diverge: Green White Purple
 var colorBuckets = [
   "rgba(0,0,0,0)",
-  '#0C64A5',
-  '#5BB9CD',
-  '#8ED2BE',
-  '#BEE6C0',
-  '#DCF1D7'
-]
-*/
-
-// New context colors diverge: Green White Blue
-var colorBuckets = [
-  "rgba(0,0,0,0)",
-  '#50B899',
-  '#A8E2AB',
-  '#DFEFE7',
-  '#A0CFD9',
-  '#0C64A5',
+  '#5aae61',
+  '#d9f0d3',
+  '#f7f7f7',
+  '#e7d4e8',
+  '#9970ab',
 ]
 
 //define REAI (county) colors
@@ -106,12 +94,12 @@ map.on('load', function () {
 
   //Tilesets from Mapbox
 
-  //composite data: state, city, address, county
+  //composite data: (state), city, address, county
   //tileset keys from startupcarto's Mapbox account
   map.addSource('composite_data', {
     type: 'vector',
 
-  url: 'mapbox://startupcarto.9qe4mu7p,startupcarto.awmji704,startupcarto.87pdffde,startupcarto.8r1dzrwh'
+  url: 'mapbox://startupcarto.da0q2w15,startupcarto.5vb8100j,startupcarto.8r1dzrwh'
   });
 
   // COUNTY SHADING (1st because it is bottom layer)
@@ -142,6 +130,7 @@ map.on('load', function () {
   }, 'waterway-label');
 
   // STATE BUBBLES
+  /*
   map.addLayer({
     'id': 'stateCircle',
     'type': 'circle',
@@ -187,13 +176,14 @@ map.on('load', function () {
     },
     //filter: ['==', 'year', Year]
   }, 'waterway-label');
+  */
   
   // CITY BUBBLES
   map.addLayer({
     'id': 'cityCircle',
     'type': 'circle',
     'source': 'composite_data',
-    'source-layer': 'usa_city',
+    'source-layer': 'ky_city',
     'symbol-z-layer': 'source',
     'paint': {
       //Add data-driven styles for circle-color
@@ -248,7 +238,7 @@ map.on('load', function () {
     'id': 'addressCircle',
     'type': 'circle',
     'source': 'composite_data',
-    'source-layer': 'usa_address',
+    'source-layer': 'ky_address',
 
     'paint': {
       //Add data-driven styles for circle-color
