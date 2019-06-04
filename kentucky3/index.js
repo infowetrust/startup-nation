@@ -99,7 +99,7 @@ map.on('load', function () {
   map.addSource('composite_data', {
     type: 'vector',
 
-  url: 'mapbox://startupcarto.bs1xnhni,startupcarto.120jxw21,startupcarto.8r1dzrwh'
+  url: 'mapbox://startupcarto.dvlvb1cm,startupcarto.120jxw21,startupcarto.8r1dzrwh'
   });
 
   // COUNTY SHADING (1st because it is bottom layer)
@@ -176,9 +176,9 @@ map.on('load', function () {
   }, 'waterway-label');
   */
   
-  // CITY BUBBLES
+  // CITY BUBBLES 0-50%
   map.addLayer({
-    'id': 'cityCircle',
+    'id': 'cityCircle50',
     'type': 'circle',
     'source': 'composite_data',
     'source-layer': 'ky_city',
@@ -186,21 +186,20 @@ map.on('load', function () {
     'paint': {
       //Add data-driven styles for circle-color
       'circle-color': {
-        property: 'qy' + Year,
+        property: 'so' + Year,
         type: 'interval',
         default: 'rgba(0,0,0,0)',
-        stops: colorList
+        stops: [
+          [0, "rgba(0,0,0,0)"],
+          [1, colorList[1][1]]
+        ],
       },
       //Adds data-driven styles for circle size
       'circle-radius': [
         'interpolate', ['linear'], ['zoom'],
-        6, [ '+', ['/', ['number', ['get','so' + Year]], 8], 1.5],
-        8, [ '+', ['/', ['number', ['get','so' + Year]], 4], 2],
-        10, [ '+', ['/', ['number', ['get','so' + Year]], 1.5], 2]
         // zoom level, obs value / divisor + floor_#
-        // Original Kentucky values are:
-        // 6, [ '+', ['/', ['number', ['get','so' + Year]], 5], 2],
-        // 10, [ '+', ['/', ['number', ['get','so' + Year]], 0.5], 2]
+        6, [ '+', ['/', ['number', ['get','so' + Year]], 5], 2],
+        10, [ '+', ['/', ['number', ['get','so' + Year]], 0.5], 2]
       ],
       //quickly transition between city and address layers
       'circle-opacity': [
@@ -212,14 +211,17 @@ map.on('load', function () {
       ],
       //circle-stroke creates border
       'circle-stroke-width': 1,
-
-      'circle-stroke-color': {
-        property: 'qy' + Year,
+      'circle-stroke-color': 
+      {
+        property: 'so' + Year,
         type: 'interval',
         default: 'rgba(0,0,0,0)',
-        stops: strokeBlack
+        stops: [
+          [0, "rgba(0,0,0,0)"],
+          [1, "#000"]
+        ],
       },
-
+      
       'circle-stroke-opacity': [
         'interpolate', ['linear'], ['zoom'],
         3.45, ['number', 0.0],
@@ -229,6 +231,117 @@ map.on('load', function () {
       ],
     },
     //filter: ['==', 'year', Year]
+  }, 'waterway-label');
+
+  // CITY BUBBLES 50-95%
+  map.addLayer({
+    'id': 'cityCircle95',
+    'type': 'circle',
+    'source': 'composite_data',
+    'source-layer': 'ky_city',
+    'symbol-z-layer': 'source',
+    'paint': {
+      //Add data-driven styles for circle-color
+      'circle-color': {
+        property: 'so95' + Year,
+        type: 'interval',
+        default: 'rgba(0,0,0,0)',
+        stops: [
+          [0, "rgba(0,0,0,0)"],
+          [1, colorList[2][1]]
+        ],
+      },
+      //Adds data-driven styles for circle size
+      'circle-radius': [
+        'interpolate', ['linear'], ['zoom'],
+        // zoom level, obs value / divisor + floor_#
+        //6, [ '+', ['/', ['number', ['get','so95' + Year]], 8], 1.5],
+        //8, [ '+', ['/', ['number', ['get','so95' + Year]], 4], 2],
+        //10, [ '+', ['/', ['number', ['get','so95' + Year]], 1.5], 2]
+        
+        // Original Kentucky values are:
+        6, [ '+', ['/', ['number', ['get','so95' + Year]], 5], 2],
+        10, [ '+', ['/', ['number', ['get','so95' + Year]], 0.5], 2]
+      ],
+      //quickly transition between city and address layers
+      'circle-opacity': [
+        'interpolate', ['linear'], ['zoom'],
+        3.45, ['number', 0.0],
+        3.5, ['number', 1.0],
+        10, ['number', 1.0],
+        10.1, ['number', 0.0],
+      ],
+      //circle-stroke creates border
+      'circle-stroke-width': 0,
+      'circle-stroke-opacity': 0,
+    },
+  }, 'waterway-label');
+
+  // CITY BUBBLES 95-98%
+  map.addLayer({
+    'id': 'cityCircle98',
+    'type': 'circle',
+    'source': 'composite_data',
+    'source-layer': 'ky_city',
+    'symbol-z-layer': 'source',
+    'paint': {
+      //Add data-driven styles for circle-color
+      'circle-color': {
+        property: 'so98' + Year,
+        type: 'interval',
+        default: 'rgba(0,0,0,0)',
+        stops: [
+          [0, "rgba(0,0,0,0)"],
+          [1, colorList[3][1]]
+        ],
+      },
+      //Adds data-driven styles for circle size
+      'circle-radius': [
+        'interpolate', ['linear'], ['zoom'],
+        6, [ '+', ['/', ['number', ['get','so98' + Year]], 5], 2],
+        10, [ '+', ['/', ['number', ['get','so98' + Year]], 0.5], 2]
+      ],
+      //quickly transition between city and address layers      
+      'circle-opacity': [
+        'interpolate', ['linear'], ['zoom'],
+        3.45, ['number', 0.0],
+        3.5, ['number', 1.0],
+        10, ['number', 1.0],
+        10.1, ['number', 0.0],
+      ],
+      'circle-stroke-width': 0,
+      'circle-stroke-opacity': 0,
+    },
+  }, 'waterway-label');
+
+  // CITY BUBBLES 98-100%
+  map.addLayer({
+    'id': 'cityCircle100',
+    'type': 'circle',
+    'source': 'composite_data',
+    'source-layer': 'ky_city',
+    'symbol-z-layer': 'source',
+    'paint': {
+      //Add data-driven styles for circle-color
+      'circle-color': {
+        property: 'so100' + Year,
+        type: 'interval',
+        default: 'rgba(0,0,0,0)',
+        stops: [
+          [0, "rgba(0,0,0,0)"],
+          [1, colorList[4][1]]
+        ],
+      },
+      //Adds data-driven styles for circle size
+      'circle-radius': [
+        'interpolate', ['linear'], ['zoom'],
+        6, [ '+', ['/', ['number', ['get','so100' + Year]], 5], 2],
+        10, [ '+', ['/', ['number', ['get','so100' + Year]], 0.5], 2]
+      ],
+      //quickly transition between city and address layers
+      'circle-stroke-width': 0,
+      'circle-stroke-opacity': 0,
+    },
   }, 'waterway-label');
 
   // ADDRESS BUBBLES
@@ -361,28 +474,89 @@ map.on('load', function () {
       3.5, [ '+', ['/', ['number', ['get','o' + Year]], 5000], 3]
     ])
 
+    //--------------------------------------------
     //city updates
-    map.setPaintProperty('cityCircle', 'circle-color', {
-      property: 'qy' + Year,
+    //--------------------------------------------
+
+    //city 0-50% updates
+    map.setPaintProperty('cityCircle50', 'circle-color', {
+      property: 'so' + Year,
       type: 'interval',
       default: 'rgba(0,0,0,0)',
-      stops: colorList
+      stops: [
+        [0, "rgba(0,0,0,0)"],
+        [1, colorList[1][1]]
+      ],
     })
 
-    map.setPaintProperty('cityCircle', 'circle-stroke-color', {
-      property: 'qy' + Year,
-      type: 'interval',
-      default: 'rgba(0,0,0,0)',
-      stops: strokeBlack
-    })
-
-    //"so" is square root of "o" (raw count)
-    //Mapbox "expressions" tutorial: https://docs.mapbox.com/help/tutorials/mapbox-gl-js-expressions/
-    map.setPaintProperty('cityCircle', 'circle-radius', [
+    map.setPaintProperty('cityCircle50', 'circle-radius', [
       'interpolate', ['linear'], ['zoom'],
       6, [ '+', ['/', ['number', ['get','so' + Year]], 5], 2],
       10, [ '+', ['/', ['number', ['get','so' + Year]], 0.5], 2]
     ])
+
+    map.setPaintProperty('cityCircle50', 'circle-stroke-color', {
+      property: 'so' + Year,
+      type: 'interval',
+      default: 'rgba(0,0,0,0)',
+      stops: [
+        [0, "rgba(0,0,0,0)"],
+        [1, "#000"]
+      ],
+    })
+
+    //city 50-95% updates
+    map.setPaintProperty('cityCircle95', 'circle-color', {
+      property: 'so95' + Year,
+      type: 'interval',
+      default: 'rgba(0,0,0,0)',
+      stops: [
+        [0, "rgba(0,0,0,0)"],
+        [1, colorList[2][1]]
+      ],
+    })
+
+    map.setPaintProperty('cityCircle95', 'circle-radius', [
+      'interpolate', ['linear'], ['zoom'],
+      6, [ '+', ['/', ['number', ['get','so95' + Year]], 5], 2],
+      10, [ '+', ['/', ['number', ['get','so95' + Year]], 0.5], 2]
+    ])
+
+    //city 95-98% updates
+    map.setPaintProperty('cityCircle98', 'circle-color', {
+      property: 'so98' + Year,
+      type: 'interval',
+      default: 'rgba(0,0,0,0)',
+      stops: [
+        [0, "rgba(0,0,0,0)"],
+        [1, colorList[3][1]]
+      ],
+    })
+
+    map.setPaintProperty('cityCircle98', 'circle-radius', [
+      'interpolate', ['linear'], ['zoom'],
+      6, [ '+', ['/', ['number', ['get','so98' + Year]], 5], 2],
+      10, [ '+', ['/', ['number', ['get','so98' + Year]], 0.5], 2]
+    ])
+
+    //city 98-100% updates
+    map.setPaintProperty('cityCircle100', 'circle-color', {
+      property: 'so100' + Year,
+      type: 'interval',
+      default: 'rgba(0,0,0,0)',
+      stops: [
+        [0, "rgba(0,0,0,0)"],
+        [1, colorList[4][1]]
+      ],
+    })
+
+    map.setPaintProperty('cityCircle100', 'circle-radius', [
+      'interpolate', ['linear'], ['zoom'],
+      6, [ '+', ['/', ['number', ['get','so100' + Year]], 5], 2],
+      10, [ '+', ['/', ['number', ['get','so100' + Year]], 0.5], 2]
+    ])
+
+    //--------------------------------------------
 
     //address updates
     map.setPaintProperty('addressCircle', 'circle-color', {
@@ -425,7 +599,7 @@ map.on('load', function () {
   map.on('click', function (e) {
     if (map.getZoom() > zoomThreshold1 && map.getZoom() < zoomThreshold2) {
       var features = map.queryRenderedFeatures(e.point, {
-        layers: ['cityCircle']
+        layers: ['cityCircle50']
       });
     } else if (map.getZoom() < zoomThreshold1) {
       var features = map.queryRenderedFeatures(e.point, {
@@ -469,7 +643,7 @@ map.on('load', function () {
   map.on('mousemove', function (e) {
     if (map.getZoom() > zoomThreshold1 && map.getZoom() < zoomThreshold2) {
       var features = map.queryRenderedFeatures(e.point, {
-        layers: ['cityCircle']
+        layers: ['cityCircle50']
       });
       map.getCanvas().style.cursor = (features.length) ? 'pointer' : '';
     } else if (map.getZoom() < zoomThreshold1) {

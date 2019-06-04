@@ -196,13 +196,10 @@ map.on('load', function () {
       //Adds data-driven styles for circle size
       'circle-radius': [
         'interpolate', ['linear'], ['zoom'],
-        6, [ '+', ['/', ['number', ['get','so' + Year]], 8], 1.5],
-        8, [ '+', ['/', ['number', ['get','so' + Year]], 4], 2],
-        10, [ '+', ['/', ['number', ['get','so' + Year]], 1.5], 2]
         // zoom level, obs value / divisor + floor_#
         // Original Kentucky values are:
-        // 6, [ '+', ['/', ['number', ['get','so' + Year]], 5], 2],
-        // 10, [ '+', ['/', ['number', ['get','so' + Year]], 0.5], 2]
+        6, [ '+', ['/', ['number', ['get','so' + Year]], 5], 2],
+        10, [ '+', ['/', ['number', ['get','so' + Year]], 0.5], 2]
       ],
       //quickly transition between city and address layers
       'circle-opacity': [
