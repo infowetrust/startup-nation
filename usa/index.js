@@ -41,7 +41,7 @@ var zoomList = [
   7, // city
   10, // city treering
   12, // address
-  15 //maxZoom
+  15 // maxZoom
 ]
 
 //transition zones between layers
@@ -56,8 +56,9 @@ var zoomArray = [
 //bubble size denominators (bigger number = smaller bubble)
 var bubbleSize = [
 [5000, 5000], // state
-[12,10], // metro
-[5,0.5], // city
+[20,3], // metro
+[10,1], // city
+[1,1], // city treering
 [3,2] // address
 ];
 
@@ -121,7 +122,7 @@ map.on('load', function () {
   map.addSource('composite_data', {
     type: 'vector',
   //order: state, metro, city, address, county
-  url: 'mapbox://startupcarto.2vvgionr,startupcarto.2mwxwhj3,startupcarto.827ry720,startupcarto.87pdffde,startupcarto.8r1dzrwh'
+  url: 'mapbox://startupcarto.2vvgionr,startupcarto.1419d5g9,startupcarto.827ry720,startupcarto.0pcw9xn9,startupcarto.8r1dzrwh'
   });
 
   // COUNTY SHADING (1st because it is bottom layer)
@@ -161,7 +162,7 @@ map.on('load', function () {
     'paint': {
       //Add data-driven styles for circle-color
       'circle-color': {
-        property: 'qy' + Year,
+        property: 'qg' + Year,
         type: 'interval',
         default: 'rgba(0,0,0,0)',
         stops: colorList
@@ -171,8 +172,8 @@ map.on('load', function () {
         // Mapbox "expressions" tutorial: https://docs.mapbox.com/help/tutorials/mapbox-gl-js-expressions/
         // 'zoom level', obs value / divisor + floor_#
         'interpolate', ['linear'], ['zoom'],
-        zoomArray[0][0], [ '+', ['/', ['number', ['get','o' + Year]], bubbleSize[0][0]], 1.5],
-        zoomArray[0][1], [ '+', ['/', ['number', ['get','o' + Year]], bubbleSize[0][1]], 2]
+        zoomArray[0][0], [ '+', ['/', ['number', ['get','o' + Year]], bubbleSize[0][0]], 0],
+        zoomArray[0][1], [ '+', ['/', ['number', ['get','o' + Year]], bubbleSize[0][1]], 0]
       ],
       //quickly transition between state and city layers
       'circle-opacity': [
@@ -184,7 +185,7 @@ map.on('load', function () {
       'circle-stroke-width': 1,
 
       'circle-stroke-color': {
-        property: 'qy' + Year,
+        property: 'qg' + Year,
         type: 'interval',
         default: 'rgba(0,0,0,0)',
         stops: strokeBlack
@@ -209,7 +210,7 @@ map.on('load', function () {
     'paint': {
       //Add data-driven styles for circle-color
       'circle-color': {
-        property: 'qy' + Year,
+        property: 'qg' + Year,
         type: 'interval',
         default: 'rgba(0,0,0,0)',
         stops: colorList
@@ -218,8 +219,8 @@ map.on('load', function () {
       'circle-radius': [
         'interpolate', ['linear'], ['zoom'],
         // zoom level, obs value / divisor + floor_#        
-        zoomArray[1][0], [ '+', ['/', ['number', ['get','so' + Year]], bubbleSize[1][0]], 2],
-        zoomArray[1][1], [ '+', ['/', ['number', ['get','so' + Year]], bubbleSize[1][1]], 2]
+        zoomArray[1][0], [ '+', ['/', ['number', ['get','so' + Year]], bubbleSize[1][0]], 0],
+        zoomArray[1][1], [ '+', ['/', ['number', ['get','so' + Year]], bubbleSize[1][1]], 0]
       ],
       //quickly transition between layers
       'circle-opacity': [
@@ -233,7 +234,7 @@ map.on('load', function () {
       'circle-stroke-width': 1,
 
       'circle-stroke-color': {
-        property: 'qy' + Year,
+        property: 'qg' + Year,
         type: 'interval',
         default: 'rgba(0,0,0,0)',
         stops: strokeBlack
@@ -260,7 +261,7 @@ map.on('load', function () {
     'paint': {
       //Add data-driven styles for circle-color
       'circle-color': {
-        property: 'qy' + Year,
+        property: 'qg' + Year,
         type: 'interval',
         default: 'rgba(0,0,0,0)',
         stops: colorList
@@ -269,8 +270,8 @@ map.on('load', function () {
       'circle-radius': [
         'interpolate', ['linear'], ['zoom'],
         // zoom level, obs value / divisor + floor_#        
-        zoomArray[2][0], [ '+', ['/', ['number', ['get','so' + Year]], bubbleSize[2][0]], 2],
-        zoomArray[2][1], [ '+', ['/', ['number', ['get','so' + Year]], bubbleSize[2][1]], 2]
+        zoomArray[2][0], [ '+', ['/', ['number', ['get','so' + Year]], bubbleSize[2][0]], 0],
+        zoomArray[2][1], [ '+', ['/', ['number', ['get','so' + Year]], bubbleSize[2][1]], 0]
       ],
       //quickly transition between layers
       'circle-opacity': [
@@ -284,7 +285,7 @@ map.on('load', function () {
       'circle-stroke-width': 1,
 
       'circle-stroke-color': {
-        property: 'qy' + Year,
+        property: 'qg' + Year,
         type: 'interval',
         default: 'rgba(0,0,0,0)',
         stops: strokeBlack
@@ -302,6 +303,215 @@ map.on('load', function () {
   }, 'waterway-label');
 
   // CITY TREERINGS
+  // CITY LLC
+  map.addLayer({
+    'id': 'llcCircle',
+    'type': 'circle',
+    'source': 'composite_data',
+    'source-layer': 'usa_city',
+    'symbol-z-layer': 'source',
+    'paint': {
+      //Add data-driven styles for circle-color
+      'circle-color': {
+        property: 'qg' + Year,
+        type: 'interval',
+        default: 'rgba(0,0,0,0)',
+        stops: [
+          [0, "rgba(0,0,0,0)"],
+          [1, colorList[1][1]]
+        ],
+      },
+      //Adds data-driven styles for circle size
+      'circle-radius': [
+        'interpolate', ['linear'], ['zoom'],
+        // zoom level, obs value / divisor + floor_#        
+        zoomArray[3][0], [ '+', ['/', ['number', ['get','so' + Year]], bubbleSize[3][0]], 0],
+        zoomArray[3][1], [ '+', ['/', ['number', ['get','so' + Year]], bubbleSize[3][1]], 0]
+      ],
+      //quickly transition between layers
+      'circle-opacity': [
+        'interpolate', ['linear'], ['zoom'],
+        zoomArray[2][1], ['number', 0.0],
+        zoomArray[3][0], ['number', 1.0],
+        zoomArray[3][1], ['number', 1.0],
+        zoomArray[4][0], ['number', 0.0],
+      ],
+      //circle-stroke creates border
+      'circle-stroke-width': 1,
+
+      'circle-stroke-color': {
+        property: 'qg' + Year,
+        type: 'interval',
+        default: 'rgba(0,0,0,0)',
+        stops: strokeBlack
+      },
+
+      'circle-stroke-opacity': [
+        'interpolate', ['linear'], ['zoom'],
+        zoomArray[2][1], ['number', 0.0],
+        zoomArray[3][0], ['number', 0.15],
+        zoomArray[3][1], ['number', 0.15],
+        zoomArray[4][0], ['number', 0.0],
+      ],
+    },
+    //filter: ['==', 'year', Year]
+  }, 'waterway-label');
+
+  // CITY CORP
+  map.addLayer({
+    'id': 'corpCircle',
+    'type': 'circle',
+    'source': 'composite_data',
+    'source-layer': 'usa_city',
+    'symbol-z-layer': 'source',
+    'paint': {
+      //Add data-driven styles for circle-color
+      'circle-color': {
+        property: 'qg' + Year,
+        type: 'interval',
+        default: 'rgba(0,0,0,0)',
+        stops: [
+          [0, "rgba(0,0,0,0)"],
+          [1, colorList[2][1]]
+        ],
+      },
+      //Adds data-driven styles for circle size
+      'circle-radius': [
+        'interpolate', ['linear'], ['zoom'],
+        // zoom level, obs value / divisor + floor_#        
+        zoomArray[3][0], [ '+', ['/', ['number', ['get','TCORP' + Year]], bubbleSize[3][0]], 0],
+        zoomArray[3][1], [ '+', ['/', ['number', ['get','TCORP' + Year]], bubbleSize[3][1]], 0]
+      ],
+      //quickly transition between layers
+      'circle-opacity': [
+        'interpolate', ['linear'], ['zoom'],
+        zoomArray[2][1], ['number', 0.0],
+        zoomArray[3][0], ['number', 1.0],
+        zoomArray[3][1], ['number', 1.0],
+        zoomArray[4][0], ['number', 0.0],
+      ],
+      //circle-stroke creates border
+      'circle-stroke-width': 0,
+      'circle-stroke-opacity': 0,
+    },
+  }, 'waterway-label');
+
+  // CITY DELAWARE
+  map.addLayer({
+    'id': 'deCircle',
+    'type': 'circle',
+    'source': 'composite_data',
+    'source-layer': 'usa_city',
+    'symbol-z-layer': 'source',
+    'paint': {
+      //Add data-driven styles for circle-color
+      'circle-color': {
+        property: 'qg' + Year,
+        type: 'interval',
+        default: 'rgba(0,0,0,0)',
+        stops: [
+          [0, "rgba(0,0,0,0)"],
+          [1, colorList[3][1]]
+        ],
+      },
+      //Adds data-driven styles for circle size
+      'circle-radius': [
+        'interpolate', ['linear'], ['zoom'],
+        // zoom level, obs value / divisor + floor_#        
+        zoomArray[3][0], [ '+', ['/', ['number', ['get','TDE' + Year]], bubbleSize[3][0]], 0],
+        zoomArray[3][1], [ '+', ['/', ['number', ['get','TDE' + Year]], bubbleSize[3][1]], 0]
+      ],
+      //quickly transition between layers
+      'circle-opacity': [
+        'interpolate', ['linear'], ['zoom'],
+        zoomArray[2][1], ['number', 0.0],
+        zoomArray[3][0], ['number', 1.0],
+        zoomArray[3][1], ['number', 1.0],
+        zoomArray[4][0], ['number', 0.0],
+      ],
+      //circle-stroke creates border
+      'circle-stroke-width': 0,
+      'circle-stroke-opacity': 0,
+    },
+  }, 'waterway-label');
+
+  // CITY PATENT OR TRADEMARK
+  map.addLayer({
+    'id': 'pttmCircle',
+    'type': 'circle',
+    'source': 'composite_data',
+    'source-layer': 'usa_city',
+    'symbol-z-layer': 'source',
+    'paint': {
+      //Add data-driven styles for circle-color
+      'circle-color': {
+        property: 'qg' + Year,
+        type: 'interval',
+        default: 'rgba(0,0,0,0)',
+        stops: [
+          [0, "rgba(0,0,0,0)"],
+          [1, colorList[4][1]]
+        ],
+      },
+      //Adds data-driven styles for circle size
+      'circle-radius': [
+        'interpolate', ['linear'], ['zoom'],
+        // zoom level, obs value / divisor + floor_#        
+        zoomArray[3][0], [ '+', ['/', ['number', ['get','TPTTM' + Year]], bubbleSize[3][0]], 0],
+        zoomArray[3][1], [ '+', ['/', ['number', ['get','TPTTM' + Year]], bubbleSize[3][1]], 0]
+      ],
+      //quickly transition between layers
+      'circle-opacity': [
+        'interpolate', ['linear'], ['zoom'],
+        zoomArray[2][1], ['number', 0.0],
+        zoomArray[3][0], ['number', 1.0],
+        zoomArray[3][1], ['number', 1.0],
+        zoomArray[4][0], ['number', 0.0],
+      ],
+      //circle-stroke creates border
+      'circle-stroke-width': 0,
+      'circle-stroke-opacity': 0,
+    },
+  }, 'waterway-label');
+
+  // CITY TWO+ MEASURES
+  map.addLayer({
+    'id': 'twoupCircle',
+    'type': 'circle',
+    'source': 'composite_data',
+    'source-layer': 'usa_city',
+    'symbol-z-layer': 'source',
+    'paint': {
+      //Add data-driven styles for circle-color
+      'circle-color': {
+        property: 'qg' + Year,
+        type: 'interval',
+        default: 'rgba(0,0,0,0)',
+        stops: [
+          [0, "rgba(0,0,0,0)"],
+          [1, colorList[5][1]]
+        ],
+      },
+      //Adds data-driven styles for circle size
+      'circle-radius': [
+        'interpolate', ['linear'], ['zoom'],
+        // zoom level, obs value / divisor + floor_#        
+        zoomArray[3][0], [ '+', ['/', ['number', ['get','TTWOUP' + Year]], bubbleSize[3][0]], 0],
+        zoomArray[3][1], [ '+', ['/', ['number', ['get','TTWOUP' + Year]], bubbleSize[3][1]], 0]
+      ],
+      //quickly transition between layers
+      'circle-opacity': [
+        'interpolate', ['linear'], ['zoom'],
+        zoomArray[2][1], ['number', 0.0],
+        zoomArray[3][0], ['number', 1.0],
+        zoomArray[3][1], ['number', 1.0],
+        zoomArray[4][0], ['number', 0.0],
+      ],
+      //circle-stroke creates border
+      'circle-stroke-width': 0,
+      'circle-stroke-opacity': 0,
+    },
+  }, 'waterway-label');
 
   // ADDRESS BUBBLES
   map.addLayer({
@@ -313,16 +523,17 @@ map.on('load', function () {
     'paint': {
       //Add data-driven styles for circle-color
       'circle-color': {
-        property: 'qy' + Year,
+        property: 'qg' + Year,
         type: 'interval',
         default: 'rgba(0,0,0,0)',
         stops: colorList
       },
       //Adds data-driven styles for circle size
+      //floor included so addresses with only 1 biz can be seen
       'circle-radius': [
         'interpolate', ['linear'], ['zoom'],
-        zoomArray[4][0], [ '+', ['/', ['number', ['get','o' + Year]], bubbleSize[3][0]], 2],
-        zoomArray[4][1], [ '+', ['/', ['number', ['get','o' + Year]], bubbleSize[3][1]], 2]
+        zoomArray[4][0], [ '+', ['/', ['number', ['get','o' + Year]], bubbleSize[4][0]], 2],
+        zoomArray[4][1], [ '+', ['/', ['number', ['get','o' + Year]], bubbleSize[4][1]], 2]
       ],
 
       'circle-opacity': [
@@ -335,7 +546,7 @@ map.on('load', function () {
       'circle-stroke-width': 1,
 
       'circle-stroke-color': {
-        property: 'qy' + Year,
+        property: 'qg' + Year,
         type: 'interval',
         default: 'rgba(0,0,0,0)',
         stops: strokeBlack
@@ -388,25 +599,25 @@ map.on('load', function () {
   //change console text color with zoom level
   map.on('zoom', function() {
     if (map.getZoom() >= zoomList[4]) { //shades address
-        stateLabel.className = 'gray-label';
-        metroLabel.className = 'gray-label';
-        cityLabel.className = 'gray-label';
+        stateLabel.className = 'grey-label';
+        metroLabel.className = 'grey-label';
+        cityLabel.className = 'grey-label';
         addressLabel.className = 'blue-label';
     } else if (map.getZoom() >= zoomList[2] && map.getZoom() < zoomList[4]) { //shades city
-        stateLabel.className = 'gray-label';
-        metroLabel.className = 'gray-label';
+        stateLabel.className = 'grey-label';
+        metroLabel.className = 'grey-label';
         cityLabel.className = 'blue-label';
-        addressLabel.className = 'gray-label';
+        addressLabel.className = 'grey-label';
     } else if (map.getZoom() >= zoomList[1] && map.getZoom() < zoomList[2]) { //shades metro
-        stateLabel.className = 'gray-label';
+        stateLabel.className = 'grey-label';
         metroLabel.className = 'blue-label';
-        cityLabel.className = 'gray-label';
-        addressLabel.className = 'gray-label';
+        cityLabel.className = 'grey-label';
+        addressLabel.className = 'grey-label';
     } else { //shades state
         stateLabel.className = 'blue-label';
-        metroLabel.className = 'gray-label';
-        cityLabel.className = 'gray-label';
-        addressLabel.className = 'gray-label';
+        metroLabel.className = 'grey-label';
+        cityLabel.className = 'grey-label';
+        addressLabel.className = 'grey-label';
     }
   });
 
@@ -417,16 +628,20 @@ map.on('load', function () {
     //use current year
     document.getElementById('Year').innerText = Year;
 
+    //++++++++++++++++++
+    //UPDATES TO BUBBLES
+    //++++++++++++++++++
+
     //STATE updates
     map.setPaintProperty('stateCircle', 'circle-color', {
-      property: 'qy' + Year,
+      property: 'qg' + Year,
       type: 'interval',
       default: 'rgba(0,0,0,0)',
       stops: colorList
     })
 
     map.setPaintProperty('stateCircle', 'circle-stroke-color', {
-      property: 'qy' + Year,
+      property: 'qg' + Year,
       type: 'interval',
       default: 'rgba(0,0,0,0)',
       stops: strokeBlack
@@ -434,20 +649,20 @@ map.on('load', function () {
 
     map.setPaintProperty('stateCircle', 'circle-radius', [
       'interpolate', ['linear'], ['zoom'],
-      zoomArray[0][0], [ '+', ['/', ['number', ['get','o' + Year]], bubbleSize[0][0]], 3],
-      zoomArray[0][1], [ '+', ['/', ['number', ['get','o' + Year]], bubbleSize[0][1]], 3]
+      zoomArray[0][0], [ '+', ['/', ['number', ['get','o' + Year]], bubbleSize[0][0]], 0],
+      zoomArray[0][1], [ '+', ['/', ['number', ['get','o' + Year]], bubbleSize[0][1]], 0]
     ])
 
     //METRO updates
     map.setPaintProperty('metroCircle', 'circle-color', {
-      property: 'qy' + Year,
+      property: 'qg' + Year,
       type: 'interval',
       default: 'rgba(0,0,0,0)',
       stops: colorList
     })
 
     map.setPaintProperty('metroCircle', 'circle-stroke-color', {
-      property: 'qy' + Year,
+      property: 'qg' + Year,
       type: 'interval',
       default: 'rgba(0,0,0,0)',
       stops: strokeBlack
@@ -455,20 +670,20 @@ map.on('load', function () {
 
     map.setPaintProperty('metroCircle', 'circle-radius', [
       'interpolate', ['linear'], ['zoom'],
-      zoomArray[1][0], [ '+', ['/', ['number', ['get','so' + Year]], bubbleSize[1][0]], 2],
-      zoomArray[1][1], [ '+', ['/', ['number', ['get','so' + Year]], bubbleSize[1][1]], 2]
+      zoomArray[1][0], [ '+', ['/', ['number', ['get','so' + Year]], bubbleSize[1][0]], 0],
+      zoomArray[1][1], [ '+', ['/', ['number', ['get','so' + Year]], bubbleSize[1][1]], 0]
     ])
     
     //CITY updates
     map.setPaintProperty('cityCircle', 'circle-color', {
-      property: 'qy' + Year,
+      property: 'qg' + Year,
       type: 'interval',
       default: 'rgba(0,0,0,0)',
       stops: colorList
     })
 
     map.setPaintProperty('cityCircle', 'circle-stroke-color', {
-      property: 'qy' + Year,
+      property: 'qg' + Year,
       type: 'interval',
       default: 'rgba(0,0,0,0)',
       stops: strokeBlack
@@ -476,13 +691,105 @@ map.on('load', function () {
 
     map.setPaintProperty('cityCircle', 'circle-radius', [
       'interpolate', ['linear'], ['zoom'],
-      zoomArray[2][0], [ '+', ['/', ['number', ['get','so' + Year]], bubbleSize[2][0]], 2],
-      zoomArray[2][1], [ '+', ['/', ['number', ['get','so' + Year]], bubbleSize[2][1]], 2]
+      zoomArray[2][0], [ '+', ['/', ['number', ['get','so' + Year]], bubbleSize[2][0]], 0],
+      zoomArray[2][1], [ '+', ['/', ['number', ['get','so' + Year]], bubbleSize[2][1]], 0]
+    ])
+
+    //CITY TREERING updates: LLC
+    map.setPaintProperty('llcCircle', 'circle-color', {
+      property: 'qg' + Year,
+      type: 'interval',
+      default: 'rgba(0,0,0,0)',
+      stops: [
+        [0, "rgba(0,0,0,0)"],
+        [1, colorList[1][1]]
+      ],
+    })
+
+    map.setPaintProperty('llcCircle', 'circle-stroke-color', {
+      property: 'qg' + Year,
+      type: 'interval',
+      default: 'rgba(0,0,0,0)',
+      stops: strokeBlack
+    })
+
+    map.setPaintProperty('llcCircle', 'circle-radius', [
+      'interpolate', ['linear'], ['zoom'],
+      zoomArray[3][0], [ '+', ['/', ['number', ['get','so' + Year]], bubbleSize[3][0]], 0],
+      zoomArray[3][1], [ '+', ['/', ['number', ['get','so' + Year]], bubbleSize[3][1]], 0]
+    ])
+
+    //CITY TREERING updates: CORP
+    map.setPaintProperty('corpCircle', 'circle-color', {
+      property: 'qg' + Year,
+      type: 'interval',
+      default: 'rgba(0,0,0,0)',
+      stops: [
+        [0, "rgba(0,0,0,0)"],
+        [1, colorList[2][1]]
+      ],
+    })
+
+    map.setPaintProperty('corpCircle', 'circle-radius', [
+      'interpolate', ['linear'], ['zoom'],
+      zoomArray[3][0], [ '+', ['/', ['number', ['get','TCORP' + Year]], bubbleSize[3][0]], 0],
+      zoomArray[3][1], [ '+', ['/', ['number', ['get','TCORP' + Year]], bubbleSize[3][1]], 0]
+    ])
+
+    //CITY TREERING updates: Delaware
+    map.setPaintProperty('deCircle', 'circle-color', {
+      property: 'qg' + Year,
+      type: 'interval',
+      default: 'rgba(0,0,0,0)',
+      stops: [
+        [0, "rgba(0,0,0,0)"],
+        [1, colorList[3][1]]
+      ],
+    })
+
+    map.setPaintProperty('deCircle', 'circle-radius', [
+      'interpolate', ['linear'], ['zoom'],
+      zoomArray[3][0], [ '+', ['/', ['number', ['get','TDE' + Year]], bubbleSize[3][0]], 0],
+      zoomArray[3][1], [ '+', ['/', ['number', ['get','TDE' + Year]], bubbleSize[3][1]], 0]
+    ])
+
+    //CITY TREERING updates: Patent or Trademark
+    map.setPaintProperty('pttmCircle', 'circle-color', {
+      property: 'qg' + Year,
+      type: 'interval',
+      default: 'rgba(0,0,0,0)',
+      stops: [
+        [0, "rgba(0,0,0,0)"],
+        [1, colorList[4][1]]
+      ],
+    })
+
+    map.setPaintProperty('pttmCircle', 'circle-radius', [
+      'interpolate', ['linear'], ['zoom'],
+      zoomArray[3][0], [ '+', ['/', ['number', ['get','TPTTM' + Year]], bubbleSize[3][0]], 0],
+      zoomArray[3][1], [ '+', ['/', ['number', ['get','TPTTM' + Year]], bubbleSize[3][1]], 0]
+    ])
+
+    //CITY TREERING updates: 2+ measures
+    map.setPaintProperty('twoupCircle', 'circle-color', {
+      property: 'qg' + Year,
+      type: 'interval',
+      default: 'rgba(0,0,0,0)',
+      stops: [
+        [0, "rgba(0,0,0,0)"],
+        [1, colorList[5][1]]
+      ],
+    })
+
+    map.setPaintProperty('twoupCircle', 'circle-radius', [
+      'interpolate', ['linear'], ['zoom'],
+      zoomArray[3][0], [ '+', ['/', ['number', ['get','TTWOUP' + Year]], bubbleSize[3][0]], 0],
+      zoomArray[3][1], [ '+', ['/', ['number', ['get','TTWOUP' + Year]], bubbleSize[3][1]], 0]
     ])
 
     //address updates
     map.setPaintProperty('addressCircle', 'circle-color', {
-      property: 'qy' + Year,
+      property: 'qg' + Year,
       type: 'interval',
       default: 'rgba(0,0,0,0)',
       stops: colorList
@@ -490,12 +797,12 @@ map.on('load', function () {
 
     map.setPaintProperty('addressCircle', 'circle-radius', [
       'interpolate', ['linear'], ['zoom'],
-      zoomArray[4][0], [ '+', ['/', ['number', ['get','o' + Year]], bubbleSize[3][0]], 2],
-      zoomArray[4][1], [ '+', ['/', ['number', ['get','o' + Year]], bubbleSize[3][1]], 2]
+      zoomArray[4][0], [ '+', ['/', ['number', ['get','o' + Year]], bubbleSize[4][0]], 0],
+      zoomArray[4][1], [ '+', ['/', ['number', ['get','o' + Year]], bubbleSize[4][1]], 0]
     ])
 
     map.setPaintProperty('addressCircle', 'circle-stroke-color', {
-      property: 'qy' + Year,
+      property: 'qg' + Year,
       type: 'interval',
       default: 'rgba(0,0,0,0)',
       stops: strokeBlack
@@ -514,14 +821,20 @@ map.on('load', function () {
     }
   });
 
+  //++++++++++++
   //TOOLTIPS
+  //++++++++++++
   // When a click event occurs near a place, open a popup tooltip at the
   // location of the feature, with description HTML from its properties.
   
   map.on('click', function (e) {
-    if (map.getZoom() >= zoomList[2] && map.getZoom() < zoomList[4]) { //city
+    if (map.getZoom() >= zoomList[2] && map.getZoom() < zoomList[3]) { //city
       var features = map.queryRenderedFeatures(e.point, {
         layers: ['cityCircle']
+      });
+    } else if (map.getZoom() >= zoomList[3] && map.getZoom() < zoomList[4]) { //metro
+      var features = map.queryRenderedFeatures(e.point, {
+        layers: ['llcCircle']
       });
     } else if (map.getZoom() >= zoomList[1] && map.getZoom() < zoomList[2]) { //metro
       var features = map.queryRenderedFeatures(e.point, {
@@ -545,15 +858,31 @@ map.on('load', function () {
     }
 
     //designs tooltips
-    if (map.getZoom() >= zoomList[2] && map.getZoom() < zoomList[4]) { //city
+    if (map.getZoom() >= zoomList[2] && map.getZoom() < zoomList[3]) { //city
       var popup = new mapboxgl.Popup()
       .setLngLat(feature.geometry.coordinates)
       .setHTML('<div id="popup" class="popup" style="z-index: 10;"> ' +
           '<ul class="list-group">' +
           '<li class="list-group-item"> City: ' + feature.properties['city'] + " </li>" +
-          '<li class="list-group-item"> Quality %: ' + feature.properties['qy' + Year]/10 +
+          '<li class="list-group-item"> Quality %: ' + feature.properties['qg' + Year]/10 +
           '<li class="list-group-item"> Quantity: ' + numberWithCommas(feature.properties['o' + Year]) +
           '<li class="list-group-item"> Year: ' + [Year] +
+          '</ul> </div>')
+          .addTo(map);
+      } else if (map.getZoom() >= zoomList[3] && map.getZoom() < zoomList[4]) { //city treering
+        var popup = new mapboxgl.Popup()
+        .setLngLat(feature.geometry.coordinates)
+        .setHTML('<div id="popup" class="popup" style="z-index: 10;"> ' +
+          '<ul class="list-group">' +
+          '<li class="list-group-item"> City: ' + feature.properties['city'] + " </li>" +
+          '<li class="list-group-item"> Quality %: ' + feature.properties['qg' + Year]/10 +
+          '<li class="list-group-item"> Quantity: ' + numberWithCommas(feature.properties['o' + Year]) +
+          '<li class="list-group-item"> Year: ' + [Year] + 
+          '<li class="list-group-item"> LLC: ' + numberWithCommas(feature.properties['LLC' + Year]) +
+          '<li class="list-group-item"> Corp: ' + numberWithCommas(feature.properties['CORP' + Year]) +
+          '<li class="list-group-item"> Delaware: ' + numberWithCommas(feature.properties['DE' + Year]) +
+          '<li class="list-group-item"> Patent or TM: ' + numberWithCommas(feature.properties['PTTM' + Year]) +
+          '<li class="list-group-item"> 2+ Measures: ' + numberWithCommas(feature.properties['TWOUP' + Year]) +
           '</ul> </div>')
           .addTo(map);
       } else if (map.getZoom() >= zoomList[1] && map.getZoom() < zoomList[2]) { //metro
@@ -561,9 +890,8 @@ map.on('load', function () {
         .setLngLat(feature.geometry.coordinates)
         .setHTML('<div id="popup" class="popup" style="z-index: 10;"> ' +
           '<ul class="list-group">' +
-          //TK fix this with MSA string name
-          //'<li class="list-group-item"> MSA: ' + feature.properties['datastate'] + " </li>" +
-          '<li class="list-group-item"> Quality %: ' + feature.properties['qy' + Year]/10 +
+          '<li class="list-group-item"> MSA: ' + feature.properties['area'] + " </li>" +
+          '<li class="list-group-item"> Quality %: ' + feature.properties['qg' + Year]/10 +
           '<li class="list-group-item"> Quantity: ' + numberWithCommas(feature.properties['o' + Year]) +
           '<li class="list-group-item"> Year: ' + [Year] +
           '</ul> </div>')
@@ -574,7 +902,7 @@ map.on('load', function () {
         .setHTML('<div id="popup" class="popup" style="z-index: 10;"> ' +
           '<ul class="list-group">' +
           '<li class="list-group-item"> State: ' + feature.properties['datastate'] + " </li>" +
-          '<li class="list-group-item"> Quality %: ' + feature.properties['qy' + Year]/10 +
+          '<li class="list-group-item"> Quality %: ' + feature.properties['qg' + Year]/10 +
           '<li class="list-group-item"> Quantity: ' + numberWithCommas(feature.properties['o' + Year]) +
           '<li class="list-group-item"> Year: ' + [Year] +
           '</ul> </div>')
@@ -585,9 +913,14 @@ map.on('load', function () {
   // Use the same approach as above to indicate that the symbols are clickable
   // by changing the cursor style to 'pointer'.
   map.on('mousemove', function (e) {
-    if (map.getZoom() >= zoomList[2] && map.getZoom() < zoomList[4]) { //city
+    if (map.getZoom() >= zoomList[2] && map.getZoom() < zoomList[3]) { //city
       var features = map.queryRenderedFeatures(e.point, {
         layers: ['cityCircle']
+      });
+      map.getCanvas().style.cursor = (features.length) ? 'pointer' : '';
+    } else if (map.getZoom() >= zoomList[3] && map.getZoom() < zoomList[4]) { //city treering
+      var features = map.queryRenderedFeatures(e.point, {
+        layers: ['llcCircle']
       });
       map.getCanvas().style.cursor = (features.length) ? 'pointer' : '';
     } else if (map.getZoom() >= zoomList[1] && map.getZoom() < zoomList[2]) { //metro

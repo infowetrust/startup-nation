@@ -175,11 +175,11 @@ stroke: rgba(0,0,0,0);
 stroke-width:2;
 }
 line.all-years {
-stroke: gray;
+stroke: grey;
 stroke-width:1;
 }
 line.five-years {
-stroke: gray;
+stroke: grey;
 stroke-width:2;
 }
 
@@ -209,7 +209,7 @@ text-decoration:none;
   /*font-weight: bold;*/
 }
 
-.gray-label {
+.grey-label {
   color:Gainsboro;
 }
 
