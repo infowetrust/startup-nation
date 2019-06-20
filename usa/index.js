@@ -57,7 +57,7 @@ var zoomArray = [
 var bubbleSize = [
 [5000, 5000], // state
 [20,3], // metro
-[10,1], // city
+[2,1], // city
 [1,1], // city treering
 [3,2] // address
 ];
@@ -797,8 +797,8 @@ map.on('load', function () {
 
     map.setPaintProperty('addressCircle', 'circle-radius', [
       'interpolate', ['linear'], ['zoom'],
-      zoomArray[4][0], [ '+', ['/', ['number', ['get','o' + Year]], bubbleSize[4][0]], 0],
-      zoomArray[4][1], [ '+', ['/', ['number', ['get','o' + Year]], bubbleSize[4][1]], 0]
+      zoomArray[4][0], [ '+', ['/', ['number', ['get','o' + Year]], bubbleSize[4][0]], 2],
+      zoomArray[4][1], [ '+', ['/', ['number', ['get','o' + Year]], bubbleSize[4][1]], 2]
     ])
 
     map.setPaintProperty('addressCircle', 'circle-stroke-color', {
@@ -890,7 +890,7 @@ map.on('load', function () {
         .setLngLat(feature.geometry.coordinates)
         .setHTML('<div id="popup" class="popup" style="z-index: 10;"> ' +
           '<ul class="list-group">' +
-          '<li class="list-group-item"> MSA: ' + feature.properties['area'] + " </li>" +
+          '<li class="list-group-item"> Metro: ' + feature.properties['area'] + " </li>" +
           '<li class="list-group-item"> Quality %: ' + feature.properties['qg' + Year]/10 +
           '<li class="list-group-item"> Quantity: ' + numberWithCommas(feature.properties['o' + Year]) +
           '<li class="list-group-item"> Year: ' + [Year] +
