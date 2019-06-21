@@ -150,7 +150,7 @@ map.on('load', function () {
         ]
       },
     }
-  }, 'state-label-lg');
+  }, 'place-neighbourhood');
 
   // STATE BUBBLES
   map.addLayer({
@@ -198,7 +198,7 @@ map.on('load', function () {
       ],
     },
     //filter: ['==', 'year', Year]
-  }, 'state-label-lg');
+  }, 'place-neighbourhood');
 
   // metro BUBBLES
   map.addLayer({
@@ -249,7 +249,7 @@ map.on('load', function () {
       ],
     },
     //filter: ['==', 'year', Year]
-  }, 'state-label-lg');
+  }, 'place-neighbourhood');
   
   // CITY BUBBLES
   map.addLayer({
@@ -300,7 +300,7 @@ map.on('load', function () {
       ],
     },
     //filter: ['==', 'year', Year]
-  }, 'state-label-lg'); //'state-label-lg'
+  }, 'place-neighbourhood'); //'place-neighbourhood'
 
   // CITY TREERINGS
   // CITY LLC
@@ -355,7 +355,7 @@ map.on('load', function () {
       ],
     },
     //filter: ['==', 'year', Year]
-  }, 'state-label-lg'); //waterway-label
+  }, 'place-neighbourhood'); //waterway-label
 
   // CITY CORP
   map.addLayer({
@@ -394,7 +394,7 @@ map.on('load', function () {
       'circle-stroke-width': 0,
       'circle-stroke-opacity': 0,
     },
-  }, 'state-label-lg');
+  }, 'place-neighbourhood');
 
   // CITY DELAWARE
   map.addLayer({
@@ -433,7 +433,7 @@ map.on('load', function () {
       'circle-stroke-width': 0,
       'circle-stroke-opacity': 0,
     },
-  }, 'state-label-lg');
+  }, 'place-neighbourhood');
 
   // CITY PATENT OR TRADEMARK
   map.addLayer({
@@ -472,7 +472,7 @@ map.on('load', function () {
       'circle-stroke-width': 0,
       'circle-stroke-opacity': 0,
     },
-  }, 'state-label-lg');
+  }, 'place-neighbourhood');
 
   // CITY TWO+ MEASURES
   map.addLayer({
@@ -511,7 +511,7 @@ map.on('load', function () {
       'circle-stroke-width': 0,
       'circle-stroke-opacity': 0,
     },
-  }, 'state-label-lg');
+  }, 'place-neighbourhood');
 
   // ADDRESS BUBBLES
   map.addLayer({
@@ -559,7 +559,7 @@ map.on('load', function () {
       ],
     },
     //filter: ['==', 'Year', Year]
-  }, 'state-label-lg')
+  }, 'place-neighbourhood')
 
   //listens for CONTEXT radio selection changes
   $(document).ready(function () {
