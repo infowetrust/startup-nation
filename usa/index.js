@@ -150,7 +150,7 @@ map.on('load', function () {
         ]
       },
     }
-  }, 'waterway-label');
+  }, 'state-label-lg');
 
   // STATE BUBBLES
   map.addLayer({
@@ -198,7 +198,7 @@ map.on('load', function () {
       ],
     },
     //filter: ['==', 'year', Year]
-  }, 'waterway-label');
+  }, 'state-label-lg');
 
   // metro BUBBLES
   map.addLayer({
@@ -249,7 +249,7 @@ map.on('load', function () {
       ],
     },
     //filter: ['==', 'year', Year]
-  }, 'waterway-label');
+  }, 'state-label-lg');
   
   // CITY BUBBLES
   map.addLayer({
@@ -300,7 +300,7 @@ map.on('load', function () {
       ],
     },
     //filter: ['==', 'year', Year]
-  }, 'waterway-label');
+  }, 'state-label-lg'); //'state-label-lg'
 
   // CITY TREERINGS
   // CITY LLC
@@ -355,7 +355,7 @@ map.on('load', function () {
       ],
     },
     //filter: ['==', 'year', Year]
-  }, 'waterway-label');
+  }, 'state-label-lg'); //waterway-label
 
   // CITY CORP
   map.addLayer({
@@ -394,7 +394,7 @@ map.on('load', function () {
       'circle-stroke-width': 0,
       'circle-stroke-opacity': 0,
     },
-  }, 'waterway-label');
+  }, 'state-label-lg');
 
   // CITY DELAWARE
   map.addLayer({
@@ -433,7 +433,7 @@ map.on('load', function () {
       'circle-stroke-width': 0,
       'circle-stroke-opacity': 0,
     },
-  }, 'waterway-label');
+  }, 'state-label-lg');
 
   // CITY PATENT OR TRADEMARK
   map.addLayer({
@@ -472,7 +472,7 @@ map.on('load', function () {
       'circle-stroke-width': 0,
       'circle-stroke-opacity': 0,
     },
-  }, 'waterway-label');
+  }, 'state-label-lg');
 
   // CITY TWO+ MEASURES
   map.addLayer({
@@ -511,7 +511,7 @@ map.on('load', function () {
       'circle-stroke-width': 0,
       'circle-stroke-opacity': 0,
     },
-  }, 'waterway-label');
+  }, 'state-label-lg');
 
   // ADDRESS BUBBLES
   map.addLayer({
@@ -559,7 +559,7 @@ map.on('load', function () {
       ],
     },
     //filter: ['==', 'Year', Year]
-  }, 'waterway-label')
+  }, 'state-label-lg')
 
   //listens for CONTEXT radio selection changes
   $(document).ready(function () {
