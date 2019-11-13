@@ -122,7 +122,7 @@ map.on('load', function () {
   map.addSource('composite_data', {
     type: 'vector',
   //order: state, metro, city, address, county
-  url: 'mapbox://startupcarto.13epddkq,startupcarto.945t2qyx,startupcarto.36zzg4u3,startupcarto.0pcw9xn9,startupcarto.8r1dzrwh'
+  url: 'mapbox://startupcarto.b00gfne8,startupcarto.47kcpkgc,startupcarto.b5loycsy,startupcarto.cisz51nw,startupcarto.8r1dzrwh'
   });
 
   // COUNTY SHADING (1st because it is bottom layer)
